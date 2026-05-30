@@ -6,11 +6,7 @@
   <title>Security Gate - MBGE</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
-      min-height: 100vh;
-    }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
     header {
       background: #1a5c2a;
       color: #fff;
@@ -19,16 +15,20 @@
       justify-content: space-between;
       padding: 14px 18px;
     }
-    header h1 { font-size: 17px; }
-    .back-link { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; }
-    .back-link:hover { color: #fff; }
-    .date-badge {
+    header h1 { font-size: 16px; }
+    .hdr-right { display: flex; gap: 8px; align-items: center; }
+    .btn-hdr {
       background: rgba(255,255,255,0.15);
-      padding: 5px 10px;
-      border-radius: 6px;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 7px;
+      padding: 7px 12px;
       font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
     }
-
+    .btn-hdr:hover { background: rgba(255,255,255,0.25); }
+    .date-badge { background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 6px; font-size: 12px; }
     .tabs {
       display: flex;
       background: #fff;
@@ -44,17 +44,15 @@
       color: #777;
       cursor: pointer;
       border-bottom: 3px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
     }
     .tab-btn.active { color: #1a5c2a; border-bottom-color: #1a5c2a; }
-
     .tab-content { display: none; padding: 16px; max-width: 540px; margin: 0 auto; }
     .tab-content.active { display: block; }
 
-    /* Scan tab */
+    /* Scanner */
     .scanner-wrap {
       position: relative;
-      background: #000;
+      background: #111;
       border-radius: 12px;
       overflow: hidden;
       aspect-ratio: 4/3;
@@ -63,44 +61,25 @@
       align-items: center;
       justify-content: center;
     }
-    #video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none;
-    }
-    .scanner-placeholder {
-      color: #555;
-      text-align: center;
-      padding: 20px;
-      font-size: 14px;
-    }
+    #video { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .scanner-placeholder { color: #888; text-align: center; padding: 20px; font-size: 14px; }
     .scan-overlay {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 180px;
-      height: 180px;
+      width: 180px; height: 180px;
       border: 3px solid rgba(255,255,255,0.7);
       border-radius: 12px;
       display: none;
     }
-    .scan-overlay.active { display: block; }
+    .scan-overlay.on { display: block; }
     #canvas { display: none; }
-
     .btn-scanner {
-      width: 100%;
-      padding: 13px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      background: #1a5c2a;
-      transition: background 0.15s;
+      width: 100%; padding: 13px; margin-top: 10px;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; color: #fff;
+      background: #1a5c2a; transition: background 0.15s;
     }
     .btn-scanner:hover { background: #145221; }
     .btn-scanner.stop { background: #c0392b; }
@@ -114,163 +93,134 @@
       padding: 18px;
       margin-top: 14px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      border-left: 5px solid #007bff;
+      border-left: 5px solid #6c757d;
     }
-    .visitor-card.valid   { border-left-color: #28a745; }
-    .visitor-card.invalid { border-left-color: #dc3545; }
-    .date-status {
-      font-size: 13px;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 6px;
+    .visitor-card.verified { border-left-color: #28a745; }
+    .visitor-card.unsigned { border-left-color: #ffc107; }
+    .visitor-card.invalid  { border-left-color: #dc3545; }
+
+    .verify-badge {
       display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
       margin-bottom: 12px;
     }
-    .date-status.valid   { background: #d4edda; color: #155724; }
-    .date-status.invalid { background: #f8d7da; color: #721c24; }
-    .date-status.future  { background: #fff3cd; color: #856404; }
-    .vrow {
-      display: flex;
-      padding: 6px 0;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 14px;
+    .vb-verified  { background: #d4edda; color: #155724; }
+    .vb-unsigned  { background: #fff3cd; color: #856404; }
+    .vb-no-secret { background: #cce5ff; color: #004085; }
+    .vb-invalid   { background: #f8d7da; color: #721c24; }
+
+    .date-badge-card {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      margin-left: 6px;
     }
+    .db-valid   { background: #d4edda; color: #155724; }
+    .db-future  { background: #fff3cd; color: #856404; }
+    .db-expired { background: #f8d7da; color: #721c24; }
+    .db-none    { background: #e2e8f0; color: #444; }
+
+    .vrow { display: flex; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
     .vrow:last-of-type { border-bottom: none; }
-    .vrow .vlabel { color: #777; width: 90px; flex-shrink: 0; }
-    .vrow .vval   { color: #111; font-weight: 600; }
+    .vlabel { color: #777; width: 90px; flex-shrink: 0; }
+    .vval   { color: #111; font-weight: 600; }
 
-    .action-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-    }
+    .action-row { display: flex; gap: 10px; margin-top: 14px; }
     .btn-grant, .btn-deny {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      transition: opacity 0.15s;
+      flex: 1; padding: 14px; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer; color: #fff;
     }
-    .btn-grant:hover, .btn-deny:hover { opacity: 0.88; }
     .btn-grant { background: #28a745; }
+    .btn-grant:hover { background: #218838; }
     .btn-deny  { background: #dc3545; }
-    .btn-reset {
-      width: 100%;
-      margin-top: 8px;
-      padding: 10px;
-      background: transparent;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      color: #555;
-    }
-    .btn-reset:hover { background: #f5f5f5; }
-
+    .btn-deny:hover  { background: #c0392b; }
     .action-result {
-      display: none;
-      padding: 14px;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 15px;
-      font-weight: 700;
-      margin-top: 10px;
+      display: none; padding: 14px; border-radius: 10px;
+      text-align: center; font-size: 15px; font-weight: 700; margin-top: 10px;
     }
     .action-result.granted { background: #d4edda; color: #155724; }
     .action-result.denied  { background: #f8d7da; color: #721c24; }
-
+    .btn-reset {
+      width: 100%; margin-top: 8px; padding: 10px;
+      background: transparent; border: 1px solid #ccc;
+      border-radius: 8px; font-size: 14px; cursor: pointer; color: #555;
+    }
+    .btn-reset:hover { background: #f5f5f5; }
     .qr-error {
-      display: none;
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      color: #856404;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-top: 10px;
+      display: none; background: #fff3cd; border: 1px solid #ffc107;
+      color: #856404; padding: 10px 14px; border-radius: 8px;
+      font-size: 13px; margin-top: 10px;
     }
 
-    /* Manual tab */
+    /* Manual */
     .field { margin-bottom: 14px; }
     .field label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
     .field input {
-      width: 100%;
-      padding: 12px;
-      font-size: 15px;
-      border: 1px solid #d0d7e0;
-      border-radius: 8px;
-      outline: none;
+      width: 100%; padding: 12px; font-size: 15px;
+      border: 1px solid #d0d7e0; border-radius: 8px; outline: none;
     }
     .field input:focus { border-color: #1a5c2a; }
-    .man-action-row { display: flex; gap: 10px; margin-top: 6px; }
+    .man-row { display: flex; gap: 10px; margin-top: 6px; }
     #manResult {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      display: none;
+      margin-top: 12px; padding: 12px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; display: none;
     }
     #manResult.granted { background: #d4edda; color: #155724; }
     #manResult.denied  { background: #f8d7da; color: #721c24; }
 
-    /* Log tab */
-    .log-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .log-header h3 { color: #002855; font-size: 16px; }
-    .log-filter {
-      padding: 7px 10px;
-      border: 1px solid #d0d7e0;
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-    }
-    .log-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-    }
-    .log-table th {
-      background: #002855;
-      color: #fff;
-      padding: 10px 8px;
-      text-align: left;
-      font-size: 12px;
-    }
+    /* Log */
+    .log-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .log-hdr h3 { color: #002855; font-size: 15px; }
+    .log-filter { padding: 7px 10px; border: 1px solid #d0d7e0; border-radius: 8px; font-size: 13px; outline: none; }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    .log-table th { background: #002855; color: #fff; padding: 10px 8px; text-align: left; font-size: 12px; }
     .log-table td { padding: 9px 8px; border-bottom: 1px solid #f0f4f8; vertical-align: top; }
     .log-table tr:last-child td { border-bottom: none; }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-    }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
     .badge.granted { background: #d4edda; color: #155724; }
     .badge.denied  { background: #f8d7da; color: #721c24; }
     .badge.manual  { background: #cce5ff; color: #004085; }
     .empty-log { text-align: center; color: #aaa; padding: 24px; font-size: 14px; }
     .log-count { font-size: 12px; color: #777; margin-top: 8px; }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+    .modal h3 { color: #002855; font-size: 16px; margin-bottom: 8px; }
+    .modal p  { color: #555; font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+    .modal input { width: 100%; padding: 11px; font-size: 14px; border: 1px solid #ccc; border-radius: 8px; outline: none; margin-bottom: 12px; font-family: monospace; }
+    .modal input:focus { border-color: #1a5c2a; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-ms { background: #1a5c2a; color: #fff; }
+    .btn-ms:hover { background: #145221; }
+    .btn-mc { background: #f0f4f8; color: #555; }
+    .btn-mc:hover { background: #e0e7ef; }
+    .secret-status { font-size: 12px; padding: 5px 10px; border-radius: 5px; margin-bottom: 10px; }
+    .secret-status.ok  { background: #d4edda; color: #155724; }
+    .secret-status.bad { background: #fff3cd; color: #856404; }
   </style>
 </head>
 <body>
 
   <header>
-    <a class="back-link" href="index.html">Back</a>
     <h1>MBGE Security Gate</h1>
-    <span class="date-badge" id="todayDate"></span>
+    <div class="hdr-right">
+      <span class="date-badge" id="todayDate"></span>
+      <button class="btn-hdr" onclick="openSecretModal()">Estate Key</button>
+      <a class="btn-hdr" href="index.html">Back</a>
+    </div>
   </header>
 
   <nav class="tabs">
@@ -279,10 +229,10 @@
     <button class="tab-btn"        onclick="switchTab('log')">Access Log</button>
   </nav>
 
-  <!-- Scan QR Tab -->
+  <!-- Scan tab -->
   <div id="scanTab" class="tab-content active">
-    <div class="scanner-wrap" id="scannerWrap">
-      <div class="scanner-placeholder" id="scanPlaceholder">
+    <div class="scanner-wrap" id="scanWrap">
+      <div class="scanner-placeholder" id="scanPH">
         <div style="font-size:36px;margin-bottom:8px;">&#x25A6;</div>
         Press <strong>Start Scanner</strong> to activate camera
       </div>
@@ -290,52 +240,47 @@
       <canvas id="canvas"></canvas>
       <div class="scan-overlay" id="scanOverlay"></div>
     </div>
-
     <button class="btn-scanner" id="startBtn" onclick="startScanner()">Start Scanner</button>
     <button class="btn-scanner stop" id="stopBtn" onclick="stopScanner()" style="display:none;">Stop Scanner</button>
-
     <div class="qr-error" id="qrError"></div>
 
     <div class="visitor-card" id="visitorCard">
-      <div id="dateStatus" class="date-status"></div>
+      <div>
+        <span id="verifyBadge" class="verify-badge"></span>
+        <span id="dateBadge"   class="date-badge-card"></span>
+      </div>
       <div class="vrow"><span class="vlabel">Visitor</span><span class="vval" id="vName"></span></div>
-      <div class="vrow"><span class="vlabel">Plate</span><span class="vval" id="vPlate"></span></div>
-      <div class="vrow"><span class="vlabel">ID No.</span><span class="vval" id="vId"></span></div>
-      <div class="vrow"><span class="vlabel">Date</span><span class="vval" id="vDate"></span></div>
+      <div class="vrow"><span class="vlabel">Plate</span>  <span class="vval" id="vPlate"></span></div>
+      <div class="vrow"><span class="vlabel">ID No.</span> <span class="vval" id="vId"></span></div>
+      <div class="vrow"><span class="vlabel">Date</span>   <span class="vval" id="vDate"></span></div>
       <div class="vrow"><span class="vlabel">Invited by</span><span class="vval" id="vBy"></span></div>
-      <div class="action-row">
+      <div class="action-row" id="actionRow">
         <button class="btn-grant" onclick="logQRAccess('granted')">GRANT ACCESS</button>
         <button class="btn-deny"  onclick="logQRAccess('denied')">DENY ENTRY</button>
       </div>
       <div class="action-result" id="actionResult"></div>
-      <button class="btn-reset" onclick="resetScan()" id="scanAgainBtn" style="display:none;">Scan Another</button>
+      <button class="btn-reset" id="scanAgainBtn" style="display:none;" onclick="resetScan()">Scan Another</button>
     </div>
   </div>
 
-  <!-- Manual Tab -->
+  <!-- Manual tab -->
   <div id="manualTab" class="tab-content">
+    <div class="field"><label>Visitor Full Name</label><input type="text" id="manName" placeholder="e.g. John Jones"></div>
+    <div class="field"><label>Licence Plate</label><input type="text" id="manPlate" placeholder="e.g. ABC123GP"></div>
     <div class="field">
-      <label>Visitor Full Name</label>
-      <input type="text" id="manName" placeholder="e.g. John Jones">
-    </div>
-    <div class="field">
-      <label>Licence Plate</label>
-      <input type="text" id="manPlate" placeholder="e.g. ABC123GP">
-    </div>
-    <div class="field">
-      <label>Invited by (Resident / Unit) <span style="font-weight:400;color:#999;">(optional)</span></label>
+      <label>Invited by — Resident / Unit <span style="font-weight:400;color:#999;">(optional)</span></label>
       <input type="text" id="manBy" placeholder="e.g. John Smith / A12">
     </div>
-    <div class="man-action-row">
+    <div class="man-row">
       <button class="btn-grant" onclick="manualAction('granted')">GRANT ACCESS</button>
       <button class="btn-deny"  onclick="manualAction('denied')">DENY ENTRY</button>
     </div>
     <div id="manResult"></div>
   </div>
 
-  <!-- Log Tab -->
+  <!-- Log tab -->
   <div id="logTab" class="tab-content">
-    <div class="log-header">
+    <div class="log-hdr">
       <h3>Access Log</h3>
       <select class="log-filter" id="logFilter" onchange="renderLog()">
         <option value="today">Today</option>
@@ -343,50 +288,84 @@
       </select>
     </div>
     <table class="log-table">
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Visitor</th>
-          <th>Plate</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Time</th><th>Visitor</th><th>Plate</th><th>Status</th></tr></thead>
       <tbody id="logBody"></tbody>
     </table>
     <p class="log-count" id="logCount"></p>
   </div>
 
+  <!-- Estate secret modal -->
+  <div class="modal-backdrop" id="secretModal">
+    <div class="modal">
+      <h3>Estate Signing Key</h3>
+      <p>Enter the same secret configured by your admin. This allows the gate to cryptographically verify that QR codes were genuinely generated by a registered resident.</p>
+      <div id="secretStatus" class="secret-status"></div>
+      <input type="text" id="secretInput" placeholder="Paste estate key here" spellcheck="false">
+      <div class="modal-btns">
+        <button class="btn-mc" onclick="closeSecretModal()">Cancel</button>
+        <button class="btn-ms" onclick="saveSecret()">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script>
-    // ---- State ----
-    let stream = null;
-    let scanning = false;
-    let currentVisitor = null;
-    const video  = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx    = canvas.getContext('2d');
-
     // ---- Date display ----
-    const today = new Date();
+    const today    = new Date();
     const todayStr = today.toISOString().split('T')[0];
     document.getElementById('todayDate').textContent = today.toLocaleDateString('en-ZA', {
       weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
     });
 
-    // ---- localStorage helpers ----
+    // ---- HMAC verification ----
+    async function hmacVerify(data, sigHex, secret) {
+      try {
+        const enc      = new TextEncoder();
+        const key      = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+        const sigBytes = new Uint8Array(sigHex.match(/../g).map(h => parseInt(h, 16)));
+        return await crypto.subtle.verify('HMAC', key, sigBytes, enc.encode(data));
+      } catch { return false; }
+    }
+
+    function getHmacSecret() {
+      return (JSON.parse(localStorage.getItem('mbge_settings') || '{}').hmacSecret) || '';
+    }
+
+    // ---- Estate secret modal ----
+    function openSecretModal() {
+      const secret = getHmacSecret();
+      document.getElementById('secretInput').value = secret;
+      const st = document.getElementById('secretStatus');
+      if (secret) {
+        st.textContent = 'Estate key is configured — QR verification active.';
+        st.className = 'secret-status ok';
+      } else {
+        st.textContent = 'No estate key configured — QR signatures cannot be verified.';
+        st.className = 'secret-status bad';
+      }
+      document.getElementById('secretModal').classList.add('show');
+    }
+    function closeSecretModal() { document.getElementById('secretModal').classList.remove('show'); }
+    function saveSecret() {
+      const val = document.getElementById('secretInput').value.trim();
+      const s   = JSON.parse(localStorage.getItem('mbge_settings') || '{}');
+      s.hmacSecret = val;
+      localStorage.setItem('mbge_settings', JSON.stringify(s));
+      closeSecretModal();
+    }
+
+    // ---- LocalStorage log ----
     function getLog() { return JSON.parse(localStorage.getItem('mbge_access_log') || '[]'); }
-    function addLogEntry(entry) {
+    function addLogEntry(e) {
       const log = getLog();
-      log.unshift(entry);
+      log.unshift(e);
       localStorage.setItem('mbge_access_log', JSON.stringify(log.slice(0, 1000)));
     }
 
     // ---- Tab switching ----
+    const TABS = ['scan', 'manual', 'log'];
     function switchTab(tab) {
-      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-        const tabs = ['scan', 'manual', 'log'];
-        btn.classList.toggle('active', tabs[i] === tab);
-      });
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', TABS[i] === tab));
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById(tab + 'Tab').classList.add('active');
       if (tab === 'log') renderLog();
@@ -394,6 +373,11 @@
     }
 
     // ---- QR Scanner ----
+    let stream = null, scanning = false, currentVisitor = null;
+    const video  = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx    = canvas.getContext('2d');
+
     async function startScanner() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -402,12 +386,12 @@
         video.srcObject = stream;
         await video.play();
         scanning = true;
-        document.getElementById('video').style.display = 'block';
-        document.getElementById('scanPlaceholder').style.display = 'none';
-        document.getElementById('scanOverlay').classList.add('active');
+        video.style.display = 'block';
+        document.getElementById('scanPH').style.display = 'none';
+        document.getElementById('scanOverlay').classList.add('on');
         document.getElementById('startBtn').style.display = 'none';
-        document.getElementById('stopBtn').style.display = 'block';
-        document.getElementById('qrError').style.display = 'none';
+        document.getElementById('stopBtn').style.display  = 'block';
+        document.getElementById('qrError').style.display  = 'none';
         requestAnimationFrame(scanFrame);
       } catch (err) {
         document.getElementById('qrError').textContent =
@@ -421,52 +405,60 @@
       if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
       video.srcObject = null;
       video.style.display = 'none';
-      document.getElementById('scanPlaceholder').style.display = 'block';
-      document.getElementById('scanOverlay').classList.remove('active');
-      document.getElementById('startBtn').style.display = 'block';
-      document.getElementById('stopBtn').style.display = 'none';
+      document.getElementById('scanPH').style.display     = 'block';
+      document.getElementById('scanOverlay').classList.remove('on');
+      document.getElementById('startBtn').style.display   = 'block';
+      document.getElementById('stopBtn').style.display    = 'none';
     }
 
     function scanFrame() {
       if (!scanning) return;
       if (video.readyState < video.HAVE_ENOUGH_DATA) { requestAnimationFrame(scanFrame); return; }
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-      if (code) {
-        stopScanner();
-        handleQRData(code.data);
-      } else {
-        requestAnimationFrame(scanFrame);
-      }
+      const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+      if (code) { stopScanner(); handleQRData(code.data); }
+      else       { requestAnimationFrame(scanFrame); }
     }
 
-    function handleQRData(raw) {
+    async function handleQRData(raw) {
       let v;
       try {
         v = JSON.parse(raw);
         if (!v.n || !v.p) throw new Error('bad');
       } catch (_) {
-        // Legacy format: "QR Info: Name - Plate - ID"
+        // Legacy "QR Info: Name - Plate - ID" format
         const m = raw.match(/QR Info:\s*(.+?)\s*-\s*([A-Z0-9]+)\s*-\s*(\d+)/i);
-        if (m) {
-          v = { n: m[1].trim(), p: m[2].trim(), id: m[3].trim(), d: null, byN: 'Unknown', unit: '' };
-        } else {
-          document.getElementById('qrError').textContent = 'Unrecognised QR code. Please try again.';
+        if (m) { v = { v: 1, n: m[1].trim(), p: m[2].trim(), id: m[3].trim(), d: null, byN: 'Unknown', unit: '', sig: 'none' }; }
+        else {
+          document.getElementById('qrError').textContent = 'Unrecognised QR code. Please try again or use Manual entry.';
           document.getElementById('qrError').style.display = 'block';
           return;
         }
       }
-      currentVisitor = v;
-      showVisitorCard(v);
+
+      // Verify signature
+      const secret = getHmacSecret();
+      let verifyState; // 'verified' | 'invalid' | 'unsigned' | 'no-secret'
+
+      if (v.v === 1 || v.sig === 'none' || !v.sig) {
+        verifyState = secret ? 'unsigned' : 'no-secret';
+      } else if (!secret) {
+        verifyState = 'no-secret';
+      } else {
+        const canonical = [v.v, v.n, v.p, v.id, v.d, v.by].join('|');
+        const ok = await hmacVerify(canonical, v.sig, secret);
+        verifyState = ok ? 'verified' : 'invalid';
+      }
+
+      currentVisitor = { ...v, verifyState };
+      showVisitorCard(v, verifyState);
     }
 
     function formatDate(d) {
       if (!d) return 'Not specified';
-      const dt = new Date(d + 'T00:00:00');
-      return dt.toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     }
 
     function maskId(id) {
@@ -474,41 +466,50 @@
       return '*'.repeat(id.length - 4) + id.slice(-4);
     }
 
-    function showVisitorCard(v) {
+    function showVisitorCard(v, verifyState) {
+      // Verification badge
+      const vb = document.getElementById('verifyBadge');
+      const vbMap = {
+        'verified':  ['vb-verified',  'SIGNATURE VERIFIED'],
+        'invalid':   ['vb-invalid',   'SIGNATURE INVALID — VERIFY MANUALLY'],
+        'unsigned':  ['vb-unsigned',  'UNSIGNED QR — VERIFY MANUALLY'],
+        'no-secret': ['vb-no-secret', 'SIGNATURE NOT CHECKED — configure Estate Key']
+      };
+      const [cls, txt] = vbMap[verifyState] || ['vb-no-secret', 'UNVERIFIED'];
+      vb.className = 'verify-badge ' + cls;
+      vb.textContent = txt;
+
+      // Date badge
+      const db = document.getElementById('dateBadge');
+      if (!v.d) {
+        db.textContent = 'Date: not specified'; db.className = 'date-badge-card db-none';
+      } else if (v.d === todayStr) {
+        db.textContent = 'Valid today'; db.className = 'date-badge-card db-valid';
+      } else if (v.d > todayStr) {
+        db.textContent = 'Future date — not valid today'; db.className = 'date-badge-card db-future';
+      } else {
+        db.textContent = 'EXPIRED (' + v.d + ')'; db.className = 'date-badge-card db-expired';
+      }
+
+      // Card border
+      const card = document.getElementById('visitorCard');
+      card.className = 'visitor-card ' + (verifyState === 'verified' ? 'verified' : verifyState === 'invalid' ? 'invalid' : 'unsigned');
+
       document.getElementById('vName').textContent  = v.n || 'N/A';
       document.getElementById('vPlate').textContent = v.p || 'N/A';
       document.getElementById('vId').textContent    = maskId(v.id);
       document.getElementById('vDate').textContent  = formatDate(v.d);
       document.getElementById('vBy').textContent    = [v.byN, v.unit].filter(Boolean).join(' — Unit ') || 'Unknown';
 
-      const statusEl = document.getElementById('dateStatus');
-      const card     = document.getElementById('visitorCard');
       card.style.display = 'block';
       document.getElementById('actionResult').style.display = 'none';
       document.getElementById('scanAgainBtn').style.display = 'none';
-
-      if (!v.d) {
-        statusEl.textContent = 'Date not specified';
-        statusEl.className = 'date-status future';
-        card.className = 'visitor-card';
-      } else if (v.d === todayStr) {
-        statusEl.textContent = 'Valid for today';
-        statusEl.className = 'date-status valid';
-        card.className = 'visitor-card valid';
-      } else if (v.d > todayStr) {
-        statusEl.textContent = 'Future visit — not valid today';
-        statusEl.className = 'date-status future';
-        card.className = 'visitor-card';
-      } else {
-        statusEl.textContent = 'EXPIRED — visit date was ' + v.d;
-        statusEl.className = 'date-status invalid';
-        card.className = 'visitor-card invalid';
-      }
+      document.getElementById('actionRow').style.display    = 'flex';
     }
 
     function logQRAccess(action) {
       if (!currentVisitor) return;
-      const entry = {
+      addLogEntry({
         id: Date.now().toString(36),
         timestamp: new Date().toISOString(),
         visitorName: currentVisitor.n,
@@ -519,28 +520,25 @@
         invitedByName: currentVisitor.byN || 'Unknown',
         unit: currentVisitor.unit || '',
         action,
+        verifyState: currentVisitor.verifyState,
         source: 'qr'
-      };
-      addLogEntry(entry);
+      });
 
-      const resultEl = document.getElementById('actionResult');
-      resultEl.textContent = action === 'granted'
-        ? 'ACCESS GRANTED — Entry recorded'
-        : 'ENTRY DENIED — Record logged';
-      resultEl.className = 'action-result ' + action;
-      resultEl.style.display = 'block';
+      const res = document.getElementById('actionResult');
+      res.textContent = action === 'granted' ? 'ACCESS GRANTED — Entry recorded' : 'ENTRY DENIED — Record logged';
+      res.className = 'action-result ' + action;
+      res.style.display = 'block';
+      document.getElementById('actionRow').style.display    = 'none';
       document.getElementById('scanAgainBtn').style.display = 'block';
-      document.querySelector('.action-row').style.display = 'none';
     }
 
     function resetScan() {
       currentVisitor = null;
       document.getElementById('visitorCard').style.display = 'none';
-      document.getElementById('visitorCard').className = 'visitor-card';
       document.getElementById('actionResult').style.display = 'none';
       document.getElementById('scanAgainBtn').style.display = 'none';
-      document.querySelector('.action-row').style.display = 'flex';
-      document.getElementById('qrError').style.display = 'none';
+      document.getElementById('actionRow').style.display    = 'flex';
+      document.getElementById('qrError').style.display      = 'none';
     }
 
     // ---- Manual entry ----
@@ -548,59 +546,44 @@
       const name  = document.getElementById('manName').value.trim();
       const plate = document.getElementById('manPlate').value.trim().toUpperCase();
       const by    = document.getElementById('manBy').value.trim();
-
       if (!name || !plate) { alert('Please enter both Visitor Name and Licence Plate.'); return; }
 
-      const entry = {
+      addLogEntry({
         id: Date.now().toString(36),
         timestamp: new Date().toISOString(),
-        visitorName: name,
-        plate,
-        idnum: '',
-        date: todayStr,
-        invitedBy: '',
-        invitedByName: by || 'Manual entry',
-        unit: '',
-        action,
-        source: 'manual'
-      };
-      addLogEntry(entry);
+        visitorName: name, plate,
+        idnum: '', date: todayStr,
+        invitedBy: '', invitedByName: by || 'Manual entry', unit: '',
+        action, verifyState: 'manual', source: 'manual'
+      });
 
       const res = document.getElementById('manResult');
-      res.textContent = action === 'granted'
-        ? 'ACCESS GRANTED for ' + name + ' (' + plate + ')'
-        : 'ENTRY DENIED for ' + name + ' (' + plate + ')';
+      res.textContent = (action === 'granted' ? 'ACCESS GRANTED' : 'ENTRY DENIED') + ' — ' + name + ' (' + plate + ')';
       res.className = action;
       res.style.display = 'block';
-
       document.getElementById('manName').value  = '';
       document.getElementById('manPlate').value = '';
       document.getElementById('manBy').value    = '';
-
       setTimeout(() => { res.style.display = 'none'; }, 4000);
     }
 
-    // ---- Log rendering ----
+    // ---- Log ----
     function renderLog() {
-      const filter = document.getElementById('logFilter').value;
-      let entries  = getLog();
-      if (filter === 'today') {
-        entries = entries.filter(e => e.timestamp.startsWith(todayStr));
-      }
+      const filter  = document.getElementById('logFilter').value;
+      let entries   = getLog();
+      if (filter === 'today') entries = entries.filter(e => e.timestamp.startsWith(todayStr));
 
       const tbody = document.getElementById('logBody');
       tbody.innerHTML = '';
-
       if (!entries.length) {
         tbody.innerHTML = '<tr><td colspan="4" class="empty-log">No entries found</td></tr>';
         document.getElementById('logCount').textContent = '';
         return;
       }
-
       entries.forEach(e => {
         const time = new Date(e.timestamp).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
         const src  = e.source === 'manual' ? ' <span class="badge manual">manual</span>' : '';
-        const tr = document.createElement('tr');
+        const tr   = document.createElement('tr');
         tr.innerHTML =
           '<td>' + time + '</td>' +
           '<td>' + esc(e.visitorName) + (e.invitedByName && e.invitedByName !== 'Manual entry' ? '<br><small style="color:#999;">' + esc(e.invitedByName) + '</small>' : '') + '</td>' +
@@ -608,12 +591,11 @@
           '<td><span class="badge ' + e.action + '">' + (e.action === 'granted' ? 'GRANTED' : 'DENIED') + '</span>' + src + '</td>';
         tbody.appendChild(tr);
       });
-
       document.getElementById('logCount').textContent = entries.length + ' entr' + (entries.length === 1 ? 'y' : 'ies');
     }
 
-    function esc(str) {
-      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
   </script>
 </body>

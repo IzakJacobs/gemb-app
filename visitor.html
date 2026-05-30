@@ -6,11 +6,7 @@
   <title>MBGE Visitor Access</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
-      min-height: 100vh;
-    }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
     header {
       background: #002855;
       color: #fff;
@@ -18,51 +14,44 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 20px;
+      gap: 12px;
     }
-    header .info { font-size: 14px; }
-    header .info strong { display: block; font-size: 16px; }
-    header .info span { opacity: 0.75; font-size: 13px; }
-    .btn-logout {
+    header .info strong { display: block; font-size: 15px; }
+    header .info span { opacity: 0.72; font-size: 12px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-hdr {
       background: rgba(255,255,255,0.15);
       color: #fff;
-      border: 1px solid rgba(255,255,255,0.35);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
+      padding: 7px 12px;
+      font-size: 12px;
       cursor: pointer;
       text-decoration: none;
     }
-    .btn-logout:hover { background: rgba(255,255,255,0.25); }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+    .btn-hdr:hover { background: rgba(255,255,255,0.25); }
+    .container { max-width: 500px; margin: 0 auto; padding: 18px 16px; }
     .card {
       background: #fff;
       border-radius: 14px;
-      padding: 22px 20px;
+      padding: 20px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
       margin-bottom: 14px;
     }
-    .card h3 { color: #002855; font-size: 15px; margin-bottom: 14px; border-bottom: 2px solid #e8edf2; padding-bottom: 8px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; margin-top: 12px; }
+    .card-title { color: #002855; font-size: 14px; font-weight: 700; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e8edf2; }
+    label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 4px; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
     label:first-child { margin-top: 0; }
-    input[type="text"], input[type="email"], select, textarea {
+    input[type="text"], textarea {
       width: 100%;
-      padding: 12px;
+      padding: 11px 12px;
       font-size: 15px;
       border: 1px solid #d0d7e0;
       border-radius: 8px;
       outline: none;
       transition: border-color 0.15s;
-      background: #fff;
     }
     input:focus, textarea:focus { border-color: #007bff; }
-    .date-row {
-      display: flex;
-      gap: 10px;
-    }
+    .date-row { display: flex; gap: 10px; }
     .date-btn {
       flex: 1;
       padding: 12px;
@@ -71,34 +60,18 @@
       background: #fff;
       color: #007bff;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
     .date-btn.selected { background: #007bff; color: #fff; }
-    .method-row {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      padding: 4px 0;
-    }
+    .method-row { display: flex; gap: 20px; padding: 6px 0; }
     .method-row label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      margin: 0;
-      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 600;
+      margin: 0; text-transform: none; letter-spacing: 0; cursor: pointer;
     }
-    .method-row input[type="radio"] {
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      padding: 0;
-      border: none;
-      accent-color: #007bff;
-    }
+    .method-row input[type="radio"] { width: 18px; height: 18px; margin: 0; accent-color: #007bff; }
     textarea { resize: none; font-size: 14px; }
     .btn-send {
       width: 100%;
@@ -110,14 +83,11 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, opacity 0.15s;
     }
     .btn-send:hover { background: #0062cc; }
-    #qrSection {
-      display: none;
-      text-align: center;
-      padding: 12px 0 4px;
-    }
+    .btn-send:disabled { opacity: 0.6; cursor: not-allowed; }
+    #qrSection { display: none; text-align: center; padding: 10px 0 4px; }
     #qrSection p { font-size: 13px; color: #555; margin-bottom: 10px; }
     #qrcode { display: inline-block; }
     .btn-dl {
@@ -129,42 +99,94 @@
       border: none;
       border-radius: 8px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
     }
     .btn-dl:hover { background: #218838; }
-    .msg { font-size: 13px; padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; }
+    .sig-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .sig-badge.signed   { background: #d4edda; color: #155724; }
+    .sig-badge.unsigned { background: #fff3cd; color: #856404; }
+    .msg { font-size: 13px; padding: 9px 11px; border-radius: 6px; margin-bottom: 12px; }
     .msg.success { background: #f0fff4; color: #1e7e34; border: 1px solid #b7dfc0; }
+    .msg.warning { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    /* Secret modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .modal h3 { color: #002855; font-size: 16px; margin-bottom: 8px; }
+    .modal p  { color: #555; font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+    .modal input {
+      width: 100%;
+      padding: 11px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 12px;
+      font-family: monospace;
+    }
+    .modal input:focus { border-color: #007bff; }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-modal-save { background: #007bff; color: #fff; }
+    .btn-modal-save:hover { background: #0062cc; }
+    .btn-modal-cancel { background: #f0f4f8; color: #555; }
+    .btn-modal-cancel:hover { background: #e0e7ef; }
   </style>
 </head>
 <body>
 
   <header>
     <div class="info">
-      <strong id="headerName">Loading...</strong>
+      <strong id="headerName"></strong>
       <span id="headerUnit"></span>
     </div>
-    <a class="btn-logout" href="#" onclick="logout()">Logout</a>
+    <div class="header-actions">
+      <button class="btn-hdr" onclick="openSecretModal()">Estate Key</button>
+      <a class="btn-hdr" href="#" onclick="logout()">Logout</a>
+    </div>
   </header>
 
   <div class="container">
+    <div id="noSecretWarning" class="msg warning" style="display:none;">
+      Estate signing key not configured — QR codes will be unsigned. Tap <strong>Estate Key</strong> in the header to set it.
+    </div>
 
     <div class="card">
-      <h3>Visitor Details</h3>
-
+      <div class="card-title">Visitor Details</div>
       <label>Visitor's Name</label>
       <input list="visitorList" type="text" id="name" placeholder="e.g. John Jones">
       <datalist id="visitorList"></datalist>
-
-      <label>License Plate</label>
+      <label>Licence Plate</label>
       <input type="text" id="plate" placeholder="e.g. ABC123GP">
-
       <label>ID Number (13 digits)</label>
       <input type="text" id="idnum" placeholder="e.g. 1234567890123" maxlength="13" inputmode="numeric">
     </div>
 
     <div class="card">
-      <h3>Visit Date</h3>
+      <div class="card-title">Visit Date</div>
       <div class="date-row">
         <button class="date-btn" id="todayBtn" type="button">Today</button>
         <button class="date-btn" id="tomorrowBtn" type="button">Tomorrow</button>
@@ -172,55 +194,104 @@
     </div>
 
     <div class="card">
-      <h3>Send Invitation</h3>
+      <div class="card-title">Send Invitation</div>
       <label>Send via</label>
       <div class="method-row">
-        <label>
-          <input type="radio" name="method" value="wa" checked> WhatsApp
-        </label>
-        <label>
-          <input type="radio" name="method" value="sms"> SMS
-        </label>
+        <label><input type="radio" name="method" value="wa" checked> WhatsApp</label>
+        <label><input type="radio" name="method" value="sms"> SMS</label>
       </div>
-
       <label>Message Preview</label>
       <textarea id="messagePreview" rows="5" readonly></textarea>
-
       <div id="qrSection">
-        <p>QR code will be saved with the visitor record:</p>
+        <div id="sigBadge" class="sig-badge"></div>
+        <p>QR code for security gate verification:</p>
         <div id="qrcode"></div>
-        <button class="btn-dl" id="dlBtn" onclick="downloadQR()">Download QR Code</button>
+        <button class="btn-dl" onclick="downloadQR()">Download QR Code</button>
       </div>
     </div>
 
     <div id="successMsg" class="msg success" style="display:none;"></div>
+    <button class="btn-send" id="sendBtn" onclick="sendInvitation()">Generate QR &amp; Send</button>
+  </div>
 
-    <button class="btn-send" onclick="sendInvitation()">Generate QR &amp; Send</button>
-
+  <!-- Estate secret modal -->
+  <div class="modal-backdrop" id="secretModal">
+    <div class="modal">
+      <h3>Estate Signing Key</h3>
+      <p>Enter the estate-wide secret provided by your admin. This signs your QR codes so the guard can verify they are genuine.</p>
+      <input type="text" id="secretInput" placeholder="Paste estate key here" spellcheck="false">
+      <div class="modal-btns">
+        <button class="btn-modal-cancel" onclick="closeSecretModal()">Cancel</button>
+        <button class="btn-modal-save"   onclick="saveSecret()">Save</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
-    // Session guard
-    const session = JSON.parse(localStorage.getItem('mbge_session') || 'null');
-    if (!session) { window.location.href = 'login.html'; }
+    // ---- Session guard (8-hour expiry) ----
+    const session = (() => {
+      const s = JSON.parse(localStorage.getItem('mbge_session') || 'null');
+      if (!s || !s.expiresAt || Date.now() > s.expiresAt) {
+        localStorage.removeItem('mbge_session');
+        return null;
+      }
+      return s;
+    })();
+    if (!session) window.location.href = 'login.html';
 
-    document.getElementById('headerName').textContent = session ? session.name : '';
-    document.getElementById('headerUnit').textContent = session ? 'Unit ' + session.unit : '';
+    document.getElementById('headerName').textContent = session.name;
+    document.getElementById('headerUnit').textContent = 'Unit ' + session.unit;
 
     function logout() {
       localStorage.removeItem('mbge_session');
       window.location.href = 'index.html';
     }
 
-    // localStorage helpers
-    function getInvitations() { return JSON.parse(localStorage.getItem('mbge_invitations') || '[]'); }
-    function setInvitations(v) { localStorage.setItem('mbge_invitations', JSON.stringify(v)); }
-    function getSavedVisitors() { return JSON.parse(localStorage.getItem('mbge_saved_visitors') || '{}'); }
+    // ---- HMAC signing ----
+    async function hmacSign(data, secret) {
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const buf = await crypto.subtle.sign('HMAC', key, enc.encode(data));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getHmacSecret() {
+      const s = JSON.parse(localStorage.getItem('mbge_settings') || '{}');
+      return s.hmacSecret || '';
+    }
+
+    // ---- Estate secret modal ----
+    function openSecretModal() {
+      document.getElementById('secretInput').value = getHmacSecret();
+      document.getElementById('secretModal').classList.add('show');
+    }
+    function closeSecretModal() {
+      document.getElementById('secretModal').classList.remove('show');
+    }
+    function saveSecret() {
+      const val = document.getElementById('secretInput').value.trim();
+      const s = JSON.parse(localStorage.getItem('mbge_settings') || '{}');
+      s.hmacSecret = val;
+      localStorage.setItem('mbge_settings', JSON.stringify(s));
+      closeSecretModal();
+      checkSecretWarning();
+    }
+    function checkSecretWarning() {
+      document.getElementById('noSecretWarning').style.display = getHmacSecret() ? 'none' : 'block';
+    }
+    checkSecretWarning();
+
+    // ---- Data helpers ----
+    function getInvitations()    { return JSON.parse(localStorage.getItem('mbge_invitations') || '[]'); }
+    function setInvitations(v)   { localStorage.setItem('mbge_invitations', JSON.stringify(v)); }
+    function getSavedVisitors()  { return JSON.parse(localStorage.getItem('mbge_saved_visitors') || '{}'); }
     function setSavedVisitors(v) { localStorage.setItem('mbge_saved_visitors', JSON.stringify(v)); }
 
+    // ---- Date selection ----
     let selectedDate = '';
-    let qrGenerated = false;
 
     const todayBtn    = document.getElementById('todayBtn');
     const tomorrowBtn = document.getElementById('tomorrowBtn');
@@ -265,23 +336,40 @@
       preview.value = inp ? buildMessage(inp.name, inp.plate, inp.idnum) : '';
     }
 
-    function generateQR(name, plate, idnum) {
-      const qrData = JSON.stringify({
-        v: 1,
-        n: name,
-        p: plate,
-        id: idnum,
+    // ---- QR generation (async, HMAC-signed) ----
+    async function buildQRData(name, plate, idnum) {
+      const secret = getHmacSecret();
+      const payload = {
+        v: 2, n: name, p: plate, id: idnum,
         d: selectedDate,
         by: session.email,
         byN: session.name,
         unit: session.unit
-      });
+      };
+      if (secret) {
+        // Sign canonical form: version|name|plate|id|date|invitedByEmail
+        const canonical = [payload.v, payload.n, payload.p, payload.id, payload.d, payload.by].join('|');
+        payload.sig = await hmacSign(canonical, secret);
+      } else {
+        payload.sig = 'none';
+      }
+      return JSON.stringify(payload);
+    }
 
+    function renderQR(qrData, signed) {
       const container = document.getElementById('qrcode');
       container.innerHTML = '';
-      new QRCode(container, { text: qrData, width: 200, height: 200 });
+      new QRCode(container, { text: qrData, width: 220, height: 220 });
+
+      const badge = document.getElementById('sigBadge');
+      if (signed) {
+        badge.textContent = 'Signed — guard-verifiable';
+        badge.className = 'sig-badge signed';
+      } else {
+        badge.textContent = 'Unsigned — configure Estate Key to enable verification';
+        badge.className = 'sig-badge unsigned';
+      }
       document.getElementById('qrSection').style.display = 'block';
-      qrGenerated = true;
     }
 
     function downloadQR() {
@@ -290,19 +378,16 @@
         if (!canvas) return;
         const link = document.createElement('a');
         link.href = canvas.toDataURL('image/png');
-        link.download = 'visitor_qr.png';
+        link.download = 'visitor_qr_' + (nameInput.value.trim().replace(/\s+/g, '_') || 'guest') + '.png';
         link.click();
-      }, 100);
+      }, 150);
     }
 
     function saveInvitation(name, plate, idnum) {
       const invitations = getInvitations();
       const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       invitations.push({
-        id,
-        visitorName: name,
-        plate,
-        idnum,
+        id, visitorName: name, plate, idnum,
         date: selectedDate,
         invitedBy: session.email,
         invitedByName: session.name,
@@ -311,41 +396,53 @@
         status: 'pending'
       });
       setInvitations(invitations.slice(-500));
-
       const saved = getSavedVisitors();
       saved[name] = { plate, idnum };
       setSavedVisitors(saved);
       loadSavedVisitors();
     }
 
-    function sendInvitation() {
+    async function sendInvitation() {
       const inp = getInput();
       if (!inp) {
         alert('Please fill in Visitor Name, Licence Plate, a valid 13-digit ID, and select a date.');
         return;
       }
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = true;
+      btn.textContent = 'Generating…';
 
-      saveInvitation(inp.name, inp.plate, inp.idnum);
-      generateQR(inp.name, inp.plate, inp.idnum);
+      try {
+        saveInvitation(inp.name, inp.plate, inp.idnum);
+        const secret  = getHmacSecret();
+        const qrData  = await buildQRData(inp.name, inp.plate, inp.idnum);
+        renderQR(qrData, !!secret);
 
-      const msg = buildMessage(inp.name, inp.plate, inp.idnum);
-      const method = document.querySelector('input[name="method"]:checked').value;
+        const msg = buildMessage(inp.name, inp.plate, inp.idnum);
+        const method = document.querySelector('input[name="method"]:checked').value;
 
-      const successMsg = document.getElementById('successMsg');
-      successMsg.textContent = 'Invitation saved. Opening ' + (method === 'wa' ? 'WhatsApp' : 'SMS') + '...';
-      successMsg.style.display = 'block';
+        const ok = document.getElementById('successMsg');
+        ok.textContent = 'Invitation saved. Opening ' + (method === 'wa' ? 'WhatsApp' : 'SMS') + '…';
+        ok.style.display = 'block';
+        setTimeout(() => {
+          window.open(
+            method === 'wa'
+              ? 'https://wa.me/?text=' + encodeURIComponent(msg)
+              : 'sms:?&body=' + encodeURIComponent(msg),
+            '_blank'
+          );
+        }, 300);
+      } catch (err) {
+        alert('Error generating QR. Please try again.');
+      }
 
-      setTimeout(() => {
-        if (method === 'wa') {
-          window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-        } else {
-          window.open('sms:?&body=' + encodeURIComponent(msg), '_blank');
-        }
-      }, 300);
+      btn.disabled = false;
+      btn.textContent = 'Generate QR & Send';
     }
 
+    // ---- Saved visitors autocomplete ----
     function loadSavedVisitors() {
-      const saved = getSavedVisitors();
+      const saved    = getSavedVisitors();
       const datalist = document.getElementById('visitorList');
       datalist.innerHTML = '';
       Object.keys(saved).forEach(name => {
@@ -359,29 +456,25 @@
       const saved = getSavedVisitors();
       if (saved[nameInput.value]) {
         plateInput.value = saved[nameInput.value].plate;
-        idInput.value = saved[nameInput.value].idnum || '';
+        idInput.value    = saved[nameInput.value].idnum || '';
       }
       updatePreview();
     });
-
     nameInput.addEventListener('input', updatePreview);
     plateInput.addEventListener('input', updatePreview);
     idInput.addEventListener('input', () => {
       idInput.value = idInput.value.replace(/\D/g, '');
       updatePreview();
     });
-
     todayBtn.addEventListener('click', () => {
       if (!nameInput.value.trim() || !plateInput.value.trim()) {
-        alert('Please fill in Visitor Name and Licence Plate first.');
-        return;
+        alert('Please fill in Visitor Name and Licence Plate first.'); return;
       }
       selectDate('today');
     });
     tomorrowBtn.addEventListener('click', () => {
       if (!nameInput.value.trim() || !plateInput.value.trim()) {
-        alert('Please fill in Visitor Name and Licence Plate first.');
-        return;
+        alert('Please fill in Visitor Name and Licence Plate first.'); return;
       }
       selectDate('tomorrow');
     });

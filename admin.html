@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estate Admin - MBGE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    /* ---- Login screen ---- */
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+    .logo { width: 120px; margin-bottom: 16px; }
+    .login-card h2 { color: #002855; font-size: 20px; margin-bottom: 6px; }
+    .login-card p  { color: #777; font-size: 13px; margin-bottom: 22px; }
+    .pin-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .pin-row input {
+      width: 46px;
+      height: 52px;
+      font-size: 22px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+    .pin-row input:focus { border-color: #495057; }
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: #495057;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-login:hover { background: #343a40; }
+    .back-link-lg { display: block; margin-top: 16px; color: #495057; text-decoration: none; font-size: 13px; }
+    .err { color: #c0392b; font-size: 13px; margin-bottom: 10px; display: none; }
+
+    /* ---- Admin shell ---- */
+    .admin-shell { display: none; }
+    header {
+      background: #002855;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+    }
+    header h1 { font-size: 16px; }
+    .btn-signout {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-signout:hover { background: rgba(255,255,255,0.25); }
+
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 2px solid #e0e8f0;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      flex: 1;
+      min-width: 90px;
+      padding: 12px 8px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: #777;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .tab-btn.active { color: #002855; border-bottom-color: #002855; }
+
+    .tab-content { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* Shared field styles */
+    .field { margin-bottom: 13px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .field input, .field select {
+      width: 100%;
+      padding: 11px 12px;
+      font-size: 14px;
+      border: 1px solid #d0d7e0;
+      border-radius: 8px;
+      outline: none;
+    }
+    .field input:focus { border-color: #002855; }
+
+    /* Residents tab */
+    .section-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+      margin-bottom: 16px;
+    }
+    .section-card h3 { color: #002855; font-size: 14px; margin-bottom: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field-row { display: flex; gap: 10px; }
+    .field-row .field { flex: 1; }
+    .btn-add {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .btn-add:hover { background: #0062cc; }
+    .msg-inline { font-size: 12px; padding: 7px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+    .msg-inline.ok  { background: #d4edda; color: #155724; display: block; }
+    .msg-inline.err { background: #f8d7da; color: #721c24; display: block; }
+
+    table.list-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .list-table th { background: #f0f4f8; color: #555; padding: 8px 10px; text-align: left; font-size: 12px; }
+    .list-table td { padding: 9px 10px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
+    .list-table tr:last-child td { border-bottom: none; }
+    .btn-remove {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-remove:hover { background: #c0392b; }
+    .empty-state { text-align: center; color: #aaa; padding: 20px; font-size: 13px; }
+
+    /* Invitations tab */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge.pending  { background: #fff3cd; color: #856404; }
+    .badge.granted  { background: #d4edda; color: #155724; }
+    .badge.denied   { background: #f8d7da; color: #721c24; }
+
+    /* Access Log tab */
+    .filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .filter-row select, .filter-row input {
+      padding: 8px 10px;
+      font-size: 13px;
+      border: 1px solid #d0d7e0;
+      border-radius: 8px;
+      outline: none;
+      flex: 1;
+    }
+    .log-count { font-size: 12px; color: #777; margin-top: 8px; }
+
+    /* Settings tab */
+    .setting-group { margin-bottom: 20px; }
+    .setting-group h4 { color: #002855; font-size: 13px; margin-bottom: 10px; font-weight: 700; }
+    .pin-row-sm { display: flex; gap: 7px; margin-bottom: 10px; }
+    .pin-row-sm input {
+      width: 44px;
+      height: 46px;
+      font-size: 20px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+    .pin-row-sm input:focus { border-color: #002855; }
+    .btn-save {
+      padding: 10px 18px;
+      background: #002855;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-save:hover { background: #001a3a; }
+    .btn-danger {
+      padding: 10px 18px;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-danger:hover { background: #c0392b; }
+    .default-note { font-size: 12px; color: #888; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <!-- Login screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <img class="logo" src="logo.png" alt="MBGE Logo">
+      <h2>Estate Admin</h2>
+      <p>Enter your 6-digit admin PIN to continue.<br>Default PIN: <strong>000000</strong></p>
+      <div class="pin-row" id="adminPins">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+        <input type="text" maxlength="1" inputmode="numeric">
+      </div>
+      <p class="err" id="adminErr">Incorrect PIN. Please try again.</p>
+      <button class="btn-login" onclick="adminLogin()">Login</button>
+      <a class="back-link-lg" href="index.html">Back to home</a>
+    </div>
+  </div>
+
+  <!-- Admin shell -->
+  <div class="admin-shell" id="adminShell">
+    <header>
+      <h1>MBGE Estate Admin</h1>
+      <button class="btn-signout" onclick="adminLogout()">Sign Out</button>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-btn active" onclick="switchTab('residents')">Residents</button>
+      <button class="tab-btn"        onclick="switchTab('invitations')">Invitations</button>
+      <button class="tab-btn"        onclick="switchTab('log')">Access Log</button>
+      <button class="tab-btn"        onclick="switchTab('settings')">Settings</button>
+    </nav>
+
+    <!-- Residents tab -->
+    <div id="residentsTab" class="tab-content active">
+      <div class="section-card">
+        <h3>Add Resident</h3>
+        <div class="field-row">
+          <div class="field"><label>Full Name</label><input type="text" id="addName" placeholder="John Smith"></div>
+          <div class="field"><label>Unit</label><input type="text" id="addUnit" placeholder="A12"></div>
+        </div>
+        <div class="field"><label>Email</label><input type="email" id="addEmail" placeholder="resident@email.com"></div>
+        <div class="field"><label>6-Digit PIN</label><input type="text" id="addPin" maxlength="6" inputmode="numeric" placeholder="e.g. 123456"></div>
+        <div class="msg-inline" id="addMsg"></div>
+        <button class="btn-add" onclick="addResident()">Add Resident</button>
+      </div>
+
+      <div class="section-card">
+        <h3>Registered Residents (<span id="resCount">0</span>)</h3>
+        <table class="list-table" id="resTable">
+          <thead><tr><th>Name</th><th>Unit</th><th>Email</th><th></th></tr></thead>
+          <tbody id="resBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Invitations tab -->
+    <div id="invitationsTab" class="tab-content">
+      <div class="filter-row">
+        <input type="date" id="invDateFilter" onchange="renderInvitations()">
+        <select onchange="renderInvitations()" id="invStatusFilter">
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="granted">Granted</option>
+          <option value="denied">Denied</option>
+        </select>
+      </div>
+      <div class="section-card" style="padding:0;overflow:hidden;">
+        <table class="list-table">
+          <thead><tr><th>Date</th><th>Visitor</th><th>Plate</th><th>Invited by</th><th>Status</th></tr></thead>
+          <tbody id="invBody"></tbody>
+        </table>
+      </div>
+      <p class="log-count" id="invCount"></p>
+    </div>
+
+    <!-- Access Log tab -->
+    <div id="logTab" class="tab-content">
+      <div class="filter-row">
+        <input type="date" id="logDateFilter" onchange="renderLog()">
+        <select id="logActionFilter" onchange="renderLog()">
+          <option value="">All actions</option>
+          <option value="granted">Granted</option>
+          <option value="denied">Denied</option>
+        </select>
+      </div>
+      <div class="section-card" style="padding:0;overflow:hidden;">
+        <table class="list-table">
+          <thead><tr><th>Date/Time</th><th>Visitor</th><th>Plate</th><th>Invited by</th><th>Action</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+      <p class="log-count" id="logCount"></p>
+    </div>
+
+    <!-- Settings tab -->
+    <div id="settingsTab" class="tab-content">
+      <div class="section-card">
+        <div class="setting-group">
+          <h4>Change Admin PIN</h4>
+          <div class="pin-row-sm" id="newPins">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+          </div>
+          <button class="btn-save" onclick="changePin()">Save New PIN</button>
+          <p class="msg-inline" id="pinMsg"></p>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+
+        <div class="setting-group">
+          <h4>Data Management</h4>
+          <p style="font-size:13px;color:#666;margin-bottom:12px;">
+            Export or clear data stored on this device. This device's localStorage holds residents, invitations, and access logs created here.
+          </p>
+          <button class="btn-save" onclick="exportData()">Export All Data (JSON)</button>
+          &nbsp;
+          <button class="btn-danger" onclick="clearLog()">Clear Access Log</button>
+          &nbsp;
+          <button class="btn-danger" onclick="resetAll()">Reset All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Settings / PIN ----
+    function getSettings() { return JSON.parse(localStorage.getItem('mbge_settings') || '{"adminPin":"000000"}'); }
+    function setSettings(s) { localStorage.setItem('mbge_settings', JSON.stringify(s)); }
+
+    function getResidents()   { return JSON.parse(localStorage.getItem('mbge_residents')    || '[]'); }
+    function setResidents(r)  { localStorage.setItem('mbge_residents', JSON.stringify(r)); }
+    function getInvitations() { return JSON.parse(localStorage.getItem('mbge_invitations')  || '[]'); }
+    function getLog()         { return JSON.parse(localStorage.getItem('mbge_access_log')   || '[]'); }
+
+    function getPin(id) {
+      return Array.from(document.querySelectorAll('#' + id + ' input')).map(i => i.value).join('');
+    }
+
+    function setupPins(id) {
+      const inputs = document.querySelectorAll('#' + id + ' input');
+      inputs.forEach((inp, i) => {
+        inp.addEventListener('input', () => {
+          if (!/^\d$/.test(inp.value)) { inp.value = ''; return; }
+          if (i < inputs.length - 1) inputs[i + 1].focus();
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i - 1].focus();
+        });
+      });
+    }
+    setupPins('adminPins');
+    setupPins('newPins');
+
+    // ---- Admin auth ----
+    let adminAuthed = false;
+
+    function adminLogin() {
+      const pin = getPin('adminPins');
+      if (pin === getSettings().adminPin) {
+        adminAuthed = true;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminShell').style.display = 'block';
+        renderResidents();
+        renderInvitations();
+        renderLog();
+        // Set today's date as default filter
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('logDateFilter').value = today;
+        document.getElementById('invDateFilter').value = today;
+        renderLog();
+        renderInvitations();
+      } else {
+        document.getElementById('adminErr').style.display = 'block';
+      }
+    }
+
+    function adminLogout() {
+      adminAuthed = false;
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('adminShell').style.display = 'none';
+      document.querySelectorAll('#adminPins input').forEach(i => i.value = '');
+      document.getElementById('adminPins').querySelector('input').focus();
+    }
+
+    // ---- Tab switching ----
+    const TAB_NAMES = ['residents', 'invitations', 'log', 'settings'];
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', TAB_NAMES[i] === tab);
+      });
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab + 'Tab').classList.add('active');
+      if (tab === 'residents')    renderResidents();
+      if (tab === 'invitations')  renderInvitations();
+      if (tab === 'log')          renderLog();
+    }
+
+    // ---- Residents ----
+    function addResident() {
+      const name  = document.getElementById('addName').value.trim();
+      const unit  = document.getElementById('addUnit').value.trim().toUpperCase();
+      const email = document.getElementById('addEmail').value.trim().toLowerCase();
+      const pin   = document.getElementById('addPin').value.trim();
+      const msg   = document.getElementById('addMsg');
+
+      function showMsg(text, type) { msg.textContent = text; msg.className = 'msg-inline ' + type; }
+
+      if (!name)  { showMsg('Enter full name.', 'err'); return; }
+      if (!unit)  { showMsg('Enter unit number.', 'err'); return; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showMsg('Enter a valid email.', 'err'); return; }
+      if (!/^\d{6}$/.test(pin)) { showMsg('PIN must be exactly 6 digits.', 'err'); return; }
+
+      const residents = getResidents();
+      if (residents.find(r => r.email === email)) { showMsg('Email already registered.', 'err'); return; }
+
+      residents.push({ email, name, unit, pin, addedAt: new Date().toISOString() });
+      setResidents(residents);
+      showMsg('Resident added successfully.', 'ok');
+      document.getElementById('addName').value = '';
+      document.getElementById('addUnit').value = '';
+      document.getElementById('addEmail').value = '';
+      document.getElementById('addPin').value = '';
+      renderResidents();
+    }
+
+    function renderResidents() {
+      const residents = getResidents();
+      document.getElementById('resCount').textContent = residents.length;
+      const tbody = document.getElementById('resBody');
+      tbody.innerHTML = '';
+      if (!residents.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No residents registered yet</td></tr>';
+        return;
+      }
+      residents.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + esc(r.name) + '</td>' +
+          '<td>' + esc(r.unit) + '</td>' +
+          '<td>' + esc(r.email) + '</td>' +
+          '<td><button class="btn-remove" onclick="removeResident(' + i + ')">Remove</button></td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function removeResident(idx) {
+      if (!confirm('Remove this resident? They will need to re-register to access the portal.')) return;
+      const residents = getResidents();
+      residents.splice(idx, 1);
+      setResidents(residents);
+      renderResidents();
+    }
+
+    // ---- Invitations ----
+    function renderInvitations() {
+      const dateFilter   = document.getElementById('invDateFilter').value;
+      const statusFilter = document.getElementById('invStatusFilter').value;
+      let invitations = getInvitations();
+
+      if (dateFilter) invitations = invitations.filter(i => i.date === dateFilter);
+      if (statusFilter) invitations = invitations.filter(i => i.status === statusFilter);
+
+      invitations = invitations.slice().reverse();
+
+      const tbody = document.getElementById('invBody');
+      tbody.innerHTML = '';
+      if (!invitations.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No invitations found</td></tr>';
+        document.getElementById('invCount').textContent = '';
+        return;
+      }
+
+      invitations.forEach(inv => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + esc(inv.date) + '</td>' +
+          '<td>' + esc(inv.visitorName) + '</td>' +
+          '<td>' + esc(inv.plate) + '</td>' +
+          '<td>' + esc(inv.invitedByName) + ' / ' + esc(inv.unit) + '</td>' +
+          '<td><span class="badge ' + (inv.status || 'pending') + '">' + (inv.status || 'pending').toUpperCase() + '</span></td>';
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('invCount').textContent = invitations.length + ' invitation' + (invitations.length === 1 ? '' : 's');
+    }
+
+    // ---- Access Log ----
+    function renderLog() {
+      const dateFilter   = document.getElementById('logDateFilter').value;
+      const actionFilter = document.getElementById('logActionFilter').value;
+      let entries = getLog();
+
+      if (dateFilter)   entries = entries.filter(e => e.timestamp.startsWith(dateFilter));
+      if (actionFilter) entries = entries.filter(e => e.action === actionFilter);
+
+      const tbody = document.getElementById('logBody');
+      tbody.innerHTML = '';
+      if (!entries.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No log entries found</td></tr>';
+        document.getElementById('logCount').textContent = '';
+        return;
+      }
+
+      entries.forEach(e => {
+        const dt = new Date(e.timestamp);
+        const dateStr = dt.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short' });
+        const timeStr = dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + dateStr + '<br><small>' + timeStr + '</small></td>' +
+          '<td>' + esc(e.visitorName) + '</td>' +
+          '<td>' + esc(e.plate) + '</td>' +
+          '<td>' + esc(e.invitedByName || '—') + (e.unit ? ' / ' + esc(e.unit) : '') + '</td>' +
+          '<td><span class="badge ' + e.action + '">' + (e.action === 'granted' ? 'GRANTED' : 'DENIED') + '</span></td>';
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('logCount').textContent = entries.length + ' entr' + (entries.length === 1 ? 'y' : 'ies');
+    }
+
+    // ---- Settings actions ----
+    function changePin() {
+      const newPin = getPin('newPins');
+      const msg = document.getElementById('pinMsg');
+      if (!/^\d{6}$/.test(newPin)) {
+        msg.textContent = 'Please set a 6-digit numeric PIN.';
+        msg.className = 'msg-inline err';
+        return;
+      }
+      const settings = getSettings();
+      settings.adminPin = newPin;
+      setSettings(settings);
+      msg.textContent = 'Admin PIN updated successfully.';
+      msg.className = 'msg-inline ok';
+      document.querySelectorAll('#newPins input').forEach(i => i.value = '');
+    }
+
+    function exportData() {
+      const data = {
+        exportedAt: new Date().toISOString(),
+        residents: getResidents(),
+        invitations: getInvitations(),
+        access_log: getLog()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = 'mbge-data-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearLog() {
+      if (!confirm('Clear all access log entries from this device? This cannot be undone.')) return;
+      localStorage.removeItem('mbge_access_log');
+      renderLog();
+    }
+
+    function resetAll() {
+      if (!confirm('WARNING: This will delete ALL data (residents, invitations, access log) from this device. Are you sure?')) return;
+      if (!confirm('Last chance — delete everything?')) return;
+      ['mbge_residents', 'mbge_invitations', 'mbge_access_log', 'mbge_saved_visitors', 'mbge_session'].forEach(k => localStorage.removeItem(k));
+      adminLogout();
+    }
+
+    function esc(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>

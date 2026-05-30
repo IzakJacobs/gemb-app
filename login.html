@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resident Login - MBGE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(160deg, #001a3a 0%, #0047ab 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+    }
+    .logo { display: block; width: 120px; margin: 0 auto 16px; }
+    h2 { text-align: center; color: #002855; font-size: 20px; margin-bottom: 20px; }
+    .tabs {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #007bff;
+      margin-bottom: 22px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #fff;
+      color: #007bff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn.active { background: #007bff; color: #fff; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
+    .field input[type="email"],
+    .field input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: #007bff; }
+    .pin-row {
+      display: flex;
+      gap: 7px;
+      justify-content: space-between;
+    }
+    .pin-row input {
+      flex: 1;
+      height: 50px;
+      font-size: 22px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      padding: 0;
+    }
+    .pin-row input:focus { border-color: #007bff; }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: #007bff;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #0062cc; }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      color: #007bff;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .msg { font-size: 13px; margin-top: 8px; padding: 8px 10px; border-radius: 6px; display: none; }
+    .msg.error   { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; display: block; }
+    .msg.success { background: #f0fff4; color: #1e7e34; border: 1px solid #b7dfc0; display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="logo.png" alt="MBGE Logo">
+    <h2>Resident Portal</h2>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn"        onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginSection" class="section active">
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label>6-Digit PIN</label>
+        <div class="pin-row" id="loginPins">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+        </div>
+      </div>
+      <div id="loginMsg" class="msg"></div>
+      <button class="btn-primary" onclick="doLogin()">Login</button>
+    </div>
+
+    <!-- Register -->
+    <div id="registerSection" class="section">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="e.g. John Smith">
+      </div>
+      <div class="field">
+        <label>Unit Number</label>
+        <input type="text" id="regUnit" placeholder="e.g. A12">
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label>Set 6-Digit PIN</label>
+        <div class="pin-row" id="regPins">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+          <input type="text" maxlength="1" inputmode="numeric">
+        </div>
+      </div>
+      <div id="regMsg" class="msg"></div>
+      <button class="btn-primary" onclick="doRegister()">Create Account</button>
+    </div>
+
+    <a class="back-link" href="index.html">Back to home</a>
+  </div>
+
+  <script>
+    function getResidents() { return JSON.parse(localStorage.getItem('mbge_residents') || '[]'); }
+    function setResidents(r) { localStorage.setItem('mbge_residents', JSON.stringify(r)); }
+    function setSession(s)   { localStorage.setItem('mbge_session', JSON.stringify(s)); }
+
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('loginSection').classList.toggle('active', isLogin);
+      document.getElementById('registerSection').classList.toggle('active', !isLogin);
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', (i === 0) === isLogin);
+      });
+    }
+
+    function getPin(id) {
+      return Array.from(document.querySelectorAll('#' + id + ' input')).map(i => i.value).join('');
+    }
+
+    function showMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'msg ' + type;
+    }
+    function clearMsg(id) {
+      const el = document.getElementById(id);
+      el.className = 'msg';
+      el.textContent = '';
+    }
+
+    function doLogin() {
+      clearMsg('loginMsg');
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const pin = getPin('loginPins');
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showMsg('loginMsg', 'Please enter a valid email address.', 'error'); return;
+      }
+      if (!/^\d{6}$/.test(pin)) {
+        showMsg('loginMsg', 'Please enter your 6-digit PIN.', 'error'); return;
+      }
+
+      const resident = getResidents().find(r => r.email.toLowerCase() === email && r.pin === pin);
+      if (!resident) {
+        showMsg('loginMsg', 'Incorrect email or PIN. Please try again.', 'error'); return;
+      }
+
+      setSession({ email: resident.email, name: resident.name, unit: resident.unit });
+      window.location.href = 'visitor.html';
+    }
+
+    function doRegister() {
+      clearMsg('regMsg');
+      const name  = document.getElementById('regName').value.trim();
+      const unit  = document.getElementById('regUnit').value.trim().toUpperCase();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const pin   = getPin('regPins');
+
+      if (!name)  { showMsg('regMsg', 'Please enter your full name.', 'error'); return; }
+      if (!unit)  { showMsg('regMsg', 'Please enter your unit number.', 'error'); return; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showMsg('regMsg', 'Please enter a valid email address.', 'error'); return;
+      }
+      if (!/^\d{6}$/.test(pin)) {
+        showMsg('regMsg', 'Please set a 6-digit numeric PIN.', 'error'); return;
+      }
+
+      const residents = getResidents();
+      if (residents.find(r => r.email.toLowerCase() === email)) {
+        showMsg('regMsg', 'An account with this email already exists. Please log in.', 'error'); return;
+      }
+
+      residents.push({ email, name, unit, pin, addedAt: new Date().toISOString() });
+      setResidents(residents);
+      setSession({ email, name, unit });
+      window.location.href = 'visitor.html';
+    }
+
+    function setupPins(containerId) {
+      const inputs = document.querySelectorAll('#' + containerId + ' input');
+      inputs.forEach((input, i) => {
+        input.addEventListener('input', () => {
+          if (!/^\d$/.test(input.value)) { input.value = ''; return; }
+          if (i < inputs.length - 1) inputs[i + 1].focus();
+        });
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Backspace' && !input.value && i > 0) inputs[i - 1].focus();
+        });
+      });
+    }
+
+    setupPins('loginPins');
+    setupPins('regPins');
+
+    // Redirect if already logged in
+    const session = JSON.parse(localStorage.getItem('mbge_session') || 'null');
+    if (session) window.location.href = 'visitor.html';
+  </script>
+</body>
+</html>

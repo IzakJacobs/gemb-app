@@ -27,23 +27,25 @@ $conn->query("CREATE TABLE IF NOT EXISTS proximity_unlock_log (
 )");
 
 // ── Gate definitions ─────────────────────────────────────────────────────────
-// Replace lat/lng values with actual GPS coordinates of each gate before go-live
+// Entrance coordinates are confirmed real positions (Mossel Bay, WC).
+// Individual gate lat/lng are set to the entrance centroid until each physical
+// gate is surveyed and its own coordinate is recorded.
 $entrances = [
     [
         "code"  => "SS",
-        "label" => "SS Entrance",
+        "label" => "Schoeman Street Entrance",
         "gates" => [
-            ["id" => 1, "name" => "SS Gate 1", "lat" => -25.800000, "lng" => 28.200000],
-            ["id" => 2, "name" => "SS Gate 2", "lat" => -25.800150, "lng" => 28.200200],
-            ["id" => 3, "name" => "SS Gate 3", "lat" => -25.800300, "lng" => 28.200400],
+            ["id" => 1, "name" => "SS Gate 1", "lat" => -34.189300827611795, "lng" => 22.12257774021871],
+            ["id" => 2, "name" => "SS Gate 2", "lat" => -34.189300827611795, "lng" => 22.12257774021871],
+            ["id" => 3, "name" => "SS Gate 3", "lat" => -34.189300827611795, "lng" => 22.12257774021871],
         ],
     ],
     [
         "code"  => "CS",
-        "label" => "CS Entrance",
+        "label" => "Church Street Entrance",
         "gates" => [
-            ["id" => 4, "name" => "CS Gate 1", "lat" => -25.802000, "lng" => 28.202000],
-            ["id" => 5, "name" => "CS Gate 2", "lat" => -25.802200, "lng" => 28.202300],
+            ["id" => 4, "name" => "CS Gate 1", "lat" => -34.19164638860875, "lng" => 22.137356846132185],
+            ["id" => 5, "name" => "CS Gate 2", "lat" => -34.19164638860875, "lng" => 22.137356846132185],
         ],
     ],
 ];
@@ -192,17 +194,6 @@ $conn->close();
     .header img  { width: 120px; margin-bottom: 10px; }
     .header h2   { font-size: 20px; color: #222; margin-bottom: 4px; }
     .header .sub { font-size: 13px; color: #888; }
-
-    /* ── Dev note ── */
-    .dev-note {
-      background: #e8f0fe;
-      border-left: 3px solid #4285f4;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 12px;
-      color: #1a3a6b;
-      margin-bottom: 18px;
-    }
 
     /* ── Entrance sections ── */
     .entrance-section { margin-bottom: 18px; }
@@ -360,11 +351,6 @@ $conn->close();
     <img src="logo.png" alt="MBGE Logo">
     <h2>Open Gate</h2>
     <p class="sub"><?php echo htmlspecialchars($_SESSION["user"]); ?></p>
-  </div>
-
-  <div class="dev-note">
-    <strong>Dev mode:</strong> Gate coordinates are placeholders.
-    Update the <code>$entrances</code> array with real GPS coordinates before go-live.
   </div>
 
   <!-- Gate selector -->

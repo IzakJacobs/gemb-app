@@ -1,15 +1,17 @@
 <?php
 /**
- * twilio_helper.php — MBGE WhatsApp messaging via Twilio
+ * twilio_helper.php — MBGE messaging: WhatsApp (Twilio) with SMS fallback (BulkSMS)
  *
- * Add these constants to config.php before using:
+ * Required in config.php:
+ *   define('TWILIO_ACCOUNT_SID', 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); // Account SID
+ *   define('TWILIO_SID',         'SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); // API Key SID
+ *   define('TWILIO_TOKEN',       'your_api_key_secret');
+ *   define('TWILIO_WA_FROM',     '+14155238886');  // sandbox or approved WA number
  *
- *   define('TWILIO_SID',     'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
- *   define('TWILIO_TOKEN',   'your_auth_token_here');
- *   define('TWILIO_WA_FROM', '+14155238886'); // sandbox, or your approved number
+ *   define('BULKSMS_API_TOKEN',  'token_id:token_secret'); // from bulksms.com portal
+ *   define('BULKSMS_FROM',       'MBGE');
  *
- * Twilio sandbox: https://console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn
- * Production:     purchase a WhatsApp-enabled number in the Twilio console.
+ * Send flow: WhatsApp first → SMS fallback if WhatsApp fails or is unconfigured.
  */
 
 // ── Ensure OTP table exists ───────────────────────────────────────────────────
@@ -25,7 +27,7 @@ function ensureOtpTable(): void {
     )");
 }
 
-// ── Normalise a SA phone number to E.164 (27XXXXXXXXX) ───────────────────────
+// ── Normalise a SA phone number to E.164 digits only (27XXXXXXXXX) ───────────
 function normalisePhone(string $phone): string {
     $phone = preg_replace('/\D/', '', $phone);
     if (substr($phone, 0, 1) === '0')  $phone = '27' . substr($phone, 1);
@@ -33,27 +35,25 @@ function normalisePhone(string $phone): string {
     return $phone;
 }
 
+// ── Strip WhatsApp markdown for plain-text SMS ────────────────────────────────
+function stripWaMarkdown(string $msg): string {
+    return preg_replace('/\*([^*]+)\*/', '$1', $msg); // *bold* → bold
+}
+
 // ── Send a WhatsApp message via Twilio ───────────────────────────────────────
-// Supports both auth methods:
-//   Classic:  TWILIO_ACCOUNT_SID (AC...) + TWILIO_TOKEN (Auth Token)
-//   API Key:  TWILIO_ACCOUNT_SID (AC...) + TWILIO_SID (SK...) + TWILIO_TOKEN (API Key Secret)
-// TWILIO_ACCOUNT_SID is always required in the URL. TWILIO_SID/TWILIO_TOKEN are the credentials.
 function sendWhatsApp(string $toPhone, string $message): bool {
     if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_SID') ||
         !defined('TWILIO_TOKEN')       || !defined('TWILIO_WA_FROM')) {
-        error_log('MBGE Twilio: TWILIO_ACCOUNT_SID, TWILIO_SID, TWILIO_TOKEN, '
-                . 'TWILIO_WA_FROM must all be defined in config.php');
         return false;
     }
 
-    $accountSid = TWILIO_ACCOUNT_SID; // AC... — goes in the URL path
-    $keySid     = TWILIO_SID;         // SK... — API Key SID used as HTTP username
-    $keySecret  = TWILIO_TOKEN;       // API Key Secret used as HTTP password
-    // From: strip non-digits then prepend whatsapp:+ — do NOT run normalisePhone()
-    // because TWILIO_WA_FROM is a US Twilio number, not a SA mobile number.
-    $from       = 'whatsapp:+' . preg_replace('/\D/', '', TWILIO_WA_FROM);
-    $to         = 'whatsapp:+' . normalisePhone($toPhone);
-    $url        = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
+    $accountSid = TWILIO_ACCOUNT_SID;
+    $keySid     = TWILIO_SID;
+    $keySecret  = TWILIO_TOKEN;
+    // Do NOT run normalisePhone() on TWILIO_WA_FROM — it's a US number, not SA.
+    $from = 'whatsapp:+' . preg_replace('/\D/', '', TWILIO_WA_FROM);
+    $to   = 'whatsapp:+' . normalisePhone($toPhone);
+    $url  = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -68,10 +68,49 @@ function sendWhatsApp(string $toPhone, string $message): bool {
     curl_close($ch);
 
     if ($httpCode !== 201) {
-        error_log("MBGE Twilio: HTTP {$httpCode} sending to {$to} — {$response}");
+        error_log("MBGE Twilio WA: HTTP {$httpCode} to {$to} — {$response}");
         return false;
     }
     return true;
+}
+
+// ── Send an SMS via BulkSMS ───────────────────────────────────────────────────
+function sendBulkSms(string $toPhone, string $message): bool {
+    if (!defined('BULKSMS_API_TOKEN')
+        || BULKSMS_API_TOKEN === 'YOUR_BULKSMS_TOKEN_HERE'
+        || BULKSMS_API_TOKEN === '') {
+        return false;
+    }
+
+    $to      = '+' . normalisePhone($toPhone);
+    $from    = defined('BULKSMS_FROM') ? BULKSMS_FROM : 'MBGE';
+    $payload = json_encode(['to' => $to, 'from' => $from, 'body' => stripWaMarkdown($message)]);
+
+    $ch = curl_init('https://api.bulksms.com/v1/messages');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_USERPWD        => BULKSMS_API_TOKEN, // token_id:token_secret
+        CURLOPT_TIMEOUT        => 10,
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode < 200 || $httpCode >= 300) {
+        error_log("MBGE BulkSMS: HTTP {$httpCode} to {$to} — {$response}");
+        return false;
+    }
+    return true;
+}
+
+// ── Send via WhatsApp, fall back to SMS ──────────────────────────────────────
+// Returns true if either channel succeeded.
+function sendMessage(string $toPhone, string $message): bool {
+    if (sendWhatsApp($toPhone, $message)) return true;
+    return sendBulkSms($toPhone, $message);
 }
 
 // ── Generate and send a 6-digit OTP ──────────────────────────────────────────
@@ -79,7 +118,6 @@ function generateOtp(string $phone): bool {
     ensureOtpTable();
     $phone = normalisePhone($phone);
 
-    // Invalidate any unexpired OTPs for this number (prevent brute force)
     db()->prepare("UPDATE otp_tokens SET used=1 WHERE phone=? AND used=0")
         ->execute([$phone]);
 
@@ -95,11 +133,10 @@ function generateOtp(string $phone): bool {
              . "Valid for 5 minutes. Do not share this code.\n"
              . "MBGE HOA | POPIA Act 4 of 2013";
 
-    return sendWhatsApp($phone, $message);
+    return sendMessage($phone, $message);
 }
 
 // ── Verify an OTP ─────────────────────────────────────────────────────────────
-// Returns true and marks used if valid; false if expired/wrong/already used.
 function verifyOtp(string $phone, string $otp): bool {
     ensureOtpTable();
     $phone = normalisePhone($phone);
@@ -130,7 +167,7 @@ function notifyResidentEntry(
     if (!$residentPhone) return;
     if (!$timestamp) $timestamp = date('d M Y H:i');
 
-    $icon = $category === 'service_provider' ? '🔧' : '👤';
+    $icon  = $category === 'service_provider' ? '🔧' : '👤';
     $label = $category === 'service_provider' ? 'Service Provider' : 'Visitor';
 
     $message = "🏡 *MBGE Access Control*\n\n"
@@ -140,7 +177,7 @@ function notifyResidentEntry(
              . "Time: {$timestamp}\n\n"
              . "MBGE HOA";
 
-    sendWhatsApp($residentPhone, $message);
+    sendMessage($residentPhone, $message);
 }
 
 // ── Resident exit notification ────────────────────────────────────────────────
@@ -164,5 +201,5 @@ function notifyResidentExit(
              . "Time: {$timestamp}\n\n"
              . "MBGE HOA";
 
-    sendWhatsApp($residentPhone, $message);
+    sendMessage($residentPhone, $message);
 }

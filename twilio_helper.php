@@ -49,7 +49,9 @@ function sendWhatsApp(string $toPhone, string $message): bool {
     $accountSid = TWILIO_ACCOUNT_SID; // AC... — goes in the URL path
     $keySid     = TWILIO_SID;         // SK... — API Key SID used as HTTP username
     $keySecret  = TWILIO_TOKEN;       // API Key Secret used as HTTP password
-    $from       = 'whatsapp:+' . normalisePhone(TWILIO_WA_FROM);
+    // From: strip non-digits then prepend whatsapp:+ — do NOT run normalisePhone()
+    // because TWILIO_WA_FROM is a US Twilio number, not a SA mobile number.
+    $from       = 'whatsapp:+' . preg_replace('/\D/', '', TWILIO_WA_FROM);
     $to         = 'whatsapp:+' . normalisePhone($toPhone);
     $url        = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
 

@@ -34,24 +34,31 @@ function normalisePhone(string $phone): string {
 }
 
 // ── Send a WhatsApp message via Twilio ───────────────────────────────────────
+// Supports both auth methods:
+//   Classic:  TWILIO_ACCOUNT_SID (AC...) + TWILIO_TOKEN (Auth Token)
+//   API Key:  TWILIO_ACCOUNT_SID (AC...) + TWILIO_SID (SK...) + TWILIO_TOKEN (API Key Secret)
+// TWILIO_ACCOUNT_SID is always required in the URL. TWILIO_SID/TWILIO_TOKEN are the credentials.
 function sendWhatsApp(string $toPhone, string $message): bool {
-    if (!defined('TWILIO_SID') || !defined('TWILIO_TOKEN') || !defined('TWILIO_WA_FROM')) {
-        error_log('MBGE Twilio: constants not defined in config.php');
+    if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_SID') ||
+        !defined('TWILIO_TOKEN')       || !defined('TWILIO_WA_FROM')) {
+        error_log('MBGE Twilio: TWILIO_ACCOUNT_SID, TWILIO_SID, TWILIO_TOKEN, '
+                . 'TWILIO_WA_FROM must all be defined in config.php');
         return false;
     }
 
-    $sid  = TWILIO_SID;
-    $tok  = TWILIO_TOKEN;
-    $from = 'whatsapp:+' . normalisePhone(TWILIO_WA_FROM);
-    $to   = 'whatsapp:+' . normalisePhone($toPhone);
-    $url  = "https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json";
+    $accountSid = TWILIO_ACCOUNT_SID; // AC... — goes in the URL path
+    $keySid     = TWILIO_SID;         // SK... — API Key SID used as HTTP username
+    $keySecret  = TWILIO_TOKEN;       // API Key Secret used as HTTP password
+    $from       = 'whatsapp:+' . normalisePhone(TWILIO_WA_FROM);
+    $to         = 'whatsapp:+' . normalisePhone($toPhone);
+    $url        = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query(['From' => $from, 'To' => $to, 'Body' => $message]),
-        CURLOPT_USERPWD        => "{$sid}:{$tok}",
+        CURLOPT_USERPWD        => "{$keySid}:{$keySecret}",
         CURLOPT_TIMEOUT        => 10,
     ]);
     $response = curl_exec($ch);

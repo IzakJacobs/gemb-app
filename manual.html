@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MBGE Access Control System — User Manual v2.1</title>
+  <style>
+    :root {
+      --primary: #1a5e2a;
+      --accent:  #28a745;
+      --warn:    #ffc107;
+      --danger:  #dc3545;
+      --light:   #f8f9fa;
+      --border:  #dee2e6;
+      --text:    #212529;
+      --muted:   #6c757d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 16px 60px;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      text-align: center;
+      padding: 48px 24px 36px;
+      border-bottom: 3px solid var(--primary);
+      margin-bottom: 40px;
+    }
+    .cover .logo-circle {
+      width: 80px; height: 80px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      margin-bottom: 18px;
+    }
+    .cover h1 { font-size: 1.85rem; font-weight: 800; color: var(--primary); }
+    .cover .subtitle { font-size: 1rem; color: var(--muted); margin-top: 6px; }
+    .cover .version-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 12px;
+      letter-spacing: .5px;
+    }
+    .cover .new-badge {
+      display: inline-block;
+      background: var(--warn);
+      color: #212529;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: .4px;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+    .toc h2 { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .6px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { padding: 3px 0; }
+    .toc a { color: var(--primary); text-decoration: none; font-weight: 500; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* ── Sections ── */
+    section { margin-bottom: 44px; }
+    h2.section-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary);
+      border-left: 5px solid var(--accent);
+      padding-left: 14px;
+      margin-bottom: 18px;
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #333;
+      margin: 22px 0 10px;
+    }
+    h4 {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin: 16px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    p { margin-bottom: 10px; }
+    ul, ol { padding-left: 22px; margin-bottom: 10px; }
+    li { margin-bottom: 4px; }
+
+    /* ── Callout boxes ── */
+    .note, .tip, .warn, .new {
+      border-radius: 8px;
+      padding: 13px 16px;
+      margin: 14px 0;
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+    .note  { background: #e8f4fd; border-left: 4px solid #2196f3; }
+    .tip   { background: #e8f5e9; border-left: 4px solid var(--accent); }
+    .warn  { background: #fff8e1; border-left: 4px solid var(--warn); }
+    .new   { background: #e8f5e9; border-left: 4px solid var(--accent); }
+    .note  strong, .tip strong, .warn strong, .new strong { display: block; margin-bottom: 4px; }
+
+    /* ── Step list ── */
+    .steps { list-style: none; padding: 0; counter-reset: step; }
+    .steps li {
+      counter-increment: step;
+      position: relative;
+      padding: 10px 12px 10px 52px;
+      margin-bottom: 8px;
+      background: var(--light);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px; height: 26px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .78rem;
+      font-weight: 800;
+    }
+
+    /* ── Role badges ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .role-card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .role-card .icon { font-size: 2rem; margin-bottom: 6px; }
+    .role-card .name { font-weight: 700; font-size: .88rem; color: var(--primary); }
+    .role-card .desc { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── Gate diagram ── */
+    .gate-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: .9rem;
+    }
+    .gate-table th {
+      background: var(--primary);
+      color: #fff;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 700;
+    }
+    .gate-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .gate-table tr:nth-child(even) td { background: var(--light); }
+
+    /* ── Code / URL chips ── */
+    code {
+      background: #f1f3f5;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: .87em;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { max-width: 100%; padding: 0 24px; }
+      .no-print { display: none; }
+      h2.section-title { break-before: page; }
+      .cover { break-before: avoid; }
+    }
+
+    /* ── Download bar ── */
+    .download-bar {
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .88rem;
+      font-weight: 600;
+      margin: 0 -16px 30px;
+    }
+    .download-bar a {
+      background: #fff;
+      color: var(--primary);
+      padding: 6px 18px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+    .download-bar a:hover { background: #e0ffe0; }
+
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    @media (max-width: 600px) {
+      .cover h1 { font-size: 1.45rem; }
+      h2.section-title { font-size: 1.1rem; }
+      .role-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sticky download / print bar -->
+<div class="download-bar no-print">
+  <span>MBGE Access Control — User Manual v2.1</span>
+  <a href="javascript:window.print()">&#128438; Print / Save PDF</a>
+</div>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="logo-circle">&#127968;</div>
+  <h1>MBGE Access Control System</h1>
+  <div class="subtitle">Mossel Bay Golf Estate &mdash; HOA Registration 1999/001249/08</div>
+  <div class="version-badge">Version 2.1 &mdash; June 2026</div>
+  <div class="subtitle" style="margin-top:14px;font-size:.85rem;">
+    Complete User Manual &mdash; All Roles
+  </div>
+</div>
+
+<!-- Table of Contents -->
+<div class="toc" id="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">System Overview</a></li>
+    <li><a href="#roles">Roles &amp; Access Rights</a></li>
+    <li><a href="#gates">Gates &amp; Entrances</a></li>
+    <li><a href="#resident">Resident Portal</a>
+      <ol>
+        <li><a href="#res-login">Logging In</a></li>
+        <li><a href="#res-visitors">Managing Visitors</a></li>
+        <li><a href="#res-sp">Service Providers</a></li>
+        <li><a href="#res-gate">Proximity Gate Unlock</a> <span class="new-badge">NEW v2.1</span></li>
+        <li><a href="#res-nav">Visitor GPS Navigation</a> <span class="new-badge">NEW v2.1</span></li>
+        <li><a href="#res-vehicles">Vehicles</a></li>
+        <li><a href="#res-helpdesk">Helpdesk</a></li>
+      </ol>
+    </li>
+    <li><a href="#guard">Guard Portal</a></li>
+    <li><a href="#security">Security Officer Portal</a></li>
+    <li><a href="#admin">Admin Portal</a></li>
+    <li><a href="#panic">Panic Alert</a></li>
+    <li><a href="#popia">POPIA Compliance</a></li>
+    <li><a href="#troubleshoot">Troubleshooting</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="overview">
+  <h2 class="section-title">1. System Overview</h2>
+  <p>The <strong>MBGE Access Control System</strong> is a web-based Progressive Web App (PWA) that manages visitor passes, service provider permits, vehicle records, gate access, and estate notices for Mossel Bay Golf Estate.</p>
+  <p>The system is accessed at <code>https://mbge.ink/AS-menu.html</code> from any modern browser — no app installation is required, though residents may add it to their home screen for quick access.</p>
+
+  <h3>What's New in v2.1</h3>
+  <div class="new">
+    <strong>Proximity Gate Unlock</strong>
+    Residents can now open any estate gate directly from their phone, without presenting a tag or triggering LPR/facial recognition. GPS is used to confirm the resident is within 100 m of the selected gate. Every unlock is logged automatically.
+  </div>
+  <div class="new">
+    <strong>Visitor GPS Navigation</strong>
+    Visitor passes now include a "Get Directions" section. Visitors tap one button to open Google Maps, Waze, or Apple Maps pre-loaded with the resident's home address — no manual address entry needed.
+  </div>
+  <div class="new">
+    <strong>WhatsApp OTP Login</strong>
+    Residents receive one-time login codes via WhatsApp, reducing forgotten-PIN lockouts.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="roles">
+  <h2 class="section-title">2. Roles &amp; Access Rights</h2>
+  <div class="role-grid">
+    <div class="role-card">
+      <div class="icon">&#128100;</div>
+      <div class="name">Resident</div>
+      <div class="desc">Visitors, vehicles, gate unlock, helpdesk</div>
+    </div>
+    <div class="role-card">
+      <div class="icon">&#128272;</div>
+      <div class="name">Guard</div>
+      <div class="desc">Gate verification &amp; access log</div>
+    </div>
+    <div class="role-card">
+      <div class="icon">&#128737;</div>
+      <div class="name">Security</div>
+      <div class="desc">SP approvals, guard mgmt, QR lookup, logs</div>
+    </div>
+    <div class="role-card">
+      <div class="icon">&#128187;</div>
+      <div class="name">Admin</div>
+      <div class="desc">Full system access, user CRUD, exports</div>
+    </div>
+    <div class="role-card">
+      <div class="icon">&#128680;</div>
+      <div class="name">Panic</div>
+      <div class="desc">Emergency alert (guard credentials)</div>
+    </div>
+  </div>
+
+  <table class="gate-table">
+    <thead>
+      <tr><th>Feature</th><th>Resident</th><th>Guard</th><th>Security</th><th>Admin</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Invite visitors</td><td>&#10003;</td><td></td><td></td><td>&#10003;</td></tr>
+      <tr><td>Invite service providers</td><td>&#10003;</td><td></td><td></td><td>&#10003;</td></tr>
+      <tr><td>Proximity gate unlock</td><td>&#10003;</td><td></td><td></td><td></td></tr>
+      <tr><td>Verify gate QR / plate</td><td></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>Approve service providers</td><td></td><td></td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>View access logs</td><td></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>Manage residents</td><td></td><td></td><td></td><td>&#10003;</td></tr>
+      <tr><td>Export data (CSV)</td><td></td><td></td><td></td><td>&#10003;</td></tr>
+      <tr><td>Panic alert</td><td></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="gates">
+  <h2 class="section-title">3. Gates &amp; Entrances</h2>
+  <table class="gate-table">
+    <thead>
+      <tr><th>Entrance</th><th>Code</th><th>Gates</th><th>GPS Coordinates</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Schoeman Street</strong></td>
+        <td>SSgate</td>
+        <td>SS Gate 1, SS Gate 2, SS Gate 3</td>
+        <td>&minus;34.1893, 22.1226</td>
+      </tr>
+      <tr>
+        <td><strong>Church Street</strong></td>
+        <td>CSgate</td>
+        <td>CS Gate 1, CS Gate 2</td>
+        <td>&minus;34.1916, 22.1374</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <strong>Note</strong>
+    Individual gate coordinates are currently set to the entrance centroid. They will be updated once each gate post is surveyed on-site. The proximity distance check uses the Haversine formula (WGS84).
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="resident">
+  <h2 class="section-title">4. Resident Portal</h2>
+  <p>The resident portal gives homeowners and registered occupants full self-service access to visitor management, gate control, vehicle records, and helpdesk tickets.</p>
+
+  <h3 id="res-login">4.1 Logging In</h3>
+  <ul class="steps">
+    <li>Open <code>https://mbge.ink/AS-menu.html</code> and tap <strong>Resident Login</strong>.</li>
+    <li>Enter your <strong>Erf number</strong> (e.g. <code>ERF123</code>). A dropdown of registered occupants for that erf will appear.</li>
+    <li>Select your name from the dropdown and enter your <strong>6-digit PIN</strong>.</li>
+    <li>On a new device you will receive a <strong>WhatsApp OTP</strong> on your registered number. Enter it to verify the device.</li>
+    <li>Verified devices are remembered for up to 10 years via a secure cookie — you will not be prompted for OTP again on the same device unless cookies are cleared.</li>
+  </ul>
+  <div class="tip">
+    <strong>Forgotten PIN?</strong>
+    Tap <em>Reset PIN</em> on the login screen. A reset link is sent to your registered mobile number via WhatsApp.
+  </div>
+
+  <h3 id="res-visitors">4.2 Managing Visitors</h3>
+  <p>From the resident menu, tap <strong>Visitors</strong> to invite personal guests.</p>
+
+  <h4>Adding a Visitor</h4>
+  <ul class="steps">
+    <li>Tap <strong>Add Visitor</strong>.</li>
+    <li>Enter the visitor's full name, ID number or passport, and vehicle registration plate (optional).</li>
+    <li>Set the <strong>valid-from</strong> and <strong>valid-to</strong> dates. A visitor pass is only active within this window.</li>
+    <li>Optionally enter the visitor's mobile number to send them the pass directly.</li>
+    <li>Tap <strong>Save</strong>. A unique <strong>3XXXXX</strong> code and QR pass are generated automatically.</li>
+    <li>Share the pass link with your visitor (WhatsApp, SMS, or copy the link).</li>
+  </ul>
+
+  <h4>Visitor Pass Page</h4>
+  <p>When the visitor opens the pass link on their phone they see:</p>
+  <ul>
+    <li>Status badge — <em>Valid Pass</em>, <em>Not Yet Active</em>, or <em>Expired</em></li>
+    <li>Their name, valid dates, and resident address</li>
+    <li>A QR code to present at the gate</li>
+    <li>The <strong>Get Directions</strong> section (see §4.5 below)</li>
+  </ul>
+
+  <h4>Deleting / Expiring a Visitor</h4>
+  <p>Tap the red <strong>Delete</strong> button next to a visitor's name in the list. This immediately invalidates their pass.</p>
+
+  <!-- ── v2.1 GPS nav ── -->
+  <h3 id="res-nav">4.3 Visitor GPS Navigation <span class="new-badge">NEW v2.1</span></h3>
+  <p>Visitor passes now include a <strong>Get Directions</strong> section below the QR code, showing your home address and three one-tap navigation buttons.</p>
+  <div class="note">
+    <strong>How it works</strong>
+    The resident's address is pulled from the database when the pass is generated. Visitors do not need to know the address — they just tap the app they prefer.
+  </div>
+  <ul>
+    <li><strong>Google Maps</strong> — opens the Google Maps app or website</li>
+    <li><strong>Waze</strong> — opens Waze with turn-by-turn directions</li>
+    <li><strong>Apple Maps</strong> — opens Apple Maps (best on iPhone)</li>
+  </ul>
+  <div class="tip">
+    <strong>Resident tip</strong>: Make sure your address is correct in the system. Contact the admin if it needs updating.
+  </div>
+
+  <h3 id="res-sp">4.4 Service Providers</h3>
+  <p>From the <strong>Visitors</strong> menu tap <strong>Service Providers</strong> to manage workers who need recurring or one-off estate access.</p>
+
+  <table class="gate-table">
+    <thead>
+      <tr><th>Category</th><th>Permit type</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>&#127968; Domestic Worker</td><td>Access card</td><td>Regular domestic employee</td></tr>
+      <tr><td>&#128295; Resident Worker</td><td>Access card</td><td>Painter, gardener, etc.</td></tr>
+      <tr><td>&#128119; Contractor Lead</td><td>Access card</td><td>Team leader for building work</td></tr>
+      <tr><td>&#128230; Delivery</td><td>Single-use slip</td><td>Requires Security approval; one-use only</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <strong>Delivery approvals</strong>
+    Delivery service provider passes require approval by the Security office before they become active. Allow time for this during business hours.
+  </div>
+
+  <p>Service provider codes follow the <strong>7XXXXX</strong> format (digit 7 + 5 digits), distinguishing them from personal visitor codes (3XXXXX).</p>
+
+  <!-- ── v2.1 Proximity Gate ── -->
+  <h3 id="res-gate">4.5 Proximity Gate Unlock <span class="new-badge">NEW v2.1</span></h3>
+  <p>Residents can open any estate gate from their phone without a tag or access card, as long as they are physically near the gate.</p>
+
+  <h4>Step-by-step</h4>
+  <ul class="steps">
+    <li>Log in to the Resident portal and tap the green <strong>Open Gate</strong> card on the main menu.</li>
+    <li>Choose your entrance — <strong>Schoeman Street</strong> or <strong>Church Street</strong>.</li>
+    <li>Tap the specific gate you want to open (e.g. <em>SS Gate 1</em>).</li>
+    <li>When prompted, allow the browser to access your location. This is required for the distance check and is not stored beyond the unlock log.</li>
+    <li>The system measures the distance between your phone and the gate using GPS (Haversine formula).</li>
+    <li><strong>Within 100 m</strong> — a large green <em>"Push Button to Open Gate"</em> button appears. Tap it once.</li>
+    <li><strong>Beyond 100 m</strong> — a yellow warning shows your actual distance. Move closer to the gate and try again.</li>
+  </ul>
+
+  <div class="warn">
+    <strong>Important</strong>
+    <ul style="margin-top:6px;">
+      <li>Location permission must be granted in your browser. If denied, go to your browser's site settings and allow location for mbge.ink.</li>
+      <li>Every gate unlock is logged with your name, the gate, distance, and timestamp. This log is visible to Security and Admin.</li>
+      <li>The 100 m limit is enforced server-side — it cannot be bypassed by the user interface.</li>
+    </ul>
+  </div>
+
+  <h4>Recent Unlocks</h4>
+  <p>The bottom of the Open Gate page shows your 5 most recent gate unlocks, including the gate name, distance, and time.</p>
+
+  <h4>Browser Compatibility</h4>
+  <table class="gate-table">
+    <thead><tr><th>Browser</th><th>Android</th><th>iOS (iPhone/iPad)</th></tr></thead>
+    <tbody>
+      <tr><td>Chrome</td><td>&#10003; Supported</td><td>&#10003; Supported</td></tr>
+      <tr><td>Safari</td><td>N/A</td><td>&#10003; Supported</td></tr>
+      <tr><td>Firefox</td><td>&#10003; Supported</td><td>Limited (use Safari)</td></tr>
+      <tr><td>Samsung Internet</td><td>&#10003; Supported</td><td>N/A</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <strong>iOS tip</strong>: On iPhone/iPad, use Safari for the most reliable GPS accuracy. Location permission must be set to <em>"Allow"</em> (not "Ask Next Time") in <em>Settings &rarr; Safari &rarr; Location</em>.
+  </div>
+
+  <h3 id="res-vehicles">4.6 Vehicles</h3>
+  <p>From the resident menu tap <strong>Vehicles</strong> to register or remove vehicles associated with your property. Registered plates are recognised by LPR cameras at the gates and do not require a manual guard check on entry.</p>
+
+  <h3 id="res-helpdesk">4.7 Helpdesk</h3>
+  <p>Tap <strong>Helpdesk</strong> from the resident menu to log a query or complaint. Security and Admin staff can view and respond to tickets. You will receive a reference number for follow-up.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="guard">
+  <h2 class="section-title">5. Guard Portal</h2>
+  <p>Access at <code>https://mbge.ink/guard.php</code>. Guards log in with their assigned guard credentials (not a resident PIN).</p>
+
+  <h3>Gate Verification</h3>
+  <ul class="steps">
+    <li>Select <strong>Verify Access</strong> from the guard menu.</li>
+    <li>Scan the visitor's QR code using the camera button, OR type the 6-digit code manually (3XXXXX for visitors, 7XXXXX for service providers).</li>
+    <li>The system displays the pass status instantly:
+      <ul>
+        <li>&#10003; <strong>Valid</strong> — name, photo (if any), vehicle plate, and valid dates shown in green</li>
+        <li>&#9888; <strong>Not Active Yet</strong> — pass start date is in the future</li>
+        <li>&#9940; <strong>Expired</strong> — pass end date has passed; deny entry</li>
+        <li>&#9940; <strong>Not Found</strong> — code does not exist; deny entry and alert Security</li>
+      </ul>
+    </li>
+    <li>Tap <strong>Log Entry</strong> to record the visit in the access log.</li>
+  </ul>
+
+  <h3>Access Log</h3>
+  <p>Guards can view the current day's access log showing all entries and exits recorded at their gate.</p>
+
+  <h3>Panic Alert</h3>
+  <p>In an emergency, guards access the panic function from <code>https://mbge.ink/panic/panic_login.php</code>. See §8 for full details.</p>
+
+  <h3>PIN / Password Reset</h3>
+  <p>Guards cannot reset their own credentials. Contact the Security office or Admin.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="security">
+  <h2 class="section-title">6. Security Officer Portal</h2>
+  <p>Access at <code>https://mbge.ink/security.php</code>. Security officers have an elevated view of the estate without full admin rights.</p>
+
+  <h3>Service Provider Approvals</h3>
+  <p>Delivery and contractor passes flagged for approval appear in the <strong>Approvals</strong> queue. Review the request details and tap <strong>Approve</strong> or <strong>Reject</strong>.</p>
+
+  <h3>Access Logs</h3>
+  <p>Full searchable log of all gate events — entries, exits, QR scans, and proximity unlocks.</p>
+
+  <h3>Guard Management</h3>
+  <p>Add, edit, or deactivate guard accounts from the Guard Management section.</p>
+
+  <h3>QR Lookup</h3>
+  <p>Enter any 6-digit code to view the full details and status of a visitor or service provider pass.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="admin">
+  <h2 class="section-title">7. Admin Portal</h2>
+  <p>Access at <code>https://mbge.ink/admin.php</code>. Admin has unrestricted access to all system functions.</p>
+
+  <div class="warn">
+    <strong>Security reminder</strong>
+    The default admin password is <code>Admin@MBGE2026</code>. Change it immediately after first login. Do not share admin credentials.
+  </div>
+
+  <h3>Resident Management</h3>
+  <p>Add, edit, or delete resident accounts via <strong>Residents Admin</strong>. Each resident record includes:</p>
+  <ul>
+    <li>Erf number, occupant code, resident name</li>
+    <li>Address (used for visitor GPS navigation)</li>
+    <li>Phone number (for WhatsApp OTP)</li>
+    <li>Occupant type (owner, tenant, etc.) and status (active / inactive)</li>
+  </ul>
+
+  <h3>Newsletter &amp; Notice Upload</h3>
+  <p>Upload PDF or image files via <strong>Newsletters Admin</strong>. Uploaded files are stored in the <code>/uploads/</code> folder and listed in the resident notice board.</p>
+
+  <h3>Data Exports</h3>
+  <p>From the <strong>Export</strong> menu download CSV files of visitors, service providers, vehicles, and access logs. An activity report summarising gate events is also available.</p>
+
+  <h3>Helpdesk</h3>
+  <p>View and respond to resident helpdesk tickets from the Admin Helpdesk menu.</p>
+
+  <h3>Nightly Cleanup</h3>
+  <p>A cron job runs at 02:00 every night to purge data older than the POPIA retention period (default 90 days). The schedule in cPanel is:</p>
+  <code>0 2 * * *  /usr/bin/php /home/USERNAME/public_html/cron_cleanup.php</code>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="panic">
+  <h2 class="section-title">8. Panic Alert</h2>
+  <p>The panic alert system allows guards to send an immediate emergency notification to the Security Control Room.</p>
+
+  <ul class="steps">
+    <li>Open <code>https://mbge.ink/panic/panic_login.php</code> — a dedicated bookmark/shortcut should be on every guard device.</li>
+    <li>Log in with guard credentials.</li>
+    <li>On the confirmation screen, tap <strong>Send Panic Alert</strong>.</li>
+    <li>The alert is dispatched and logged with the guard's name, location, and timestamp.</li>
+  </ul>
+
+  <div class="warn">
+    <strong>Test mode</strong>
+    Do not trigger a panic alert for testing purposes during operational hours. Coordinate test times with the Security office.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="popia">
+  <h2 class="section-title">9. POPIA Compliance</h2>
+  <p>The system is designed to comply with the Protection of Personal Information Act (POPIA).</p>
+  <ul>
+    <li><strong>Data retention</strong>: Personal data is automatically purged after 90 days (configurable by Admin in the <code>settings</code> table).</li>
+    <li><strong>Biometrics</strong>: No biometric or facial recognition data is collected or stored.</li>
+    <li><strong>Criminal records</strong>: No criminal record checks are performed or stored (unconstitutional).</li>
+    <li><strong>POPIA notices</strong>: All data-capture forms display a POPIA information notice before submission.</li>
+    <li><strong>Proximity log</strong>: The gate proximity unlock log retains only resident ID, gate name, distance, and timestamp — no precise location trajectory is stored.</li>
+    <li><strong>Minimum data</strong>: Only the data necessary for estate security is collected.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<section id="troubleshoot">
+  <h2 class="section-title">10. Troubleshooting</h2>
+
+  <h3>Proximity Gate Unlock — common issues</h3>
+  <table class="gate-table">
+    <thead><tr><th>Problem</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>"Location permission denied"</td>
+        <td>Go to browser site settings for mbge.ink and set Location to <em>Allow</em>. On iOS use Safari &rarr; Settings &rarr; Safari &rarr; Location.</td>
+      </tr>
+      <tr>
+        <td>Distance shown is wrong (e.g. 2000 m when at the gate)</td>
+        <td>Ensure you are outdoors with a clear sky view. Indoor or underground GPS is inaccurate. Refresh and try again.</td>
+      </tr>
+      <tr>
+        <td>"Too Far to Open Gate" despite being at the gate</td>
+        <td>GPS can drift up to 50 m in some conditions. Wait 10 seconds for the position to stabilise and tap the gate card again.</td>
+      </tr>
+      <tr>
+        <td>Button appears but gate does not open</td>
+        <td>The hardware trigger may not be connected. Contact the estate manager — gate hardware integration is in progress.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Login issues</h3>
+  <table class="gate-table">
+    <thead><tr><th>Problem</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Erf number not recognised</td>
+        <td>Check you are using the correct erf format (e.g. <code>ERF123</code> not <code>123</code>). Contact Admin if not resolved.</td>
+      </tr>
+      <tr>
+        <td>WhatsApp OTP not received</td>
+        <td>Check WhatsApp is installed and your number is correct. Allow 2 minutes. Request a resend or contact Admin.</td>
+      </tr>
+      <tr>
+        <td>PIN locked out</td>
+        <td>Use the <em>Reset PIN</em> link on the login screen or contact Admin.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Visitor pass not accepted at gate</h3>
+  <ul>
+    <li>Confirm the pass dates include today (check the visitor list in your resident portal).</li>
+    <li>Ensure the visitor is showing the correct link — it must start with <code>https://mbge.ink/visitor_qr.php?code=3</code>&hellip;</li>
+    <li>If the QR code cannot be scanned, ask the guard to type the 6-digit code manually.</li>
+  </ul>
+
+  <hr class="divider">
+  <p style="text-align:center;color:var(--muted);font-size:.82rem;">
+    MBGE Access Control System v2.1 &mdash; Manual generated June 2026<br>
+    For technical support contact the estate administrator.
+  </p>
+</section>
+
+</body>
+</html>

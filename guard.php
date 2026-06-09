@@ -17,6 +17,33 @@ require_once __DIR__ . '/layout.php';
 require_once __DIR__ . '/twilio_helper.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// ── PWA helpers ───────────────────────────────────────────
+// Wraps layout pageHeader/pageFooter to inject manifest link,
+// Apple meta tags, and service-worker registration without
+// requiring changes to layout.php.
+function guardPageHeader(string $title): void {
+    ob_start();
+    pageHeader($title, 'guard');
+    $tags = '<link rel="manifest" href="guard-manifest.json">'
+          . '<meta name="theme-color" content="#0f2744">'
+          . '<meta name="apple-mobile-web-app-capable" content="yes">'
+          . '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">'
+          . '<meta name="apple-mobile-web-app-title" content="MBGE Guard">'
+          . '<link rel="apple-touch-icon" href="logo.png">';
+    echo str_ireplace('</head>', $tags . '</head>', ob_get_clean());
+}
+function guardPageFooter(): void {
+    ?>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw-guard.js', {scope: './'})
+            .catch(function(e) { console.warn('Guard SW:', e); });
+    }
+    </script>
+    <?php
+    pageFooter();
+}
+
 $action = $_GET['action'] ?? 'login';
 
 if ($action === 'login' && !empty($_SESSION['guard_id'])) {
@@ -184,7 +211,7 @@ if ($action === 'login') {
         $maskedPhone = substr($p, 0, 4) . '***' . substr($p, -3);
     }
 
-    pageHeader('Guard Login', 'guard');
+    guardPageHeader('Guard Login');
     ?>
     <div class="login-wrap">
       <div class="login-card">
@@ -307,7 +334,7 @@ if ($action === 'login') {
         </div>
       </div>
     </div>
-    <?php pageFooter(); exit; ?>
+    <?php guardPageFooter(); exit; ?>
 <?php } // end login
 
 // ════════════════════════════════════════════════════════
@@ -596,7 +623,7 @@ if ($action === 'verify') {
 
     $gpLabel = GATE_POINTS[$gate][$gate_point]['label'] ?? $gate_point;
 
-    pageHeader('Gate — ' . $gpLabel, 'guard');
+    guardPageHeader('Gate — ' . $gpLabel);
     renderHeader('🔐 ' . $gpLabel . ' — ' . $guardName, 'logout.php');
     ?>
     <div class="container">
@@ -938,7 +965,7 @@ if ($action === 'verify') {
     }
     </script>
 
-    <?php pageFooter(); exit; ?>
+    <?php guardPageFooter(); exit; ?>
 <?php } // end verify
 
 // ════════════════════════════════════════════════════════
@@ -982,7 +1009,7 @@ if ($action === 'reset') {
             header('Location: guard.php?action=verify'); exit;
         }
     }
-    pageHeader('Change PIN', 'guard');
+    guardPageHeader('Change PIN');
     renderHeader('🔑 Change PIN', 'guard.php?action=verify');
     ?>
     <div class="container" style="max-width:420px;">
@@ -1006,7 +1033,7 @@ if ($action === 'reset') {
         </form>
       </div>
     </div>
-    <?php pageFooter(); exit; ?>
+    <?php guardPageFooter(); exit; ?>
 <?php } // end reset
 
 header('Location: guard.php?action=verify'); exit;

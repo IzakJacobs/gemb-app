@@ -1,0 +1,341 @@
+<?php
+// ============================================================
+// MBGE Access Control — layout.php
+// Shared header, footer, auth guards, and CSS design system
+// ============================================================
+require_once __DIR__ . '/config.php';
+date_default_timezone_set('Africa/Johannesburg');
+
+// ── SameSite=Strict on all device cookies ─────────────────
+// Called once at file-include time (before any output).
+// Re-issues every mbge_* device cookie with SameSite=Strict,
+// preventing them being sent in cross-site requests (CSRF layer).
+if (session_status() === PHP_SESSION_NONE) session_start();
+foreach ([
+    'mbge_admin_device',
+    'mbge_guard_device',
+    'mbge_security_device',
+    'mbge_resident_device',
+    'mbge_device',           // resident legacy name
+] as $_mbge_cookie) {
+    if (isset($_COOKIE[$_mbge_cookie])) {
+        setcookie($_mbge_cookie, $_COOKIE[$_mbge_cookie], [
+            'expires'  => time() + (10 * 365 * 24 * 60 * 60),
+            'path'     => '/',
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+}
+unset($_mbge_cookie);
+
+// ── Security headers ──────────────────────────────────────
+if (!headers_sent()) {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header("Content-Security-Policy: "
+         . "default-src 'self'; "
+         . "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://chart.googleapis.com; "
+         . "style-src 'self' 'unsafe-inline'; "
+         . "img-src 'self' data: https://chart.googleapis.com; "
+         . "connect-src 'self'; "
+         . "frame-ancestors 'none';");
+}
+
+// ── Auth guard functions ──────────────────────────────────
+function requireAdmin(): void {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    checkSessionTimeout();
+    if (empty($_SESSION['admin_id'])) {
+        header('Location: admin.php?action=login'); exit;
+    }
+}
+function requireSecurity(): void {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    checkSessionTimeout();
+    if (empty($_SESSION['security_id'])) {
+        header('Location: security.php?action=login'); exit;
+    }
+}
+function requireGuard(): void {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    checkSessionTimeout();
+    if (empty($_SESSION['guard_id'])) {
+        header('Location: guard.php?action=login'); exit;
+    }
+}
+function requireResident(): void {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    checkSessionTimeout();
+    if (empty($_SESSION['resident_id'])) {
+        header('Location: resident.php?action=login'); exit;
+    }
+}
+
+// ── Vote session guard ────────────────────────────────────
+// Guards vote_cast.php. Checks that a valid token-based voting
+// session exists (set by vote_login.php on successful token
+// verification). If not, redirects to vote_login.php?action=login.
+//
+// Unlike requireResident()/requireGuard()/etc., this does NOT
+// check any DB-backed user table directly — the session keys
+// vote_meeting_id and vote_erf are only ever set after
+// vote_login.php has already validated the token against
+// vote_tokens.
+function requireVoteSession(): void {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (empty($_SESSION['vote_meeting_id']) || empty($_SESSION['vote_erf'])) {
+        header('Location: vote_login.php?action=login');
+        exit;
+    }
+    // Idle timeout: 30 minutes of inactivity
+    $idleLimit = 30 * 60;
+    if (!empty($_SESSION['vote_last_activity'])
+        && (time() - $_SESSION['vote_last_activity']) > $idleLimit) {
+        session_unset();
+        session_destroy();
+        header('Location: vote_login.php?action=login');
+        exit;
+    }
+    $_SESSION['vote_last_activity'] = time();
+}
+
+// ── Page header ───────────────────────────────────────────
+function pageHeader(string $title, string $role = ''): void {
+    $GLOBALS['_page_role'] = $role;
+
+    $roleColors = [
+        'admin'    => '#c0392b',
+        'security' => '#8e44ad',
+        'guard'    => '#1a6b3c',
+        'resident' => '#1565c0',
+        'public'   => '#1a3c5e',
+        ''         => '#1a3c5e',
+    ];
+    $accent = $roleColors[$role] ?? '#1a3c5e';
+    ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title><?= htmlspecialchars($title) ?> | MBGE Access</title>
+<link rel="manifest" href="<?= $role === 'resident' ? '/manifest-resident.php' : ($role === 'security' ? '/manifest-security.php' : ($role === 'admin' ? '/manifest-admin.php' : '/manifest-guard.php')) ?>">
+<meta name="theme-color" content="<?= $accent ?>">
+<style>
+/* ── Design tokens ── */
+:root {
+  --accent:    <?= $accent ?>;
+  --bg:        #f4f6f9;
+  --card-bg:   #ffffff;
+  --text:      #1a1a2e;
+  --muted:     #6c757d;
+  --border:    #dee2e6;
+  --success:   #28a745;
+  --danger:    #dc3545;
+  --warning:   #ffc107;
+  --info:      #17a2b8;
+  --radius:    10px;
+  --shadow:    0 2px 12px rgba(0,0,0,.08);
+  --font:      -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); font-family: var(--font); color: var(--text); min-height: 100vh; }
+
+/* ── Header ── */
+.site-header {
+  background: var(--accent); color: #fff; padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.site-header h1 { font-size: 1.05rem; font-weight: 600; letter-spacing: .3px; }
+.site-header a.logout-btn {
+  color: rgba(255,255,255,.85); font-size: .8rem; text-decoration: none;
+  border: 1px solid rgba(255,255,255,.4); padding: 4px 10px; border-radius: 20px;
+}
+.site-header a.logout-btn:hover { background: rgba(255,255,255,.15); }
+
+/* ── Main container ── */
+.container { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card-bg); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px; margin-bottom: 18px;
+}
+.card-title { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--accent); }
+
+/* ── Menu grid ── */
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 12px; }
+.menu-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--card-bg); border: 2px solid var(--accent);
+  border-radius: var(--radius); padding: 18px 10px; text-decoration: none;
+  color: var(--accent); font-weight: 600; font-size: .85rem; text-align: center;
+  transition: all .2s; gap: 8px;
+}
+.menu-btn:hover { background: var(--accent); color: #fff; transform: translateY(-2px); box-shadow: var(--shadow); }
+.menu-btn .icon { font-size: 1.8rem; }
+
+/* ── Forms ── */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 5px; color: var(--muted); }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: .95rem; font-family: var(--font);
+  transition: border-color .2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.btn {
+  display: inline-block; padding: 10px 22px; border-radius: 6px;
+  font-size: .95rem; font-weight: 600; cursor: pointer; border: none;
+  text-decoration: none; transition: opacity .2s;
+}
+.btn:hover { opacity: .85; }
+.btn-primary   { background: var(--accent); color: #fff; }
+.btn-success   { background: var(--success); color: #fff; }
+.btn-danger    { background: var(--danger); color: #fff; }
+.btn-secondary { background: var(--muted); color: #fff; }
+.btn-grey      { background: #6c757d; color: #fff; }
+.btn-sm        { padding: 5px 12px; font-size: .82rem; }
+.btn-block     { display: block; width: 100%; text-align: center; }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+th { background: var(--accent); color: #fff; padding: 9px 10px; text-align: left; font-weight: 600; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #f8f9fa; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 20px;
+  font-size: .75rem; font-weight: 700; text-transform: uppercase;
+}
+.badge-success  { background: #d4edda; color: #155724; }
+.badge-danger   { background: #f8d7da; color: #721c24; }
+.badge-warning  { background: #fff3cd; color: #856404; }
+.badge-info     { background: #d1ecf1; color: #0c5460; }
+.badge-muted    { background: #e2e3e5; color: #383d41; }
+
+/* ── Alert boxes ── */
+.alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; font-size: .92rem; }
+.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.alert-danger  { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.alert-info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+.alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+/* ── Login page ── */
+.login-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent) 0%, #1a1a2e 100%); padding: 20px;
+}
+.login-card {
+  background: #fff; border-radius: 14px; padding: 36px 28px;
+  width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+.login-card h2 { text-align: center; color: var(--accent); margin-bottom: 6px; }
+.login-card .subtitle { text-align: center; color: var(--muted); font-size: .85rem; margin-bottom: 24px; }
+.login-logo { text-align: center; font-size: 3rem; margin-bottom: 10px; }
+
+/* ── POPIA notice ── */
+.popia-notice {
+  font-size: .75rem; color: var(--muted); border-top: 1px solid var(--border);
+  margin-top: 16px; padding-top: 10px; line-height: 1.4;
+}
+
+/* ── Footer ── */
+.site-footer {
+  text-align: center; font-size: .72rem; color: var(--muted);
+  padding: 14px; border-top: 1px solid var(--border); margin-top: 30px;
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .menu-grid { grid-template-columns: repeat(2,1fr); }
+  .container { padding: 14px 10px 60px; }
+  .hide-mobile { display: none; }
+}
+
+/* ── Survey / Voting pages (comms_surveys.php, comms_voting.php) ── */
+.pc-main { max-width: 1000px; margin: 0 auto; padding: 20px 16px 60px; }
+.card-wide { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 18px; }
+.card-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.section-title { font-size: .95rem; font-weight: 600; margin-bottom: 12px; color: var(--accent); }
+.muted-note { color: var(--muted); font-size: .85rem; }
+.required { color: var(--danger); }
+
+.btn-navy  { background: #1a3c5e; color: #fff; }
+.btn-blue  { background: #1565c0; color: #fff; }
+.btn-green { background: var(--success); color: #fff; }
+.btn-red   { background: var(--danger); color: #fff; }
+.btn-amber { background: #d4a017; color: #fff; }
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-group-sm { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.data-table th { background: var(--accent); color: #fff; padding: 9px 10px; text-align: left; font-weight: 600; }
+.data-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.data-table tr:hover td { background: #f8f9fa; }
+.text-center { text-align: center; }
+.table-responsive { overflow-x: auto; }
+
+.badge-green { background: #d4edda; color: #155724; }
+.badge-grey  { background: #e2e3e5; color: #383d41; }
+.badge-amber { background: #fff3cd; color: #856404; }
+.badge-blue  { background: #d1ecf1; color: #0c5460; }
+.badge-red   { background: #f8d7da; color: #721c24; }
+
+.alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; font-size: .92rem; }
+
+/* Survey question editor */
+.question-row { padding: 10px 0; }
+.question-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.q-number { font-weight: 700; color: var(--accent); }
+.question-text { font-size: .95rem; margin: 4px 0 8px; }
+.option-list { margin: 0 0 8px 20px; font-size: .9rem; color: var(--muted); }
+.q-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.text-responses { margin: 10px 0 0 20px; font-size: .88rem; }
+.text-responses li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+    <?php
+}
+
+// ── Page footer ───────────────────────────────────────────
+function pageFooter(): void {
+    $role = $GLOBALS['_page_role'] ?? '';
+    ?>
+<div class="site-footer">
+  MBGE Access Control &nbsp;|&nbsp; POPIA Act 4 of 2013 &nbsp;|&nbsp; PSIRA Act 56 of 2001
+  &nbsp;|&nbsp; HOA Reg. 1999/001249/08
+</div>
+<script>
+if ('serviceWorker' in navigator) {
+  var sw = <?= $role === 'resident' ? "'/sw-resident.php'" : ($role === 'security' ? "'/sw-security.php'" : ($role === 'admin' ? "'/sw-admin.php'" : "'/sw.php'")) ?>;
+  navigator.serviceWorker.register(sw).catch(function(){});
+}
+</script>
+</body>
+</html>
+    <?php
+}
+
+// ── Render page header bar ────────────────────────────────
+function renderHeader(string $title, string $logoutUrl = 'logout.php'): void {
+    echo '<div class="site-header">';
+    echo '<h1>🏌️ ' . htmlspecialchars($title) . '</h1>';
+    echo '<a href="' . $logoutUrl . '" class="logout-btn">Logout</a>';
+    echo '</div>';
+}

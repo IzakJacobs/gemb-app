@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>MBGE Access Control</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a3c5e">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: linear-gradient(135deg, #1a3c5e 0%, #0d1b2a 100%);
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  padding: 20px;
+}
+.splash {
+  text-align: center; color: #fff;
+  animation: fadeIn .8s ease-in;
+  width: 100%; max-width: 420px;
+}
+.logo { font-size: 4.5rem; margin-bottom: 10px; }
+h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+.subtitle { font-size: 0.85rem; color: rgba(255,255,255,.6); margin-bottom: 36px;
+  letter-spacing: 2px; text-transform: uppercase; }
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.role-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.08);
+  border: 2px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  padding: 24px 12px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: .95rem;
+  gap: 10px;
+  transition: all .2s;
+}
+.role-btn:hover, .role-btn:active {
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.6);
+  transform: translateY(-2px);
+}
+.role-btn .icon { font-size: 2.2rem; }
+.footer { font-size: .7rem; color: rgba(255,255,255,.35);
+  margin-top: 28px; line-height: 1.6; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+<div class="splash">
+  <div class="logo">🏌️</div>
+  <h1>MBGE Access Control</h1>
+  <div class="subtitle">Mossel Bay Golf Estate</div>
+  <div class="role-grid">
+    <a href="admin.php?action=login" class="role-btn">
+      <span class="icon">⚙️</span>Admin
+    </a>
+    <a href="security.php?action=login" class="role-btn">
+      <span class="icon">🛡️</span>Site Manager
+    </a>
+    <a href="guard.php?action=login" class="role-btn">
+      <span class="icon">🔐</span>Guard
+    </a>
+    <a href="resident.php?action=login" class="role-btn">
+      <span class="icon">🏠</span>Resident
+    </a>
+  </div>
+  <div class="footer">
+    MBGE HOA Reg. 1999/001249/08 &nbsp;|&nbsp; POPIA Act 4 of 2013<br>
+    PSIRA Act 56 of 2001
+  </div>
+</div>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

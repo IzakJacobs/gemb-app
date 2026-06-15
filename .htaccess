@@ -1,0 +1,130 @@
+# ============================================================
+# MBGE Access Control — .htaccess (root)
+# Version 3.0 — Security hardened
+# ============================================================
+
+# ── HTTPS enforcement ─────────────────────────────────────
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ── Block direct web access to sensitive files ────────────
+<FilesMatch "^(config|brute_force_helper|bf_functions|qr_cleanup_cron)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block .env, composer, package files
+<FilesMatch "^(\.env.*|composer\.(json|lock)|package(-lock)?\.json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block log files
+<FilesMatch "\.(log|sql|bak|swp|orig)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to phpqrcode library and pi directory
+<IfModule mod_rewrite.c>
+    RewriteRule ^phpqrcode/.*$ - [F,L]
+    RewriteRule ^logs/.*$ - [F,L]
+    RewriteRule ^pi/.*$ - [F,L]
+</IfModule>
+
+# ── Block directory listing ───────────────────────────────
+Options -Indexes
+
+# ── Security headers ──────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# ── Block common SQL injection patterns in query strings ──
+<IfModule mod_rewrite.c>
+    RewriteCond %{QUERY_STRING} (union.*select|select.*from|insert.*into|delete.*from|drop.*table|update.*set) [NC]
+    RewriteRule .* - [F,L]
+
+    RewriteCond %{QUERY_STRING} (<script|%3Cscript|javascript:|vbscript:) [NC]
+    RewriteRule .* - [F,L]
+
+    RewriteCond %{QUERY_STRING} (base64_encode|base64_decode|eval\(|shell_exec|passthru|system\() [NC]
+    RewriteRule .* - [F,L]
+
+    # Block null bytes
+    RewriteCond %{QUERY_STRING} (\%00|\\x00) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# ── Rate limit login endpoints (Apache mod_ratelimit) ─────
+# Only active if mod_ratelimit is available on the server.
+# cPanel shared hosting may not have it — safe to leave in.
+<IfModule mod_ratelimit.c>
+    <LocationMatch "^/(admin|guard|security|resident)\.php">
+        SetOutputFilter RATE_LIMIT
+        SetEnv rate-limit 200
+    </LocationMatch>
+</IfModule>
+
+# ── PHP settings (overrides php.ini for this directory) ──
+<IfModule mod_php.c>
+    # Never display errors to browser in production
+    php_flag  display_errors     Off
+    php_flag  display_startup_errors Off
+    php_value error_reporting    E_ALL
+    php_flag  log_errors         On
+    php_value error_log          logs/php_errors.log
+
+    # Session security
+    php_flag  session.cookie_httponly  On
+    php_flag  session.cookie_secure    On
+    php_value session.cookie_samesite  Strict
+    php_flag  session.use_strict_mode  On
+    php_value session.gc_maxlifetime   86400
+
+    # Disable dangerous functions
+    php_value disable_functions "exec,shell_exec,system,passthru,popen,proc_open"
+</IfModule>
+
+# ── PHP-FPM / CGI (cPanel LiteSpeed / CloudLinux) ─────────
+# If the above php_flag directives don't apply (PHP-FPM), use .user.ini instead.
+# A separate .user.ini file is provided for PHP-FPM environments.
+
+# BEGIN cPanel-generated php ini directives, do not edit
+# Manual editing of this file may result in unexpected behavior.
+# To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
+# For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+<IfModule php8_module>
+   php_value error_log "/home/gembcoza/logs/php.error.log"
+   php_flag log_errors On
+   php_flag display_errors On
+   php_value max_execution_time 300
+   php_value max_input_time 300
+   php_value max_input_vars 10000
+   php_value memory_limit 2G
+   php_value post_max_size 512M
+   php_value session.gc_maxlifetime 14400
+   php_value session.save_path "/tmp"
+   php_value upload_max_filesize 256M
+   php_flag zlib.output_compression Off
+</IfModule>
+<IfModule lsapi_module>
+   php_value error_log "/home/gembcoza/logs/php.error.log"
+   php_flag log_errors On
+   php_flag display_errors On
+   php_value max_execution_time 300
+   php_value max_input_time 300
+   php_value max_input_vars 10000
+   php_value memory_limit 2G
+   php_value post_max_size 512M
+   php_value session.gc_maxlifetime 14400
+   php_value session.save_path "/tmp"
+   php_value upload_max_filesize 256M
+   php_flag zlib.output_compression Off
+</IfModule>
+# END cPanel-generated php ini directives, do not edit

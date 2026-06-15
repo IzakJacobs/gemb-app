@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MBGE Guard PWA Test</title>
+<style>
+body { font-family: sans-serif; padding: 20px; background: #f4f6f9; }
+.card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+h2 { color: #1a6b3c; }
+.ok   { color: #28a745; font-weight: 700; }
+.fail { color: #dc3545; font-weight: 700; }
+li { margin-bottom: 8px; line-height: 1.5; }
+a { color: #1a6b3c; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🔐 MBGE Guard PWA Diagnostics</h2>
+  <p>Checks manifest, icons, and service worker.</p>
+</div>
+<div class="card" id="results">Running checks…</div>
+<script>
+const results = document.getElementById('results');
+let html = '<ul>';
+let checks = [];
+
+// Check manifest (PHP version)
+checks.push(
+  fetch('/manifest-guard.php')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(m => {
+      html += '<li class="ok">✅ manifest-guard.php — name: ' + m.name + '</li>';
+      return Promise.all(m.icons.map(icon =>
+        fetch(icon.src).then(r => ({src: icon.src, ok: r.ok}))
+      ));
+    })
+    .then(icons => {
+      icons.forEach(i => {
+        html += i.ok
+          ? '<li class="ok">✅ Icon: ' + i.src + '</li>'
+          : '<li class="fail">❌ Icon MISSING: ' + i.src + '</li>';
+      });
+    })
+    .catch(e => { html += '<li class="fail">❌ manifest-guard.php ERROR: ' + e + '</li>'; })
+);
+
+// Check service worker (PHP version)
+checks.push(
+  fetch('/sw.php')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(text => {
+      if (text.includes('CACHE_NAME')) {
+        html += '<li class="ok">✅ sw.php fetched correctly</li>';
+      } else {
+        html += '<li class="fail">❌ sw.php returned unexpected content</li>';
+      }
+    })
+    .catch(e => { html += '<li class="fail">❌ sw.php ERROR: ' + e + '</li>'; })
+);
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  checks.push(
+    navigator.serviceWorker.register('/sw.php', {scope: '/'})
+      .then(() => { html += '<li class="ok">✅ Service worker registered via sw.php</li>'; })
+      .catch(e => { html += '<li class="fail">❌ Service worker ERROR: ' + e + '</li>'; })
+  );
+} else {
+  html += '<li class="fail">❌ Service workers not supported</li>';
+}
+
+Promise.all(checks).finally(() => {
+  html += '</ul>';
+  html += '<p style="margin-top:14px"><a href="/guard.php?action=login">→ Go to Guard Login</a></p>';
+  results.innerHTML = html;
+});
+</script>
+</body>
+</html>

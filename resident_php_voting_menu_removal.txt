@@ -1,0 +1,15 @@
+resident.php — one-line removal
+
+Find this line in the menu grid (action=menu):
+
+<a href="admin_meetings.php?action=list" class="menu-btn"><span class="icon">🗳️</span>Voting</a>
+
+(or whatever the current Voting menu-btn line is — it may point to
+admin_votes.php or admin_meetings.php depending on which fix was
+applied last).
+
+DELETE this line entirely. Voting is now token-only via emailed
+links to vote_login.php — it is no longer part of the resident
+portal menu.
+
+No other resident.php changes needed.

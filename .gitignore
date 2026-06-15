@@ -1,0 +1,69 @@
+# ============================================================
+# MBGE Access Control — .gitignore
+# Prevents sensitive and generated files from being committed
+# ============================================================
+
+# ── Sensitive configuration ───────────────────────────────
+config.php
+.user.ini
+.env
+.env.*
+
+# ── Log files ─────────────────────────────────────────────
+logs/
+*.log
+error_log
+
+# ── Generated QR image files ──────────────────────────────
+temp/
+
+# ── One-time utility scripts (never re-deploy these) ──────
+setpwd.php
+gen_hashes.php
+test.php
+
+# ── Development / staging files ───────────────────────────
+bf_functions.php
+bf_login_pattern.php
+config_additions.php
+layout_additions.php
+device_token_patch_admin_resident.md
+
+# ── Database migration scripts (run once, then archive) ───
+# Keep sql_migration.sql in repo for reference but note it
+# should not be re-run on a live database
+# sql_migration.sql   ← kept intentionally
+
+# ── OS and editor noise ───────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.orig
+*.bak
+.idea/
+.vscode/
+node_modules/
+
+# ── Composer / npm artifacts ──────────────────────────────
+vendor/
+composer.lock
+package-lock.json
+
+# ── Archives / cPanel download artifacts ──────────────────
+*.zip
+
+# ── Local backup folders ──────────────────────────────────
+Backup15June/
+
+# ── User-uploaded files (never in git) ───────────────────
+uploads/
+
+# ── Server config ─────────────────────────────────────────
+php.ini
+
+# ── Debug output ──────────────────────────────────────────
+mbge_debug.txt
+
+# ── Claude Code session files ─────────────────────────────
+.claude/

@@ -1,0 +1,36 @@
+{
+  "name": "MBGE Resident Portal",
+  "short_name": "MBGE Home",
+  "description": "Mossel Bay Golf Estate — Resident Portal",
+  "start_url": "/resident.php?action=menu",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1565c0",
+  "theme_color": "#1565c0",
+  "icons": [
+    { "src": "/resident_icons/icon-72.png",  "sizes": "72x72",   "type": "image/png" },
+    { "src": "/resident_icons/icon-96.png",  "sizes": "96x96",   "type": "image/png" },
+    { "src": "/resident_icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/resident_icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/resident_icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/resident_icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/resident_icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/resident_icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Visitors",
+      "short_name": "Visitors",
+      "url": "/visitor.php?action=select",
+      "description": "Manage visitor passes"
+    },
+    {
+      "name": "Panic Alert",
+      "short_name": "Panic",
+      "url": "/resident.php?action=panic",
+      "description": "Send panic alert"
+    }
+  ],
+  "categories": ["lifestyle", "utilities"],
+  "lang": "en"
+}

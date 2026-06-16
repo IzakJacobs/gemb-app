@@ -107,6 +107,33 @@ function commsRecipients(string $audience, array $opts = []): array {
                 'meta'  => [],
             ], $rows);
 
+        case 'comms_contacts':
+            // Standalone contact list — independent of residents or any other table.
+            // Populated via CSV import in comms_contacts.php.
+            $groupTag = $opts['group_tag'] ?? null;
+            if ($groupTag !== null && $groupTag !== '') {
+                $stmt = db()->prepare("
+                    SELECT email, name, erf, phone
+                    FROM comms_contacts
+                    WHERE active = 1 AND group_tag = ?
+                    ORDER BY name, email
+                ");
+                $stmt->execute([$groupTag]);
+            } else {
+                $stmt = db()->query("
+                    SELECT email, name, erf, phone
+                    FROM comms_contacts
+                    WHERE active = 1
+                    ORDER BY name, email
+                ");
+            }
+            return array_map(static fn($r) => [
+                'email' => $r['email'],
+                'name'  => $r['name'] ?? 'Contact',
+                'erf'   => $r['erf']  ?? null,
+                'meta'  => ['phone' => $r['phone'] ?? null],
+            ], $stmt->fetchAll());
+
         case 'vote_eligible_owners':
             $meetingId = (int)($opts['meeting_id'] ?? 0);
             if (!$meetingId) return [];
@@ -291,15 +318,8 @@ function commsHandleUpload(array $rules): array {
 // the plain-text sendEmail() from twilio_helper.php.
 // ────────────────────────────────────────────────────────────
 function commsSendEmail(string $to, string $subject, string $html): bool {
-    $from    = defined('MAIL_FROM') ? MAIL_FROM : 'noreply@gemb.co.za';
-    $headers = implode("\r\n", [
-        'MIME-Version: 1.0',
-        'Content-Type: text/html; charset=UTF-8',
-        'From: MBGE Estate <' . $from . '>',
-        'Reply-To: ' . $from,
-        'X-Mailer: MBGE-Comms/1.0',
-    ]);
-    return mail($to, $subject, $html, $headers);
+    require_once __DIR__ . '/smtp_mail.php';
+    return smtpSend($to, $subject, $html);
 }
 
 function commsEmailShell(string $eyebrow, string $bodyHtml): string {
@@ -457,6 +477,15 @@ function commsRecipientCount(string $audience, array $opts = []): int {
                 SELECT COUNT(DISTINCT email) FROM residents
                 WHERE status='active' AND email IS NOT NULL AND email != '' AND is_primary=1
             ")->fetchColumn();
+
+        case 'comms_contacts':
+            $groupTag = $opts['group_tag'] ?? null;
+            if ($groupTag !== null && $groupTag !== '') {
+                $stmt = db()->prepare("SELECT COUNT(*) FROM comms_contacts WHERE active=1 AND group_tag=?");
+                $stmt->execute([$groupTag]);
+                return (int)$stmt->fetchColumn();
+            }
+            return (int)db()->query("SELECT COUNT(*) FROM comms_contacts WHERE active=1")->fetchColumn();
 
         case 'vote_eligible_owners':
             $meetingId = (int)($opts['meeting_id'] ?? 0);

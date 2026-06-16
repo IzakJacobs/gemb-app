@@ -92,14 +92,73 @@ if ($action === 'meetings_list') {
     );
     $meetings = $stmt->fetchAll();
 
+    $voterCount = commsRecipientCount('comms_contacts');
+
     pageHeader('Voting Register', 'admin');
-    renderHeader('🗳️ Voting Register — Meetings', 'comms.php');
+    renderHeader('🗳️ Voting Register — Meetings', 'comms_menu.php');
     ?>
 
     <main class="pc-main">
+
+      <!-- ═══════════════════════════════════════════════
+           STEP 1 — Voter Register / Contact Base
+           ═══════════════════════════════════════════════ -->
+      <div class="card" style="border-left:5px solid
+           <?= $voterCount > 0 ? '#28a745' : '#dc3545' ?>; margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:<?= $voterCount > 0 ? '#28a745' : '#dc3545' ?>;
+                       color:#fff;border-radius:50%;width:28px;height:28px;
+                       display:flex;align-items:center;justify-content:center;
+                       font-weight:800;font-size:.9rem;flex-shrink:0;">1</span>
+          <div style="font-weight:700;font-size:.95rem;color:#222;">
+            Voter Register / Contact Base
+          </div>
+        </div>
+        <?php if ($voterCount === 0): ?>
+          <div class="alert alert-danger" style="margin-bottom:12px;">
+            <strong>No contacts loaded.</strong>
+            Import your owners register as a CSV contact list before sending voting tokens.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="comms_contacts.php?action=import" class="btn btn-primary">
+              📥 Import Owners Register (CSV)
+            </a>
+            <a href="comms_contacts.php?action=template" class="btn btn-secondary">
+              ⬇ Download CSV Template
+            </a>
+          </div>
+        <?php else: ?>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+            <div style="font-size:1.6rem;font-weight:800;color:#28a745;"><?= number_format($voterCount) ?></div>
+            <div>
+              <div style="font-weight:600;">active contact<?= $voterCount !== 1 ? 's' : '' ?> in register</div>
+              <div style="font-size:.82rem;color:#666;margin-top:2px;">
+                Each meeting also has its own per-meeting voter register (uploaded via <em>Voter Register</em>)
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="comms_contacts.php?action=import" class="btn btn-secondary btn-sm">
+              📥 Update Register
+            </a>
+            <a href="comms_contacts.php" class="btn btn-secondary btn-sm">
+              👥 View Contacts
+            </a>
+          </div>
+        <?php endif; ?>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+           STEP 2 — Manage Meetings & Voting
+           ═══════════════════════════════════════════════ -->
       <div class="card card-wide">
         <div class="card-toolbar">
-          <h2 class="card-title">🗳️ Meetings</h2>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="background:#1565c0;color:#fff;border-radius:50%;width:28px;height:28px;
+                         display:flex;align-items:center;justify-content:center;
+                         font-weight:800;font-size:.9rem;flex-shrink:0;">2</span>
+            <h2 class="card-title" style="margin:0;">🗳️ Meetings</h2>
+          </div>
           <a href="comms_voting.php?action=meetings_create" class="btn btn-primary">＋ New Meeting</a>
         </div>
 
@@ -197,7 +256,7 @@ if ($action === 'meetings_list') {
         <?php endif; ?>
 
         <div class="btn-group" style="margin-top:20px;">
-          <a href="comms.php" class="btn btn-navy">← Back to Communications</a>
+          <a href="comms_menu.php" class="btn btn-navy">← Back to Communications</a>
         </div>
       </div>
     </main>

@@ -12,7 +12,7 @@ require_once __DIR__ . '/comms_core.php';
 commsRequireAuth();
 
 $action  = $_GET['action'] ?? 'menu';
-$backUrl = 'comms.php';
+$backUrl = 'comms_menu.php';
 
 // ════════════════════════════════════════════════════════
 // MENU — levy send history
@@ -26,12 +26,59 @@ if ($action === 'menu') {
     <div class="container">
       <?= getFlash() ?>
 
-      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <!-- ═══════════════════════════════════════════════
+           STEP 1 — Prepare the levy CSV
+           ═══════════════════════════════════════════════ -->
+      <div class="card" style="border-left:5px solid #1565c0; margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:#1565c0;color:#fff;border-radius:50%;width:28px;height:28px;
+                       display:flex;align-items:center;justify-content:center;
+                       font-weight:800;font-size:.9rem;flex-shrink:0;">1</span>
+          <div class="card-title" style="margin:0;border:none;padding:0;">
+            Prepare Your Levy CSV File
+          </div>
+        </div>
+        <p style="font-size:.88rem;color:#555;margin-bottom:12px;">
+          Export the levy data from your financial system as a CSV.
+          Each row is one recipient — the CSV <em>is</em> the basis of formation for this send.
+        </p>
+        <div style="background:#f8f9fa;border-radius:6px;padding:12px;margin-bottom:14px;font-size:.82rem;">
+          <strong>Required column:</strong> <code>email</code> &nbsp;&nbsp;
+          <strong>Optional:</strong> <code>name, amount, message, erf</code><br>
+          <span style="color:#888;margin-top:4px;display:block;">
+            In Excel: File → Save As → CSV (Comma delimited)
+          </span>
+          <pre style="margin:8px 0 0;color:#444;line-height:1.5;">email,name,amount,message
+john@example.com,John Smith,1500.00,Levy due 30 June 2026
+jane@example.com,Jane Doe,1500.00,Levy due 30 June 2026</pre>
+        </div>
+        <a href="comms_levy.php?action=template" class="btn btn-secondary btn-sm">
+          ⬇ Download Blank CSV Template
+        </a>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+           STEP 2 — Import CSV and send
+           ═══════════════════════════════════════════════ -->
+      <div class="card" style="border-left:5px solid #2e7d32; margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:#2e7d32;color:#fff;border-radius:50%;width:28px;height:28px;
+                       display:flex;align-items:center;justify-content:center;
+                       font-weight:800;font-size:.9rem;flex-shrink:0;">2</span>
+          <div class="card-title" style="margin:0;border:none;padding:0;">
+            Import CSV &amp; Send Levy Notices
+          </div>
+        </div>
+        <p style="font-size:.88rem;color:#555;margin-bottom:14px;">
+          Upload your prepared CSV. Personalised notices are emailed immediately —
+          one per row with name and amount pre-filled.
+        </p>
         <a href="comms_levy.php?action=send" class="btn btn-success">
           💰 Import &amp; Send Levy Notices
         </a>
       </div>
 
+      <!-- Send history -->
       <div class="card">
         <div class="card-title">Send History</div>
         <?php if (empty($broadcasts)): ?>
@@ -206,6 +253,7 @@ if ($action === 'log') {
     renderHeader('📋 Send Log — ' . htmlspecialchars($broadcast['title']), 'comms_levy.php');
     ?>
     <div class="container">
+      <?= getFlash() ?>
 
       <!-- Summary -->
       <div class="card" style="margin-bottom:14px;">
@@ -261,6 +309,20 @@ if ($action === 'log') {
 
     </div>
     <?php pageFooter(); exit;
+}
+
+// ════════════════════════════════════════════════════════
+// TEMPLATE — download blank levy CSV template
+// ════════════════════════════════════════════════════════
+if ($action === 'template') {
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="levy_template.csv"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['email', 'name', 'amount', 'message', 'erf']);
+    fputcsv($out, ['john@example.com', 'John Smith', '1500.00', 'Levy due 30 June 2026', '42']);
+    fputcsv($out, ['jane@example.com', 'Jane Doe',   '1500.00', 'Levy due 30 June 2026', '17']);
+    fclose($out);
+    exit;
 }
 
 header('Location: comms_levy.php'); exit;

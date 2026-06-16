@@ -11,7 +11,7 @@ require_once __DIR__ . '/comms_core.php';
 commsRequireAuth();
 
 $action = $_GET['action'] ?? 'menu';
-$backUrl = commsIsEmbedded() ? 'comms.php' : 'comms.php';
+$backUrl = 'comms_menu.php';
 
 // ── Upload directory ──────────────────────────────────────
 $docDir = __DIR__ . '/uploads/documents/';
@@ -22,7 +22,15 @@ if (!is_dir($docDir)) mkdir($docDir, 0755, true);
 // MENU — bulk send history
 // ════════════════════════════════════════════════════════
 if ($action === 'menu') {
-    $broadcasts = commsBroadcastList('bulk', 100);
+    $broadcasts    = commsBroadcastList('bulk', 100);
+    $contactCount  = commsRecipientCount('comms_contacts');
+
+    // Distinct group tags for optional group filter info
+    $groupTags = db()->query(
+        "SELECT DISTINCT group_tag FROM comms_contacts
+         WHERE active=1 AND group_tag IS NOT NULL AND group_tag != ''
+         ORDER BY group_tag"
+    )->fetchAll(PDO::FETCH_COLUMN);
 
     pageHeader('Bulk Messages', 'admin');
     renderHeader('📤 Bulk Messages', $backUrl);
@@ -30,12 +38,95 @@ if ($action === 'menu') {
     <div class="container">
       <?= getFlash() ?>
 
-      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-        <a href="comms_bulk.php?action=send" class="btn btn-primary">
-          📤 Send Circular / PDF
-        </a>
+      <!-- ═══════════════════════════════════════════════
+           STEP 1 — Contact List (basis of formation)
+           ═══════════════════════════════════════════════ -->
+      <div class="card" style="border-left:5px solid
+           <?= $contactCount > 0 ? '#28a745' : '#dc3545' ?>; margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:<?= $contactCount > 0 ? '#28a745' : '#dc3545' ?>;
+                       color:#fff;border-radius:50%;width:28px;height:28px;
+                       display:flex;align-items:center;justify-content:center;
+                       font-weight:800;font-size:.9rem;flex-shrink:0;">1</span>
+          <div class="card-title" style="margin:0;border:none;padding:0;">
+            Import / Confirm Contact List
+          </div>
+        </div>
+
+        <?php if ($contactCount === 0): ?>
+          <div class="alert alert-danger" style="margin-bottom:14px;">
+            <strong>No contacts loaded.</strong>
+            You must import a CSV contact list before a circular can be sent.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="comms_contacts.php?action=import" class="btn btn-primary">
+              📥 Import Contact List (CSV)
+            </a>
+            <a href="comms_contacts.php?action=template" class="btn btn-secondary">
+              ⬇ Download CSV Template
+            </a>
+          </div>
+        <?php else: ?>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="font-size:1.6rem;font-weight:800;color:#28a745;">
+              <?= number_format($contactCount) ?>
+            </div>
+            <div>
+              <div style="font-weight:600;">active contact<?= $contactCount !== 1 ? 's' : '' ?> ready</div>
+              <?php if ($groupTags): ?>
+              <div style="font-size:.82rem;color:#666;margin-top:2px;">
+                Groups: <?= htmlspecialchars(implode(', ', $groupTags)) ?>
+              </div>
+              <?php endif; ?>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="comms_contacts.php?action=import" class="btn btn-secondary btn-sm">
+              📥 Replace / Update List
+            </a>
+            <a href="comms_contacts.php" class="btn btn-secondary btn-sm">
+              👥 View Contacts
+            </a>
+          </div>
+        <?php endif; ?>
       </div>
 
+      <!-- ═══════════════════════════════════════════════
+           STEP 2 — Send the circular
+           ═══════════════════════════════════════════════ -->
+      <div class="card" style="border-left:5px solid
+           <?= $contactCount > 0 ? '#1565c0' : '#ccc' ?>; margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:<?= $contactCount > 0 ? '#1565c0' : '#ccc' ?>;
+                       color:#fff;border-radius:50%;width:28px;height:28px;
+                       display:flex;align-items:center;justify-content:center;
+                       font-weight:800;font-size:.9rem;flex-shrink:0;">2</span>
+          <div class="card-title" style="margin:0;border:none;padding:0;">
+            Send Circular / PDF
+          </div>
+        </div>
+
+        <?php if ($contactCount === 0): ?>
+          <p style="color:#999;font-size:.9rem;">
+            Complete Step 1 first — upload your contact list before sending.
+          </p>
+          <button class="btn btn-primary" disabled
+                  style="margin-top:12px;opacity:.4;cursor:not-allowed;">
+            📤 Send Circular / PDF
+          </button>
+        <?php else: ?>
+          <p style="color:#555;font-size:.9rem;margin-bottom:14px;">
+            Upload a PDF circular and email it to all
+            <strong><?= number_format($contactCount) ?></strong>
+            active contact<?= $contactCount !== 1 ? 's' : '' ?> in your list.
+          </p>
+          <a href="comms_bulk.php?action=send" class="btn btn-primary">
+            📤 Send Circular / PDF
+          </a>
+        <?php endif; ?>
+      </div>
+
+      <!-- Send history -->
       <div class="card">
         <div class="card-title">Send History</div>
         <?php if (empty($broadcasts)): ?>
@@ -103,7 +194,7 @@ if ($action === 'send') {
 
         $broadcastId = commsBroadcastCreate('bulk', 'circular', $title, $upload['stored'], $upload['original'], $notes ?: null);
 
-        $recipients  = commsRecipients('all_residents');
+        $recipients  = commsRecipients('comms_contacts');
         $downloadUrl = $docUrl . $upload['stored'];
         $sent = 0; $failed = 0;
 
@@ -125,11 +216,11 @@ if ($action === 'send') {
 
         commsBroadcastUpdateCounts($broadcastId, $sent, $failed);
 
-        setFlash('success', "Circular sent to {$sent} resident(s)." . ($failed ? " {$failed} failed." : ''));
+        setFlash('success', "Circular sent to {$sent} contact(s)." . ($failed ? " {$failed} failed." : ''));
         header('Location: comms_bulk.php?action=log&id=' . $broadcastId); exit;
     }
 
-    $recipientCount = commsRecipientCount('all_residents');
+    $recipientCount = commsRecipientCount('comms_contacts');
 
     pageHeader('Send Circular', 'admin');
     renderHeader('📤 Send Circular / PDF', 'comms_bulk.php?action=menu');
@@ -137,10 +228,18 @@ if ($action === 'send') {
     <div class="container" style="max-width:600px;">
       <div class="card">
         <?= getFlash() ?>
-        <div class="alert alert-info" style="font-size:.88rem;margin-bottom:16px;">
-          This PDF will be emailed to <strong><?= $recipientCount ?> resident(s)</strong>
-          with a download link. Max file size: 10 MB.
+        <?php if ($recipientCount === 0): ?>
+        <div class="alert alert-warning" style="font-size:.88rem;margin-bottom:16px;">
+          <strong>No active contacts.</strong>
+          <a href="comms_contacts.php?action=import">Import a contact list</a> before sending.
         </div>
+        <?php else: ?>
+        <div class="alert alert-info" style="font-size:.88rem;margin-bottom:16px;">
+          This PDF will be emailed to <strong><?= $recipientCount ?> contact(s)</strong>
+          with a download link. Max file size: 10 MB.
+          <a href="comms_contacts.php" style="margin-left:8px;">Manage contacts →</a>
+        </div>
+        <?php endif; ?>
         <form method="POST" enctype="multipart/form-data">
           <?= csrfField() ?>
           <div class="form-group">
@@ -160,11 +259,16 @@ if ($action === 'send') {
                       style="width:100%;padding:10px;border:1px solid #dee2e6;border-radius:6px;resize:vertical;"></textarea>
           </div>
           <button type="submit" class="btn btn-primary btn-block"
-                  onclick="return confirm('Send this circular to <?= $recipientCount ?> resident(s)?')">
-            📤 Send to All Residents
+                  <?= $recipientCount === 0 ? 'disabled' : '' ?>
+                  onclick="return confirm('Send this circular to <?= $recipientCount ?> contact(s)?')">
+            📤 Send to All Contacts
           </button>
         </form>
         <div class="popia-notice">Documents emailed under POPIA §11 for estate communication purposes.</div>
+        <div style="margin-top:10px;font-size:.82rem;color:#888;text-align:center;">
+          Recipients are drawn from the <a href="comms_contacts.php">standalone contact list</a>,
+          not from resident records.
+        </div>
       </div>
     </div>
     <?php pageFooter(); exit;
@@ -186,6 +290,7 @@ if ($action === 'log') {
     renderHeader('📋 Send Log — ' . htmlspecialchars($broadcast['title']), 'comms_bulk.php');
     ?>
     <div class="container">
+      <?= getFlash() ?>
 
       <!-- Summary -->
       <div class="card" style="margin-bottom:14px;">

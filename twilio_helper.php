@@ -27,24 +27,18 @@ function normalisePhone(string $phone): string {
     return $phone;
 }
 
-// ── Send a plain-text email via PHP mail() ────────────────────────────────────
+// ── Send email via authenticated SMTP (smtp_mail.php) ────────────────────────
 function sendEmail(string $toEmail, string $subject, string $body): bool {
     if (!$toEmail) {
         error_log('MBGE Email: no recipient address');
         return false;
     }
-    $from    = defined('MAIL_FROM') ? MAIL_FROM : 'noreply@mbge.ink';
-    $headers = implode("\r\n", [
-        'From: MBGE Access Control <' . $from . '>',
-        'Reply-To: ' . $from,
-        'Content-Type: text/plain; charset=UTF-8',
-        'X-Mailer: PHP/' . phpversion(),
-    ]);
-    $result = mail($toEmail, $subject, $body, $headers);
-    if (!$result) {
-        error_log("MBGE Email: mail() failed sending to {$toEmail}");
-    }
-    return $result;
+    require_once __DIR__ . '/smtp_mail.php';
+    // Wrap plain-text body in minimal HTML so smtpSend() renders cleanly
+    $html = nl2br(htmlspecialchars($body));
+    $html = "<html><body style='font-family:Arial,sans-serif;font-size:14px;color:#333;'>"
+          . $html . "</body></html>";
+    return smtpSend($toEmail, $subject, $html);
 }
 
 // ── Generate and send a 6-digit OTP via email ─────────────────────────────────

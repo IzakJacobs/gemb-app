@@ -23,7 +23,7 @@ if (!empty($_SESSION['admin_id'])) {
 } elseif (!empty($_SESSION['comms_logged_in'])) {
     // Standalone comms user — same view as admin (full archive + send logs)
     $role    = 'admin';
-    $backUrl = 'comms.php';
+    $backUrl = 'comms_menu.php';
 } elseif (!empty($_SESSION['security_id'])) {
     $role    = 'security';
     $backUrl = 'security.php?action=menu';

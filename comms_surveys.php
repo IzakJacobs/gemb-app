@@ -51,15 +51,71 @@ if ($action === 'list') {
     $stmt->execute();
     $surveys = $stmt->fetchAll();
 
+    $contactCount = commsRecipientCount('comms_contacts');
+
     pageHeader('Surveys', 'admin');
-    renderHeader('📋 Surveys', "comms.php");
+    renderHeader('📋 Surveys', "comms_menu.php");
     ?>
 
     <main class="pc-main">
+
+      <!-- ═══════════════════════════════════════════════
+           STEP 1 — Contact base for notifications
+           ═══════════════════════════════════════════════ -->
+      <div class="card" style="border-left:5px solid
+           <?= $contactCount > 0 ? '#28a745' : '#dc3545' ?>; margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:<?= $contactCount > 0 ? '#28a745' : '#dc3545' ?>;
+                       color:#fff;border-radius:50%;width:28px;height:28px;
+                       display:flex;align-items:center;justify-content:center;
+                       font-weight:800;font-size:.9rem;flex-shrink:0;">1</span>
+          <div style="font-weight:700;font-size:.95rem;color:#222;">
+            Confirm Contact List (for Survey Notifications)
+          </div>
+        </div>
+        <?php if ($contactCount === 0): ?>
+          <div class="alert alert-danger" style="margin-bottom:12px;">
+            <strong>No contacts loaded.</strong>
+            You must import a CSV contact list before survey notification emails can be sent.
+            (You can still create and manage surveys now.)
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="comms_contacts.php?action=import" class="btn btn-primary">
+              📥 Import Contact List (CSV)
+            </a>
+            <a href="comms_contacts.php?action=template" class="btn btn-secondary">
+              ⬇ Download CSV Template
+            </a>
+          </div>
+        <?php else: ?>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+            <div style="font-size:1.6rem;font-weight:800;color:#28a745;"><?= number_format($contactCount) ?></div>
+            <div>
+              <div style="font-weight:600;">active contact<?= $contactCount !== 1 ? 's' : '' ?> — ready for notifications</div>
+              <div style="font-size:.82rem;color:#666;margin-top:2px;">
+                Survey notification emails will go to all active contacts.
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="comms_contacts.php?action=import" class="btn btn-secondary btn-sm">📥 Update List</a>
+            <a href="comms_contacts.php" class="btn btn-secondary btn-sm">👥 View Contacts</a>
+          </div>
+        <?php endif; ?>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+           STEP 2 — Create / manage surveys
+           ═══════════════════════════════════════════════ -->
       <div class="card card-wide">
 
         <div class="card-toolbar">
-          <h2 class="card-title">📋 Survey Management</h2>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="background:#1565c0;color:#fff;border-radius:50%;width:28px;height:28px;
+                         display:flex;align-items:center;justify-content:center;
+                         font-weight:800;font-size:.9rem;flex-shrink:0;">2</span>
+            <h2 class="card-title" style="margin:0;">📋 Survey Management</h2>
+          </div>
           <a href="comms_surveys.php?action=create" class="btn btn-primary">＋ New Survey</a>
         </div>
 
@@ -157,7 +213,7 @@ if ($action === 'list') {
         <?php endif; ?>
 
         <div class="btn-group" style="margin-top:20px;">
-          <a href="comms.php" class="btn btn-navy">← Back to Communications</a>
+          <a href="comms_menu.php" class="btn btn-navy">← Back to Communications</a>
         </div>
 
       </div>
@@ -365,7 +421,7 @@ if ($action === 'create') {
     }
 
     pageHeader('Create Survey', 'admin');
-    renderHeader('📋 Create Survey', "comms.php");
+    renderHeader('📋 Create Survey', "comms_menu.php");
     ?>
 
     <main class="pc-main">
@@ -451,7 +507,7 @@ if ($action === 'edit' && $surveyId > 0) {
     $endsVal   = $survey['ends_at']   ? date('Y-m-d\TH:i', strtotime($survey['ends_at']))   : '';
 
     pageHeader('Edit Survey', 'admin');
-    renderHeader('📋 Edit Survey', "comms.php");
+    renderHeader('📋 Edit Survey', "comms_menu.php");
     ?>
 
     <main class="pc-main">
@@ -571,7 +627,7 @@ if ($action === 'questions' && $surveyId > 0) {
     $editable = ($survey['status'] === 'draft');
 
     pageHeader('Survey Questions', 'admin');
-    renderHeader('📋 Questions', "comms.php");
+    renderHeader('📋 Questions', "comms_menu.php");
     ?>
 
     <main class="pc-main">
@@ -865,7 +921,7 @@ if ($action === 'results' && $surveyId > 0) {
     ];
 
     pageHeader('Survey Results', 'admin');
-    renderHeader('📊 Results', "comms.php");
+    renderHeader('📊 Results', "comms_menu.php");
     ?>
 
     <main class="pc-main">

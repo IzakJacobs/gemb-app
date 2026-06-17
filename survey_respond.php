@@ -31,9 +31,36 @@ $surveyId = (int)($_GET['id'] ?? 0);
 // ============================================================
 if ($action === 'take' && $surveyId > 0) {
 
-    // Already submitted this survey in this session
+    // Persistent device lock — cookie survives browser restarts (1 year)
+    $cookieName = 'mbge_sv_' . $surveyId;
+    if (!empty($_COOKIE[$cookieName])) {
+        $prevId = (int)$_COOKIE[$cookieName];
+        $chk = db()->prepare("SELECT id FROM survey_responses WHERE id = ? AND survey_id = ?");
+        $chk->execute([$prevId, $surveyId]);
+        if ($chk->fetch()) {
+            // Confirmed in DB — this device already responded
+            pageHeader('Already Submitted', 'public');
+            ?>
+            <div class="container" style="max-width:520px;text-align:center;padding-top:60px;">
+              <div class="card" style="padding:40px 28px;">
+                <div style="font-size:3.5rem;margin-bottom:16px;">✅</div>
+                <h2 style="margin-bottom:10px;">Already Submitted</h2>
+                <p style="color:#555;margin-bottom:20px;">
+                  You have already submitted a response to this survey from this device.
+                  Only one response per device is allowed.
+                </p>
+                <a href="https://www.google.com" class="btn btn-primary">Close</a>
+              </div>
+            </div>
+            <?php
+            pageFooter(); exit;
+        }
+        // Cookie exists but no DB record — allow re-submission (e.g. DB was reset)
+    }
+
+    // Session guard for the current browser session
     if (!empty($_SESSION['survey_submitted_' . $surveyId])) {
-        header('Location: https://www.google.com'); exit;
+        header("Location: survey_respond.php?action=done&id={$surveyId}"); exit;
     }
 
     $now = date('Y-m-d H:i:s');
@@ -148,6 +175,15 @@ if ($action === 'take' && $surveyId > 0) {
                 }
 
                 $pdo->commit();
+
+                // Lock this device for 1 year — value is the DB response ID for verification
+                setcookie('mbge_sv_' . $surveyId, (string)$responseId, [
+                    'expires'  => time() + (365 * 24 * 3600),
+                    'path'     => '/',
+                    'secure'   => !empty($_SERVER['HTTPS']),
+                    'httponly' => true,
+                    'samesite' => 'Lax',
+                ]);
                 $_SESSION['survey_submitted_' . $surveyId] = $responseId;
                 header("Location: survey_respond.php?action=done&id={$surveyId}"); exit;
 
@@ -333,11 +369,11 @@ if ($action === 'take' && $surveyId > 0) {
 // ============================================================
 if ($action === 'done' && $surveyId > 0) {
 
-    // Must have arrived here via a successful submission this session
-    $responseId = $_SESSION['survey_submitted_' . $surveyId] ?? null;
+    // Accept session (just submitted) or cookie (returning to done URL later)
+    $responseId = $_SESSION['survey_submitted_' . $surveyId]
+               ?? ((int)($_COOKIE['mbge_sv_' . $surveyId] ?? 0) ?: null);
 
     if (!$responseId) {
-        // No session record — not a valid post-submit visit
         header('Location: https://www.google.com'); exit;
     }
 

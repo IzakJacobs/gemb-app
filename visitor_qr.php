@@ -2,7 +2,7 @@
 /**
  * visitor_qr.php  — MBGE Visitor Pass display (visitor's phone)
  * Code format:  3XXXXX  (digit 3 + 5 digits, e.g. 368652)
- * QR payload:   https://mbge.ink/visitor_qr_verify.php?code=368652
+ * QR payload:   https://gemb.co.za/visitor_qr_verify.php?code=368652
  */
 session_start();
 require 'config.php';
@@ -70,7 +70,7 @@ if ($now < $start) {
 }
 
 /* ── QR code ── */
-$verifyUrl = 'https://mbge.ink/visitor_qr_verify.php?code=' . urlencode($code);
+$verifyUrl = 'https://gemb.co.za/visitor_qr_verify.php?code=' . urlencode($code);
 $qrImgTag  = '';
 
 $qrLib = __DIR__ . '/phpqrcode/qrlib.php';
@@ -325,7 +325,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
               . "🏠 Visiting: {$residentName}\n"
               . "🔑 Gate code: {$code}\n\n"
               . "👇 Open your pass:\n"
-              . "https://mbge.ink/visitor_qr.php?code={$code}\n\n"
+              . "https://gemb.co.za/visitor_qr.php?code={$code}\n\n"
               . "Show the QR to the guard or give them your 6-digit code.";
       $phone  = preg_replace('/\D/', '', $visitorPhone);
       if (substr($phone, 0, 1) === '0') $phone = '27' . substr($phone, 1);
@@ -340,7 +340,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
       📲 Send Pass via WhatsApp
     </a>
     <?php if ($visitorPhone): ?>
-    <a href="sms:<?= preg_replace('/\D/','',$visitorPhone) ?>?body=<?= rawurlencode("MBGE Visitor Pass — open your pass: https://mbge.ink/visitor_qr.php?code={$code}") ?>"
+    <a href="sms:<?= preg_replace('/\D/','',$visitorPhone) ?>?body=<?= rawurlencode("MBGE Visitor Pass — open your pass: https://gemb.co.za/visitor_qr.php?code={$code}") ?>"
        style="display:block; width:100%; padding:14px; background:#f5f7fa; color:#0f2744;
               border:2px solid #dde3ea; border-radius:12px; text-align:center;
               font-size:0.95rem; font-weight:700; text-decoration:none;">

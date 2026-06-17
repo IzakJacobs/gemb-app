@@ -250,11 +250,6 @@ if ($action === 'login') {
             Login
           </button>
         </form>
-        <a href="forgot.php?role=resident"
-           style="display:block;text-align:center;margin-top:14px;
-                  font-size:.85rem;color:var(--muted);">
-          Forgot PIN?
-        </a>
 
         <script>
         let occupantTimer = null;
@@ -402,9 +397,6 @@ if ($action === 'menu') {
           <span class="icon">🚗</span>My Vehicles
         </a>
 
-        <a href="document_archive.php" class="menu-btn">
-          <span class="icon">📄</span>Estate Documents
-        </a>
         <a href="resident.php?action=helpdesk" class="menu-btn">
           <span class="icon">🔧</span>Report Fault
         </a>

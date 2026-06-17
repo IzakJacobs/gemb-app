@@ -17,6 +17,16 @@ error_log
 # ── Generated QR image files ──────────────────────────────
 temp/
 
+# ── ESP32 firmware (contains WiFi credentials + token) ────
+esp32/gate_trigger/gate_trigger.ino
+esp32/gate_entry/gate_entry.ino
+
+# ── Sensitive token files ─────────────────────────────────
+*.txt
+cloudfare-token.txt
+mbge-token.txt
+Namecheap Token.txt
+
 # ── One-time utility scripts (never re-deploy these) ──────
 setpwd.php
 gen_hashes.php
@@ -50,21 +60,21 @@ vendor/
 composer.lock
 package-lock.json
 
-# ── Archives / cPanel download artifacts ──────────────────
-*.zip
+# ── Pi node — credentials and runtime data ────────────────
+pi/config.php
+pi/pi_node_config.php
+pi/data/
 
-# ── Local backup folders ──────────────────────────────────
-Backup15June/
+# ── Resident data exports (POPIA — never commit) ──────────
+*.csv
 
-# ── User-uploaded files (never in git) ───────────────────
-uploads/
-
-# ── Server config ─────────────────────────────────────────
+# ── cPanel-generated server config (server-specific paths) ─
 php.ini
 
-# ── Debug output ──────────────────────────────────────────
-mbge_debug.txt
+# ── Uploaded documents (resident files — POPIA) ────────────
+uploads/documents/
 
-# ── Claude Code session files ─────────────────────────────
-.claude/
-pi/data/
+# ── Local backups and cPanel download archives ────────────
+*.zip
+Backup*/
+mnt/

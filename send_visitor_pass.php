@@ -29,7 +29,7 @@
  *   define('SMS_GATEWAY',  'bulksms');
  *   define('WA_GATEWAY',   'twilio');                 // currently only twilio supported
  *
- *   define('MBGE_HOST',    'https://mbge.ink');
+ *   define('MBGE_HOST',    'https://gemb.co.za');
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -77,7 +77,7 @@ if (!$v) {
 }
 
 /* ── build message ── */
-$host    = defined('MBGE_HOST') ? MBGE_HOST : 'https://mbge.ink';
+$host    = defined('MBGE_HOST') ? MBGE_HOST : 'https://gemb.co.za';
 $passUrl = $host . '/visitor_qr.php?code=' . urlencode($v['code']);
 
 $fromDate = date('d M Y', strtotime($v['visit_date']));

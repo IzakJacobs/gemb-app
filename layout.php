@@ -78,34 +78,6 @@ function requireResident(): void {
     }
 }
 
-// ── Vote session guard ────────────────────────────────────
-// Guards vote_cast.php. Checks that a valid token-based voting
-// session exists (set by vote_login.php on successful token
-// verification). If not, redirects to vote_login.php?action=login.
-//
-// Unlike requireResident()/requireGuard()/etc., this does NOT
-// check any DB-backed user table directly — the session keys
-// vote_meeting_id and vote_erf are only ever set after
-// vote_login.php has already validated the token against
-// vote_tokens.
-function requireVoteSession(): void {
-    if (session_status() === PHP_SESSION_NONE) session_start();
-    if (empty($_SESSION['vote_meeting_id']) || empty($_SESSION['vote_erf'])) {
-        header('Location: vote_login.php?action=login');
-        exit;
-    }
-    // Idle timeout: 30 minutes of inactivity
-    $idleLimit = 30 * 60;
-    if (!empty($_SESSION['vote_last_activity'])
-        && (time() - $_SESSION['vote_last_activity']) > $idleLimit) {
-        session_unset();
-        session_destroy();
-        header('Location: vote_login.php?action=login');
-        exit;
-    }
-    $_SESSION['vote_last_activity'] = time();
-}
-
 // ── Page header ───────────────────────────────────────────
 function pageHeader(string $title, string $role = ''): void {
     $GLOBALS['_page_role'] = $role;
@@ -265,48 +237,6 @@ tr:hover td { background: #f8f9fa; }
   .container { padding: 14px 10px 60px; }
   .hide-mobile { display: none; }
 }
-
-/* ── Survey / Voting pages (comms_surveys.php, comms_voting.php) ── */
-.pc-main { max-width: 1000px; margin: 0 auto; padding: 20px 16px 60px; }
-.card-wide { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 18px; }
-.card-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-.section-title { font-size: .95rem; font-weight: 600; margin-bottom: 12px; color: var(--accent); }
-.muted-note { color: var(--muted); font-size: .85rem; }
-.required { color: var(--danger); }
-
-.btn-navy  { background: #1a3c5e; color: #fff; }
-.btn-blue  { background: #1565c0; color: #fff; }
-.btn-green { background: var(--success); color: #fff; }
-.btn-red   { background: var(--danger); color: #fff; }
-.btn-amber { background: #d4a017; color: #fff; }
-
-.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.btn-group-sm { display: flex; gap: 6px; flex-wrap: wrap; }
-
-.data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-.data-table th { background: var(--accent); color: #fff; padding: 9px 10px; text-align: left; font-weight: 600; }
-.data-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
-.data-table tr:hover td { background: #f8f9fa; }
-.text-center { text-align: center; }
-.table-responsive { overflow-x: auto; }
-
-.badge-green { background: #d4edda; color: #155724; }
-.badge-grey  { background: #e2e3e5; color: #383d41; }
-.badge-amber { background: #fff3cd; color: #856404; }
-.badge-blue  { background: #d1ecf1; color: #0c5460; }
-.badge-red   { background: #f8d7da; color: #721c24; }
-
-.alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; font-size: .92rem; }
-
-/* Survey question editor */
-.question-row { padding: 10px 0; }
-.question-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.q-number { font-weight: 700; color: var(--accent); }
-.question-text { font-size: .95rem; margin: 4px 0 8px; }
-.option-list { margin: 0 0 8px 20px; font-size: .9rem; color: var(--muted); }
-.q-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
-.text-responses { margin: 10px 0 0 20px; font-size: .88rem; }
-.text-responses li { margin-bottom: 6px; }
 </style>
 </head>
 <body>

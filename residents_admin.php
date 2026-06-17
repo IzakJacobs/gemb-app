@@ -11,26 +11,13 @@
 // residents columns:
 //   id, resident_erfno, occupant_code, occupant_type,
 //   is_primary, resident_name, address, phone, email,
-//   pin_hash, device_token, status, created_at,
-//   plate_number (admin editable — LPR vehicle plate),
-//   tag_number   (admin only — set by dedicated tag reader)
+//   pin_hash, device_token, status, created_at
 // ============================================================
 require_once __DIR__ . '/layout.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 requireAdmin();
 
 $action = $_GET['action'] ?? 'list';
-
-// ── DB migration: ensure plate_number and tag_number exist ──
-function ensureResidentColumns(): void {
-    foreach ([
-        "plate_number VARCHAR(20)  NOT NULL DEFAULT ''",
-        "tag_number   VARCHAR(50)  NOT NULL DEFAULT ''",
-    ] as $col) {
-        try { db()->exec("ALTER TABLE residents ADD COLUMN $col"); }
-        catch (Exception $e) {} // already exists — ignore
-    }
-}
 
 // ── Helper: next available occupant code for an erf ──────
 function nextOccupantCode(string $erfno): string {
@@ -243,15 +230,12 @@ if ($action === 'list') {
               <th>Name</th>
               <th>Type</th>
               <th>Phone</th>
-              <th>Plate / Tag</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
             <?php foreach ($occupants as $occ):
               $isPrimary    = (bool)$occ['is_primary'];
               $blockDelete  = $isPrimary && $total > 1;
-              $plate        = $occ['plate_number'] ?? '';
-              $tag          = $occ['tag_number']   ?? '';
             ?>
             <tr style="<?= $occ['status'] !== 'active' ? 'opacity:0.6;' : '' ?>">
               <td>
@@ -271,28 +255,6 @@ if ($action === 'list') {
                 </span>
               </td>
               <td><?= htmlspecialchars($occ['phone'] ?? '') ?></td>
-              <td style="white-space:nowrap;">
-                <?php if ($plate): ?>
-                  <span style="display:inline-block;background:#e8f4fd;
-                               color:#0d47a1;border-radius:4px;padding:2px 7px;
-                               font-family:monospace;font-weight:700;
-                               font-size:.82rem;letter-spacing:.06em;">
-                    🚗 <?= htmlspecialchars(strtoupper($plate)) ?>
-                  </span>
-                <?php else: ?>
-                  <span style="color:#bbb;font-size:.8rem;">no plate</span>
-                <?php endif; ?>
-                <?php if ($tag): ?>
-                  <br><span style="display:inline-block;background:#f3e8fd;
-                               color:#6a0dad;border-radius:4px;padding:2px 7px;
-                               font-family:monospace;font-weight:700;
-                               font-size:.82rem;letter-spacing:.06em;margin-top:3px;">
-                    🏷️ <?= htmlspecialchars($tag) ?>
-                  </span>
-                <?php else: ?>
-                  <br><span style="color:#bbb;font-size:.8rem;">no tag</span>
-                <?php endif; ?>
-              </td>
               <td>
                 <span class="badge badge-<?= $occ['status'] === 'active'
                                               ? 'success' : 'muted' ?>">
@@ -393,15 +355,12 @@ if ($action === 'add') {
         }
 
         try {
-            ensureResidentColumns();
-            $plate = strtoupper(preg_replace('/[^A-Z0-9 ]/', '',
-                         strtoupper(trim($_POST['plate_number'] ?? ''))));
             db()->prepare("
                 INSERT INTO residents
                     (resident_erfno, occupant_code, occupant_type,
                      is_primary, resident_name, address, phone,
-                     email, pin_hash, status, plate_number)
-                VALUES (?, 'A', 'owner', 1, ?, ?, ?, ?, ?, 'active', ?)
+                     email, pin_hash, status)
+                VALUES (?, 'A', 'owner', 1, ?, ?, ?, ?, ?, 'active')
             ")->execute([
                 $erfno,
                 trim($_POST['resident_name']),
@@ -409,7 +368,6 @@ if ($action === 'add') {
                 trim($_POST['phone'] ?? ''),
                 trim($_POST['email'] ?? ''),
                 password_hash($pin, PASSWORD_BCRYPT),
-                $plate,
             ]);
             setFlash('success',
                 "Primary resident {$erfno}A — " .
@@ -476,15 +434,6 @@ if ($action === 'add') {
               <label>Email</label>
               <input type="email" name="email" placeholder="optional">
             </div>
-          </div>
-          <div class="form-group">
-            <label>Vehicle Plate Number</label>
-            <input type="text" name="plate_number"
-                   maxlength="15"
-                   style="text-transform:uppercase;letter-spacing:.08em;"
-                   oninput="this.value=this.value.toUpperCase()"
-                   placeholder="e.g. CBS 754 62">
-            <small style="color:#888;">Used by LPR camera for resident vehicle access.</small>
           </div>
           <div class="form-group">
             <label>4-digit PIN *</label>
@@ -572,7 +521,7 @@ if ($action === 'add_occupant') {
     $erfno = strtoupper(trim($_GET['erf'] ?? ''));
 
     $existing = db()->prepare(
-        "SELECT occupant_code, resident_name, occupant_type, address
+        "SELECT occupant_code, resident_name, occupant_type
          FROM residents WHERE resident_erfno = ?
          ORDER BY occupant_code"
     );
@@ -597,15 +546,12 @@ if ($action === 'add_occupant') {
         }
 
         try {
-            ensureResidentColumns();
-            $plate = strtoupper(preg_replace('/[^A-Z0-9 ]/', '',
-                         strtoupper(trim($_POST['plate_number'] ?? ''))));
             db()->prepare("
                 INSERT INTO residents
                     (resident_erfno, occupant_code, occupant_type,
                      is_primary, resident_name, address, phone,
-                     email, pin_hash, status, plate_number)
-                VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, 'active', ?)
+                     email, pin_hash, status)
+                VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, 'active')
             ")->execute([
                 $erfno,
                 $nextCode,
@@ -615,7 +561,6 @@ if ($action === 'add_occupant') {
                 trim($_POST['phone']   ?? ''),
                 trim($_POST['email']   ?? ''),
                 password_hash($pin, PASSWORD_BCRYPT),
-                $plate,
             ]);
             setFlash('success',
                 "Occupant {$erfno}{$nextCode} — " .
@@ -694,15 +639,6 @@ if ($action === 'add_occupant') {
             </div>
           </div>
           <div class="form-group">
-            <label>Vehicle Plate Number</label>
-            <input type="text" name="plate_number"
-                   maxlength="15"
-                   style="text-transform:uppercase;letter-spacing:.08em;"
-                   oninput="this.value=this.value.toUpperCase()"
-                   placeholder="e.g. CBS 754 62">
-            <small style="color:#888;">Used by LPR camera for resident vehicle access.</small>
-          </div>
-          <div class="form-group">
             <label>4-digit PIN *</label>
             <input type="password" name="pin" required
                    inputmode="numeric" maxlength="4" pattern="\d{4}"
@@ -742,13 +678,7 @@ if ($action === 'edit') {
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
-        ensureResidentColumns();
-
-        $pin   = trim($_POST['pin'] ?? '');
-        $plate = strtoupper(preg_replace('/[^A-Z0-9 ]/', '',
-                     strtoupper(trim($_POST['plate_number'] ?? ''))));
-        $tag   = trim($_POST['tag_number'] ?? '');
-
+        $pin    = trim($_POST['pin'] ?? '');
         $params = [
             trim($_POST['resident_name']),
             trim($_POST['address']       ?? ''),
@@ -756,8 +686,6 @@ if ($action === 'edit') {
             trim($_POST['email']         ?? ''),
             $_POST['occupant_type']      ?? $res['occupant_type'],
             $_POST['status']             ?? $res['status'],
-            $plate,
-            $tag,
             $id,
         ];
 
@@ -771,11 +699,10 @@ if ($action === 'edit') {
                 UPDATE residents
                 SET resident_name = ?, address = ?, phone = ?,
                     email = ?, occupant_type = ?, status = ?,
-                    plate_number = ?, tag_number = ?,
                     pin_hash = ?, device_token = NULL
                 WHERE id = ?
             ")->execute(array_merge(
-                array_slice($params, 0, 8),
+                array_slice($params, 0, 6),
                 [password_hash($pin, PASSWORD_BCRYPT)],
                 [$id]
             ));
@@ -784,8 +711,7 @@ if ($action === 'edit') {
             db()->prepare("
                 UPDATE residents
                 SET resident_name = ?, address = ?, phone = ?,
-                    email = ?, occupant_type = ?, status = ?,
-                    plate_number = ?, tag_number = ?
+                    email = ?, occupant_type = ?, status = ?
                 WHERE id = ?
             ")->execute($params);
             setFlash('success', 'Resident updated.');
@@ -886,38 +812,6 @@ if ($action === 'edit') {
               <input type="hidden" name="status" value="<?= $res['status'] ?>">
             <?php endif; ?>
           </div>
-          <div class="form-group">
-            <label>Vehicle Plate Number</label>
-            <input type="text" name="plate_number"
-                   maxlength="15"
-                   style="text-transform:uppercase;letter-spacing:.08em;"
-                   oninput="this.value=this.value.toUpperCase()"
-                   value="<?= htmlspecialchars(strtoupper($res['plate_number'] ?? '')) ?>"
-                   placeholder="e.g. CBS 754 62">
-            <small style="color:#888;">LPR camera uses this plate to allow resident vehicle access.</small>
-          </div>
-
-          <!-- ── Access Tag — admin only ── -->
-          <div class="form-group" style="background:#faf5ff;border:1px solid #d8b4fe;
-                                         border-radius:8px;padding:14px 16px;">
-            <label style="color:#6a0dad;font-weight:700;">
-              🏷️ Access Tag Number
-              <span style="font-size:.75rem;font-weight:400;
-                           background:#6a0dad;color:#fff;
-                           padding:1px 7px;border-radius:10px;
-                           margin-left:6px;">ADMIN ONLY</span>
-            </label>
-            <input type="text" name="tag_number"
-                   maxlength="30"
-                   style="font-family:monospace;letter-spacing:.1em;font-size:1rem;"
-                   value="<?= htmlspecialchars($res['tag_number'] ?? '') ?>"
-                   placeholder="Scan tag or enter manually">
-            <small style="color:#7c3aed;">
-              Normally assigned automatically by the dedicated tag reader.
-              Clear this field to deactivate the tag.
-            </small>
-          </div>
-
           <div class="form-group">
             <label>New PIN (leave blank to keep current)</label>
             <input type="password" name="pin"

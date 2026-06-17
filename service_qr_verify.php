@@ -3,34 +3,17 @@
  * service_qr_verify.php — MBGE Service Provider Pass verification
  * ─────────────────────────────────────────────────────────────────
  * Code format: 7XXXXX
- * Guard-authenticated endpoint — logged-in guard or security officer required.
+ * Public endpoint — no login session required.
  *
  * Security:
- *   - Session auth required: guard_id, security_id, or admin_id must be set
- *   - Unauthenticated requests are redirected to guard login
  *   - Per-IP rate limit: 10 requests/minute (shared table with visitor verify)
  *   - Code validated against strict regex before any DB query
  *   - Approval check uses current schema values ('true' / 1)
  *   - Day-of-week and time-of-day enforcement
- *   - Gate trigger and log record both carry the guard's identity
  *   - Self-contained HTML — no header.php / footer.php dependency
  */
-session_start();
 require_once __DIR__ . '/config.php';
 date_default_timezone_set('Africa/Johannesburg');
-
-// ── Auth check — gate trigger requires a logged-in guard ─────────────────
-$guardId   = (int)($_SESSION['guard_id']    ?? 0)
-           ?: (int)($_SESSION['security_id'] ?? 0)
-           ?: (int)($_SESSION['admin_id']    ?? 0);
-$guardName = $_SESSION['guard_name'] ?? $_SESSION['security_name'] ?? 'Unknown';
-$isAuth    = $guardId > 0;
-
-if (!$isAuth) {
-    $_SESSION['after_qr'] = $_SERVER['REQUEST_URI'];
-    header('Location: guard.php?action=login');
-    exit;
-}
 
 // ── Rate limiting ─────────────────────────────────────────
 // Shared rate_limit_qr table with visitor_qr_verify.php
@@ -178,9 +161,7 @@ if ($access && empty($_GET['nogate'])) {
         (int)($sp['id'] ?? 0), $code,
         $gateOk ? 'opened' : 'trigger_failed',
         $manual ? 'manual' : 'qr_scan',
-        $gateMsg,
-        $guardId,
-        $guardName
+        $gateMsg
     );
 
     // Notify resident of service provider entry
@@ -383,35 +364,24 @@ function triggerGateSp(): array {
 }
 
 function logSpGateEvent(int $spId, string $code, string $status,
-                        string $method, string $note,
-                        int $guardId = 0, string $guardName = ''): void {
+                        string $method, string $note): void {
     try {
         db()->exec("CREATE TABLE IF NOT EXISTS sp_gate_log (
-            id          INT AUTO_INCREMENT PRIMARY KEY,
-            sp_id       INT          NOT NULL,
-            code        VARCHAR(20)  NOT NULL,
-            status      VARCHAR(30)  NOT NULL,
-            method      VARCHAR(20)  NOT NULL,
-            note        VARCHAR(255),
-            guard_id    INT          NOT NULL DEFAULT 0,
-            guard_name  VARCHAR(100) NOT NULL DEFAULT '',
-            logged_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_code  (code),
-            INDEX idx_sp    (sp_id),
-            INDEX idx_guard (guard_id)
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            sp_id     INT          NOT NULL,
+            code      VARCHAR(20)  NOT NULL,
+            status    VARCHAR(30)  NOT NULL,
+            method    VARCHAR(20)  NOT NULL,
+            note      VARCHAR(255),
+            logged_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_code (code),
+            INDEX idx_sp   (sp_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        // Add guard columns to existing tables that pre-date this change
-        try {
-            db()->exec("ALTER TABLE sp_gate_log
-                ADD COLUMN guard_id   INT          NOT NULL DEFAULT 0  AFTER note,
-                ADD COLUMN guard_name VARCHAR(100) NOT NULL DEFAULT '' AFTER guard_id");
-        } catch (Exception $e) {} // ignore if columns already exist
-
         db()->prepare(
-            "INSERT INTO sp_gate_log (sp_id, code, status, method, note, guard_id, guard_name)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
-        )->execute([$spId, $code, $status, $method, $note, $guardId, $guardName]);
+            "INSERT INTO sp_gate_log (sp_id, code, status, method, note)
+             VALUES (?, ?, ?, ?, ?)"
+        )->execute([$spId, $code, $status, $method, $note]);
     } catch (Exception $e) {
         error_log('MBGE logSpGateEvent: ' . $e->getMessage());
     }

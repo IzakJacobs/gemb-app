@@ -276,7 +276,7 @@ if ($action === 'menu') {
             <span class="badge badge-warning"><?= $openTickets ?></span>
           <?php endif; ?>
         </a>
-        <a href="comms_archive.php"               class="menu-btn"><span class="icon">📄</span>Estate Documents</a>
+        <a href="document_archive.php"               class="menu-btn"><span class="icon">📄</span>Estate Documents</a>
         <a href="security.php?action=gate_override" class="menu-btn"><span class="icon">🚨</span>Remote Gate Open</a>
         <a href="security.php?action=reset"         class="menu-btn"><span class="icon">🔑</span>Change Password</a>
       </div>
@@ -1788,9 +1788,7 @@ function securityGrantAccess(array $sec): void {
     $_SESSION['security_name'] = $sec['name'];
     $_SESSION['last_activity'] = time();
     unset($_SESSION['sec_login_step'], $_SESSION['sec_pending_id'], $_SESSION['sec_pending_phone']);
-    $redirect = $_SESSION['after_qr'] ?? '';
-    unset($_SESSION['after_qr']);
-    header('Location: ' . ($redirect ?: 'security.php?action=menu'));
+    header('Location: security.php?action=menu');
 }
 
 function generateSpQr(int $spId): void {

@@ -173,7 +173,7 @@ require 'header.php';
 
 <div class="gate-wrap">
   <div class="gate-card">
-    <div class="gate-title">🏌️ MBGE Gate Entry</div>
+    <div class="gate-title">🏌️ GEMB Gate Entry</div>
     <div class="gate-sub">Enter 6-digit code or scan visitor QR</div>
 
     <?php if ($error): ?>

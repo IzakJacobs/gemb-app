@@ -85,7 +85,7 @@ $manual = !empty($_GET['manual']);
 $access  = false;
 $reason  = '';
 $visitor = null;
-error_log('MBGE DEBUG: visitor_qr_verify.php reached, code=' . ($_GET['code'] ?? 'none'));
+error_log('GEMB DEBUG: visitor_qr_verify.php reached, code=' . ($_GET['code'] ?? 'none'));
 
 if (!preg_match('/^3\d{5}$/', $code)) {
     $reason = 'Invalid visitor code format.';
@@ -154,14 +154,14 @@ if ($access && empty($_GET['nogate'])) {
 
     // Notify resident of visitor entry
     $resEmail = $visitor['resident_email'] ?? '';
-    error_log('MBGE DEBUG notify: erfno=' . ($visitor['resident_erfno'] ?? 'NULL') . ' email=' . ($resEmail ?: 'EMPTY'));
+    error_log('GEMB DEBUG notify: erfno=' . ($visitor['resident_erfno'] ?? 'NULL') . ' email=' . ($resEmail ?: 'EMPTY'));
     if ($resEmail) {
         require_once __DIR__ . '/twilio_helper.php';
         notifyResidentEntry(
             $resEmail,
             $visitor['visitor_name'] ?? 'Visitor',
             'visitor',
-            'MBGE Estate Gate',
+            'GEMB Estate Gate',
             date('d M Y H:i')
         );
     }
@@ -182,7 +182,7 @@ $vehicleReg   = $visitor['plate']         ?? '';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-  <title><?= $access ? '✅ GO — MBGE Gate' : '⛔ STOP — MBGE Gate' ?></title>
+  <title><?= $access ? '✅ GO — GEMB Gate' : '⛔ STOP — GEMB Gate' ?></title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -375,6 +375,6 @@ function logGateEvent(int $vid, string $code, string $status,
              VALUES (?, ?, ?, ?, ?)"
         )->execute([$vid, $code, $status, $method, $note]);
     } catch (Exception $e) {
-        error_log('MBGE logGateEvent: ' . $e->getMessage());
+        error_log('GEMB logGateEvent: ' . $e->getMessage());
     }
 }

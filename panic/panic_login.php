@@ -1,9 +1,9 @@
 <?php
 // ============================================================
-// MBGE Access Control — panic/panic_login.php
+// GEMB Access Control — panic/panic_login.php
 // Isolated session — separate from main app sessions
 // ============================================================
-session_name('mbge_panic');
+session_name('gemb_panic');
 session_start();
 
 require_once __DIR__ . '/../config.php';
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PANIC ALERT — MBGE</title>
+<title>PANIC ALERT — GEMB</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#8b0000; min-height:100vh; display:flex; align-items:center; justify-content:center; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }

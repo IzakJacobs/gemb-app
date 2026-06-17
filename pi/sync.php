@@ -3,7 +3,7 @@
  * pi/sync.php — Raspberry Pi sync cron script
  *
  * Run every 5 minutes via cron:
- *   * /5 * * * * php /var/www/html/mbge/sync.php >> /var/log/mbge_sync.log 2>&1
+ *   * /5 * * * * php /var/www/html/gemb/sync.php >> /var/log/gemb_sync.log 2>&1
  *
  * Does two things:
  *   1. PUSH  — sends any offline-logged events to the cloud

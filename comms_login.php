@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Communications Portal — comms_login.php
+// GEMB Communications Portal — comms_login.php
 // Standalone login for the Communications module.
 //
 // Completely independent visual design — no shared CSS or
@@ -88,7 +88,7 @@ $csrfToken = generateCsrfToken();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sign In — MBGE Communications</title>
+  <title>Sign In — GEMB Communications</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -270,7 +270,7 @@ $csrfToken = generateCsrfToken();
   <!-- Left brand panel -->
   <div class="brand-panel">
     <div class="bp-icon">📣</div>
-    <h1 class="bp-title">MBGE Communications</h1>
+    <h1 class="bp-title">GEMB Communications</h1>
     <p class="bp-sub">Estate Communications &amp; Engagement Portal</p>
 
     <ul class="channel-list">

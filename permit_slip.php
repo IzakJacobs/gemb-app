@@ -1,6 +1,6 @@
 <?php
 /**
- * permit_slip.php — MBGE Paper Slip Permit (A5)
+ * permit_slip.php — GEMB Paper Slip Permit (A5)
  * For: contractor_worker (and any slip-type SP)
  * Shows: personal details + QR + must present with ID at gate
  */
@@ -174,7 +174,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
 
 <div class="slip">
   <div class="slip-header">
-    <h1>MBGE TEMPORARY ACCESS PERMIT</h1>
+    <h1>GEMB TEMPORARY ACCESS PERMIT</h1>
     <span class="type">' . $catLabel . '</span>
   </div>
 
@@ -241,7 +241,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
   </div>
 
   <div class="slip-footer">
-    <span>MBGE HOA Reg. 1999/001249/08</span>
+    <span>GEMB HOA Reg. 1999/001249/08</span>
     <span>Scan QR code at gate for entry</span>
     <span>POPIA Act 4 of 2013</span>
   </div>

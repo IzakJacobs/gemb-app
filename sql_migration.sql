@@ -1,6 +1,6 @@
 -- ============================================================
--- MBGE Access Control — Entry/Exit Migration
--- Run once against mbgebfev_access
+-- GEMB Access Control — Entry/Exit Migration
+-- Run once against gembbfev_access
 -- Safe to run multiple times (uses IF NOT EXISTS / IGNORE)
 -- ============================================================
 

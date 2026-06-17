@@ -1,7 +1,7 @@
 <?php
 // ============================================================
 // vote_cast.php — Voting Engine (Token-based access)
-// MBGE Access Control System
+// GEMB Access Control System
 // Version 2.0  |  2026-06-14
 //
 // Access: via vote_login.php token entry ONLY. No resident
@@ -31,19 +31,19 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 requireVoteSession();
 
-// ── Device ID — shared with survey_respond.php via mbge_did cookie ──
-if (empty($_COOKIE['mbge_did'])) {
+// ── Device ID — shared with survey_respond.php via gemb_did cookie ──
+if (empty($_COOKIE['gemb_did'])) {
     $deviceId = bin2hex(random_bytes(32));
-    setcookie('mbge_did', $deviceId, [
+    setcookie('gemb_did', $deviceId, [
         'expires'  => time() + (5 * 365 * 24 * 3600),
         'path'     => '/',
         'secure'   => !empty($_SERVER['HTTPS']),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
-    $_COOKIE['mbge_did'] = $deviceId;
+    $_COOKIE['gemb_did'] = $deviceId;
 }
-$deviceId = $_COOKIE['mbge_did'];
+$deviceId = $_COOKIE['gemb_did'];
 
 $meetingId = (int)$_SESSION['vote_meeting_id'];
 $rerf      = strtoupper(trim($_SESSION['vote_erf'] ?? ''));

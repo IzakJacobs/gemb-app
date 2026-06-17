@@ -3,8 +3,8 @@ header('Content-Type: application/manifest+json');
 header('Cache-Control: no-cache');
 ?>
 {
-  "name": "MBGE Admin — Estate Management",
-  "short_name": "MBGE Admin",
+  "name": "GEMB Admin — Estate Management",
+  "short_name": "GEMB Admin",
   "description": "Administration portal for Mossel Bay Golf Estate",
   "start_url": "/admin.php?action=login",
   "scope": "/",

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — newsletters_admin.php (fixed)
+// GEMB Access Control — newsletters_admin.php (fixed)
 // newsletters columns: id, filename, filetype, filesize,
 //   filedata (blob), synopsis, file_date, category,
 //   uploaded_by, uploaded_at

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// gemB / MBGE — comms_archive.php
+// gemB / GEMB — comms_archive.php
 // Role-aware document archive (Communications module)
 // Accessible by: admin, security officer, resident
 //

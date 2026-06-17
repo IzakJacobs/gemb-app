@@ -2,8 +2,8 @@
 header('Content-Type: application/javascript');
 header('Cache-Control: no-cache');
 ?>
-// MBGE Resident Service Worker
-const CACHE = 'mbge-resident-v1';
+// GEMB Resident Service Worker
+const CACHE = 'gemb-resident-v1';
 const OFFLINE_URL = '/resident.php?action=login';
 
 self.addEventListener('install', e => {

@@ -1,7 +1,7 @@
 <?php
 // ============================================================
 // comms_surveys.php — Survey Channel (Communications module)
-// MBGE Access Control System
+// GEMB Access Control System
 // Version 1.1  |  2026-06-13
 //
 // Actions:
@@ -295,7 +295,7 @@ if ($action === 'notify' && $surveyId > 0) {
                 'Take the Survey'
             );
 
-            $ok = commsSendAndLog($broadcastId, 'survey', $email, $r['name'] ?? '', 'MBGE Estate — Survey: ' . $survey['title'], $html);
+            $ok = commsSendAndLog($broadcastId, 'survey', $email, $r['name'] ?? '', 'GEMB Estate — Survey: ' . $survey['title'], $html);
             $ok ? $sent++ : $failed++;
         }
 

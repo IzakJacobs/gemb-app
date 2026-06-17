@@ -9,14 +9,14 @@
 if ($action === 'login') {
 
     /* Device token — persistent 10-year cookie */
-    if (empty($_COOKIE['mbge_device'])) {
+    if (empty($_COOKIE['gemb_device'])) {
         $tok = bin2hex(random_bytes(24));
-        setcookie('mbge_device', $tok,
+        setcookie('gemb_device', $tok,
                   time() + (10 * 365 * 24 * 60 * 60),
                   '/', '', true, true);
-        $_COOKIE['mbge_device'] = $tok;
+        $_COOKIE['gemb_device'] = $tok;
     }
-    $deviceToken = $_COOKIE['mbge_device'];
+    $deviceToken = $_COOKIE['gemb_device'];
 
     $step  = $_SESSION['login_step'] ?? 'credentials';
     $error = '';

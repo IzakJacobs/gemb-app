@@ -1,4 +1,4 @@
-MBGE ACCESS CONTROL SYSTEM
+GEMB ACCESS CONTROL SYSTEM
 ==========================
 Version: 2.0 — Rebuilt May 2026
 25 files (15 core + 3 panic + 7 support)
@@ -9,14 +9,14 @@ QUICK START
 2. Import install.sql into the database
 3. Edit config.php — set DB_HOST, DB_NAME, DB_USER, DB_PASS
 4. Upload ALL files to your web root (public_html)
-5. Visit https://mbge.ink/AS-menu.html
-6. Login as admin / password: Admin@MBGE2026
+5. Visit https://gemb.ink/AS-menu.html
+6. Login as admin / password: Admin@GEMB2026
 7. IMMEDIATELY change the admin password
 
 DEFAULT LOGIN
 -------------
 Username: admin
-Password: Admin@MBGE2026  ← CHANGE THIS IMMEDIATELY
+Password: Admin@GEMB2026  ← CHANGE THIS IMMEDIATELY
 
 FILE MAP
 --------

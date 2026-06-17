@@ -1,6 +1,6 @@
 -- ============================================================
--- MBGE Access Control — auth upgrade schema changes
--- Database: mbgebfev_access.  Run ONCE in phpMyAdmin (SQL tab).
+-- GEMB Access Control — auth upgrade schema changes
+-- Database: gembbfev_access.  Run ONCE in phpMyAdmin (SQL tab).
 --
 -- ADDS
 --   1. security_users.email             (self-service reset + future use)

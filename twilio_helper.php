@@ -1,6 +1,6 @@
 <?php
 /**
- * twilio_helper.php — MBGE notifications and OTP via PHP mail()
+ * twilio_helper.php — GEMB notifications and OTP via PHP mail()
  *
  * Uses the server's built-in mail() function — no external API needed.
  * Sending address: noreply@gemb.co.za (set via MAIL_FROM in config, or hardcoded below).
@@ -30,19 +30,19 @@ function normalisePhone(string $phone): string {
 // ── Send a plain-text email via PHP mail() ────────────────────────────────────
 function sendEmail(string $toEmail, string $subject, string $body): bool {
     if (!$toEmail) {
-        error_log('MBGE Email: no recipient address');
+        error_log('GEMB Email: no recipient address');
         return false;
     }
     $from    = defined('MAIL_FROM') ? MAIL_FROM : 'noreply@gemb.co.za';
     $headers = implode("\r\n", [
-        'From: MBGE Access Control <' . $from . '>',
+        'From: GEMB Access Control <' . $from . '>',
         'Reply-To: ' . $from,
         'Content-Type: text/plain; charset=UTF-8',
         'X-Mailer: PHP/' . phpversion(),
     ]);
     $result = mail($toEmail, $subject, $body, $headers);
     if (!$result) {
-        error_log("MBGE Email: mail() failed sending to {$toEmail}");
+        error_log("GEMB Email: mail() failed sending to {$toEmail}");
     }
     return $result;
 }
@@ -62,11 +62,11 @@ function generateOtp(string $phone, string $email): bool {
     db()->prepare("INSERT INTO otp_tokens (phone, otp, expires_at) VALUES (?, ?, ?)")
         ->execute([$phone, $otp, $expires]);
 
-    $subject = 'MBGE Access Control - Your Login Code';
-    $body    = "MBGE Access Control\n\n"
+    $subject = 'GEMB Access Control - Your Login Code';
+    $body    = "GEMB Access Control\n\n"
              . "Your login code: {$otp}\n\n"
              . "Valid for 5 minutes. Do not share this code.\n\n"
-             . "MBGE HOA | POPIA Act 4 of 2013";
+             . "GEMB HOA | POPIA Act 4 of 2013";
 
     return sendEmail($email, $subject, $body);
 }
@@ -103,13 +103,13 @@ function notifyResidentEntry(
     if (!$timestamp) $timestamp = date('d M Y H:i');
 
     $label   = $category === 'service_provider' ? 'Service Provider' : 'Visitor';
-    $subject = "MBGE - {$label} Arrived";
-    $body    = "MBGE Access Control\n\n"
+    $subject = "GEMB - {$label} Arrived";
+    $body    = "GEMB Access Control\n\n"
              . "{$label} ARRIVED\n\n"
              . "Name:  {$visitorName}\n"
              . "Gate:  {$gate}\n"
              . "Time:  {$timestamp}\n\n"
-             . "MBGE HOA";
+             . "GEMB HOA";
 
     sendEmail($residentEmail, $subject, $body);
 }
@@ -126,13 +126,13 @@ function notifyResidentExit(
     if (!$timestamp) $timestamp = date('d M Y H:i');
 
     $label   = $category === 'service_provider' ? 'Service Provider' : 'Visitor';
-    $subject = "MBGE - {$label} Departed";
-    $body    = "MBGE Access Control\n\n"
+    $subject = "GEMB - {$label} Departed";
+    $body    = "GEMB Access Control\n\n"
              . "{$label} DEPARTED\n\n"
              . "Name:  {$visitorName}\n"
              . "Gate:  {$gate}\n"
              . "Time:  {$timestamp}\n\n"
-             . "MBGE HOA";
+             . "GEMB HOA";
 
     sendEmail($residentEmail, $subject, $body);
 }
@@ -151,7 +151,7 @@ function generateEmailOtp(string $email): bool {
     ensureOtpTable();
     $email = trim($email);
     if ($email === '') {
-        error_log('MBGE Email OTP: no email address supplied');
+        error_log('GEMB Email OTP: no email address supplied');
         return false;
     }
     $key = emailOtpKey($email);
@@ -166,11 +166,11 @@ function generateEmailOtp(string $email): bool {
     db()->prepare("INSERT INTO otp_tokens (phone, otp, expires_at) VALUES (?, ?, ?)")
         ->execute([$key, $otp, $expires]);
 
-    $subject = 'MBGE Access Control - Your Login Code';
-    $body    = "MBGE Access Control\n\n"
+    $subject = 'GEMB Access Control - Your Login Code';
+    $body    = "GEMB Access Control\n\n"
              . "Your login code: {$otp}\n\n"
              . "Valid for 5 minutes. Do not share this code.\n\n"
-             . "MBGE HOA | POPIA Act 4 of 2013";
+             . "GEMB HOA | POPIA Act 4 of 2013";
 
     return sendEmail($email, $subject, $body);
 }

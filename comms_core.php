@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE / gemB — comms_core.php
+// GEMB / gemB — comms_core.php
 // ============================================================
 // Shared core for the Communications module.
 //
@@ -52,7 +52,7 @@ function commsRequireAuth(): void {
     exit;
 }
 
-// True if running inside the MBGE admin suite (shows "back to admin menu" links etc.)
+// True if running inside the GEMB admin suite (shows "back to admin menu" links etc.)
 function commsIsEmbedded(): bool {
     return !empty($_SESSION['admin_id']);
 }
@@ -329,13 +329,13 @@ function commsEmailShell(string $eyebrow, string $bodyHtml): string {
 <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;
             box-shadow:0 2px 8px rgba(0,0,0,.1);">
   <div style="background:#003366;padding:24px 28px;">
-    <h1 style="color:#fff;margin:0;font-size:1.3rem;">🏡 MBGE Estate</h1>
+    <h1 style="color:#fff;margin:0;font-size:1.3rem;">🏡 GEMB Estate</h1>
     <p style="color:rgba(255,255,255,.8);margin:4px 0 0;font-size:.9rem;">{$eyebrow}</p>
   </div>
   <div style="padding:28px;">
     {$bodyHtml}
     <p style="color:#888;font-size:.82rem;margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
-      This email was sent by MBGE Estate Management.<br>
+      This email was sent by GEMB Estate Management.<br>
       If you have any queries, please contact the estate office.
     </p>
   </div>

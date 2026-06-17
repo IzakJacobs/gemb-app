@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — security.php
+// GEMB Access Control — security.php
 // Actions: login | menu | approvals | sp_add | guards | logs | qr | reset | helpdesk
 // ============================================================
 require_once __DIR__ . '/layout.php';
@@ -17,12 +17,12 @@ if ($action === 'login' && !empty($_SESSION['security_id'])) {
 // ════════════════════════════════════════════════════════
 if ($action === 'login') {
 
-    if (empty($_COOKIE['mbge_security_device'])) {
+    if (empty($_COOKIE['gemb_security_device'])) {
         $tok = bin2hex(random_bytes(24));
-        setcookie('mbge_security_device', $tok, time() + (10 * 365 * 24 * 60 * 60), '/', '', true, true);
-        $_COOKIE['mbge_security_device'] = $tok;
+        setcookie('gemb_security_device', $tok, time() + (10 * 365 * 24 * 60 * 60), '/', '', true, true);
+        $_COOKIE['gemb_security_device'] = $tok;
     }
-    $deviceToken = $_COOKIE['mbge_security_device'];
+    $deviceToken = $_COOKIE['gemb_security_device'];
 
     $step  = $_SESSION['sec_login_step'] ?? 'credentials';
     $error = '';
@@ -139,7 +139,7 @@ if ($action === 'login') {
       <div class="login-card">
         <div class="login-logo">🛡️</div>
         <h2>Security Officer</h2>
-        <div class="subtitle">MBGE Access Control</div>
+        <div class="subtitle">GEMB Access Control</div>
 
         <?php if ($error): ?>
           <div class="alert alert-danger"><?= $error /* may contain HTML from bfWarningMessage */ ?></div>
@@ -666,7 +666,7 @@ if ($action === 'estate_sp_add') {
         } while ($chk->rowCount() > 0);
 
         $resErfno = '';
-        $resName  = 'MBGE Estate';
+        $resName  = 'GEMB Estate';
         if ($cat === 'contractor_worker' && !empty((int)($_POST['lead_id'] ?? 0))) {
             $lead = $pdo->prepare("SELECT resident_erfno, resident_name FROM service_providers WHERE id=? LIMIT 1");
             $lead->execute([(int)$_POST['lead_id']]);
@@ -1131,7 +1131,7 @@ if ($action === 'approvals') {
               <?= htmlspecialchars(substr($sp['access_start']??'07:00:00',0,5)) ?>–<?= htmlspecialchars(substr($sp['access_end']??'17:00:00',0,5)) ?>
               <?php if ($sp['resident_erfno']): ?>
                 &nbsp;|&nbsp; Erf <?= $sp['resident_erfno'] ?> <?= htmlspecialchars($sp['resident_name']??'') ?>
-              <?php elseif (($sp['resident_name']??'') === 'MBGE Estate'): ?>
+              <?php elseif (($sp['resident_name']??'') === 'GEMB Estate'): ?>
                 &nbsp;|&nbsp; <em>🏗️ Estate worker</em>
               <?php else: ?>
                 &nbsp;|&nbsp; <em>Estate-wide</em>

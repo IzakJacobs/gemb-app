@@ -98,7 +98,7 @@ $accessLog = db()->query('SELECT * FROM access_log ORDER BY logged_at DESC LIMIT
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard — MBGE</title>
+  <title>Admin Dashboard — GEMB</title>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
@@ -144,7 +144,7 @@ $accessLog = db()->query('SELECT * FROM access_log ORDER BY logged_at DESC LIMIT
 </head>
 <body>
 <header>
-  <h1>MBGE Estate Admin</h1>
+  <h1>GEMB Estate Admin</h1>
   <a class="so" href="logout.php">Sign Out</a>
 </header>
 

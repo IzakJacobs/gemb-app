@@ -1,6 +1,6 @@
 <?php
 /**
- * service_qr_verify.php — MBGE Service Provider Pass verification
+ * service_qr_verify.php — GEMB Service Provider Pass verification
  * ─────────────────────────────────────────────────────────────────
  * Code format: 7XXXXX
  * Public endpoint — no login session required.
@@ -172,7 +172,7 @@ if ($access && empty($_GET['nogate'])) {
             $resEmail,
             $sp['service_name'] ?? 'Service Provider',
             'service_provider',
-            'MBGE Estate Gate',
+            'GEMB Estate Gate',
             date('d M Y H:i')
         );
     }
@@ -183,7 +183,7 @@ if ($access && empty($_GET['nogate'])) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-  <title><?= $access ? '✅ GO — MBGE Gate' : '⛔ STOP — MBGE Gate' ?></title>
+  <title><?= $access ? '✅ GO — GEMB Gate' : '⛔ STOP — GEMB Gate' ?></title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -383,6 +383,6 @@ function logSpGateEvent(int $spId, string $code, string $status,
              VALUES (?, ?, ?, ?, ?)"
         )->execute([$spId, $code, $status, $method, $note]);
     } catch (Exception $e) {
-        error_log('MBGE logSpGateEvent: ' . $e->getMessage());
+        error_log('GEMB logSpGateEvent: ' . $e->getMessage());
     }
 }

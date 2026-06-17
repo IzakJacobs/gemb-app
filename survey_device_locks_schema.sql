@@ -3,7 +3,7 @@
 -- Run this in cPanel → phpMyAdmin on your database.
 --
 -- device_id : random 64-char hex generated on first visit,
---             stored in the mbge_did cookie (5-year expiry).
+--             stored in the gemb_did cookie (5-year expiry).
 -- survey_id : the survey that was responded to.
 -- response_id: FK to survey_responses for reference.
 -- ============================================================

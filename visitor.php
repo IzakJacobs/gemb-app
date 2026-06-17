@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — visitor.php
+// GEMB Access Control — visitor.php
 // Handles both visitor invites AND service provider invites
 //
 // visitors columns: id, resident_name, resident_address,
@@ -179,7 +179,7 @@ if ($action === 'select') {
         $passUrl  = SITE_URL . '/visitor_qr.php?code=' . $v['code'];
         $fmtFrom  = date('d M Y', strtotime($v['visit_date']));
         $fmtTo    = date('d M Y', strtotime($visitTo));
-        $waMsg    = "🏡 MBGE Visitor Pass\n\n"
+        $waMsg    = "🏡 GEMB Visitor Pass\n\n"
                   . "Hi {$v['visitor_name']},\n\n"
                   . "Your access pass for Mossel Bay Golf Estate:\n\n"
                   . "📅 Valid: {$fmtFrom} – {$fmtTo}\n"
@@ -287,16 +287,16 @@ if ($action === 'select') {
           <?php
             // Build resend WhatsApp link
             $spPassUrl = SITE_URL . '/sp_pass.php?code=' . $sp['unique_code'];
-            $spWaMsg   = "🏡 MBGE Service Provider Invite\n\n"
+            $spWaMsg   = "🏡 GEMB Service Provider Invite\n\n"
                        . "Hi {$sp['service_name']},\n\n"
                        . "You have been invited by {$rname}\n"
                        . "{$resAddress}\n\n"
                        . "Category: {$cat['label']}\n\n"
-                       . "Please visit the MBGE Security Office with your ID to "
+                       . "Please visit the GEMB Security Office with your ID to "
                        . "complete registration and collect your access permit.\n\n"
                        . "Your reference:\n"
                        . SITE_URL . "/sp_pass.php?code={$sp['unique_code']}\n\n"
-                       . "MBGE HOA | POPIA Act 4 of 2013";
+                       . "GEMB HOA | POPIA Act 4 of 2013";
             $spWaLink = buildWhatsAppLink($sp['sp_phone'], $spWaMsg);
           ?>
           <a href="<?= htmlspecialchars($spWaLink) ?>"
@@ -352,22 +352,22 @@ if ($action === 'sp_invite') {
         // Build WhatsApp message
         $catLabel  = $spCategories[$cat]['label'] ?? $cat;
         $passUrl   = SITE_URL . '/sp_pass.php?code=' . $code;
-        $waMessage = "🏡 MBGE Service Provider Invite\n\n"
+        $waMessage = "🏡 GEMB Service Provider Invite\n\n"
                    . "Hi {$_POST['sp_name']},\n\n"
                    . "You have been invited by {$rname}\n"
                    . "{$resAddress}\n\n"
                    . "Category: {$catLabel}\n\n"
-                   . "Please visit the MBGE Security Office with your ID "
+                   . "Please visit the GEMB Security Office with your ID "
                    . "document to complete registration and collect your "
                    . "access permit.\n\n"
                    . "Tap the link below and show it to the Security Officer:\n"
                    . "{$passUrl}\n\n"
                    . "Reference code: {$code}\n\n"
-                   . "MBGE HOA Reg. 1999/001249/08 | POPIA Act 4 of 2013";
+                   . "GEMB HOA Reg. 1999/001249/08 | POPIA Act 4 of 2013";
 
         $waLink  = buildWhatsAppLink(trim($_POST['sp_phone']), $waMessage);
         $smsLink = buildSmsLink(trim($_POST['sp_phone']),
-            "MBGE SP Invite: {$catLabel}. Visit Security Office with ID. "
+            "GEMB SP Invite: {$catLabel}. Visit Security Office with ID. "
             . "Ref: {$passUrl}");
 
         // Redirect to pass display with send buttons
@@ -654,7 +654,7 @@ if ($action === 'add') {
         $fmtFrom  = date('d M Y', strtotime($_POST['visit_date']));
         $fmtTo    = date('d M Y', strtotime($visitTo));
         $vPhone   = trim($_POST['visitor_phone'] ?? '');
-        $waMsg    = "🏡 MBGE " . ($isDelivery ? "Delivery" : "Visitor")
+        $waMsg    = "🏡 GEMB " . ($isDelivery ? "Delivery" : "Visitor")
                   . " Pass\n\n"
                   . "Hi {$_POST['visitor_name']},\n\n"
                   . ($isDelivery
@@ -667,10 +667,10 @@ if ($action === 'add') {
                   . "🔑 Gate code: {$code}\n\n"
                   . "👇 Tap to open your pass:\n{$passUrl}\n\n"
                   . "Show the QR to the guard or give them your 6-digit code.\n"
-                  . "MBGE HOA | POPIA Act 4 of 2013";
+                  . "GEMB HOA | POPIA Act 4 of 2013";
 
         $waLink  = $vPhone ? buildWhatsAppLink($vPhone, $waMsg) : '';
-        $smsMsg  = "MBGE Pass: {$rname}, {$resAddress}. "
+        $smsMsg  = "GEMB Pass: {$rname}, {$resAddress}. "
                  . "Valid: {$fmtFrom}. Code: {$code}. Pass: {$passUrl}";
         $smsLink = $vPhone ? buildSmsLink($vPhone, $smsMsg) : '';
 

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// gemB / MBGE — comms_levy.php
+// gemB / GEMB — comms_levy.php
 // Personalised messages: levy statements via CSV upload + email
 // Actions: menu | send | log | template
 // ============================================================
@@ -246,7 +246,7 @@ resident2@gmail.com,Jane Doe,1500.00,Levy due 30 June 2026</pre>
           <div class="form-group">
             <label>Email Subject Line *</label>
             <input type="text" name="subject" required
-                   placeholder="e.g. MBGE Estate - June 2026 Levy Notice">
+                   placeholder="e.g. GEMB Estate - June 2026 Levy Notice">
             <small style="color:#888;display:block;margin-top:4px;">
               Use plain hyphens (-) only. Special characters like dashes (&#8212;) or
               curved quotes cause delivery failure on this server.

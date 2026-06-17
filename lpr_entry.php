@@ -12,7 +12,7 @@
  *   or: Configuration → Smart Event → ANPR → Upload Settings
  *
  *   Protocol:   HTTPS
- *   Host:       mbge.ink
+ *   Host:       gemb.ink
  *   Port:       443
  *   URL:        /lpr_entry.php?key=<LPR_ENTRY_API_KEY>
  *   Method:     POST
@@ -295,6 +295,6 @@ function logLprEntryEvent(
             $eventType,
         ]);
     } catch (Throwable $e) {
-        error_log('MBGE lpr_entry log error: ' . $e->getMessage());
+        error_log('GEMB lpr_entry log error: ' . $e->getMessage());
     }
 }

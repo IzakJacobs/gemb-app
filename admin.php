@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — admin.php
+// GEMB Access Control — admin.php
 // admins:         id, username, email, phone, password
 // guards:         id, username, name, phone, pin, gate
 // security_users: id, username, name, phone, pin
@@ -21,14 +21,14 @@ if ($action === 'login') {
     }
 
     /* Device token — persistent 10-year cookie */
-    if (empty($_COOKIE['mbge_admin_device'])) {
+    if (empty($_COOKIE['gemb_admin_device'])) {
         $tok = bin2hex(random_bytes(24));
-        setcookie('mbge_admin_device', $tok,
+        setcookie('gemb_admin_device', $tok,
                   time() + (10 * 365 * 24 * 60 * 60),
                   '/', '', true, true);
-        $_COOKIE['mbge_admin_device'] = $tok;
+        $_COOKIE['gemb_admin_device'] = $tok;
     }
-    $deviceToken = $_COOKIE['mbge_admin_device'];
+    $deviceToken = $_COOKIE['gemb_admin_device'];
 
     $step  = $_SESSION['admin_login_step'] ?? 'credentials';
     $error = '';
@@ -165,7 +165,7 @@ if ($action === 'login') {
       <div class="login-card">
         <div class="login-logo">⚙️</div>
         <h2>System Administrator</h2>
-        <div class="subtitle">MBGE Access Control</div>
+        <div class="subtitle">GEMB Access Control</div>
 
         <?php if ($error): ?>
           <div class="alert alert-danger">

@@ -23,7 +23,7 @@
  *  void onTagRead(uint64_t tagId) {
  *      char url[256];
  *      snprintf(url, sizeof(url),
- *          "https://mbge.ink/wiegand_gate.php"
+ *          "https://gemb.ink/wiegand_gate.php"
  *          "?action=gate&key=%s&tag=%llu&bits=%d",
  *          WIEGAND_API_KEY, tagId, wiegandBits);
  *      httpGet(url);   // or POST with body
@@ -347,6 +347,6 @@ function logWiegandEvent(
              VALUES (?, ?, ?, ?, ?, ?, ?)"
         )->execute([$tagNorm, $tagRaw, $residentId, $residentName, $status, $ip, $bits]);
     } catch (Throwable $e) {
-        error_log('MBGE wiegand log error: ' . $e->getMessage());
+        error_log('GEMB wiegand log error: ' . $e->getMessage());
     }
 }

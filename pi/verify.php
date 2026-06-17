@@ -250,13 +250,13 @@ if (empty($_SESSION['pi_guard_id'])) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-      <title>MBGE Gate — Login</title>
-      <link rel="manifest" href="/mbge/manifest.json">
+      <title>GEMB Gate — Login</title>
+      <link rel="manifest" href="/gemb/manifest.json">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-title" content="MBGE Gate">
+      <meta name="apple-mobile-web-app-title" content="GEMB Gate">
       <meta name="theme-color" content="#003366">
-      <link rel="apple-touch-icon" href="/mbge/icons/icon-192.png">
+      <link rel="apple-touch-icon" href="/gemb/icons/icon-192.png">
       <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -287,7 +287,7 @@ if (empty($_SESSION['pi_guard_id'])) {
     <body>
     <div class="offline">📡 OFFLINE MODE — Pi node &nbsp;|&nbsp; Last sync: <?= htmlspecialchars($syncAge) ?></div>
     <div class="band">
-      <h1>🔐 MBGE GATE</h1>
+      <h1>🔐 GEMB GATE</h1>
       <p>Guard Login</p>
     </div>
     <?php if ($loginError): ?>
@@ -360,7 +360,7 @@ if (empty($_SESSION['pi_guard_id'])) {
     <?php endif; ?>
     <script>
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/mbge/sw.js').catch(()=>{});
+        navigator.serviceWorker.register('/gemb/sw.js').catch(()=>{});
     }
     </script>
     </body>
@@ -569,14 +569,14 @@ $showForm = ($code === '');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-  <title><?= $showForm ? 'MBGE Gate' : ($access ? '✅ GO' : '⛔ STOP') ?></title>
-  <link rel="manifest" href="/mbge/manifest.json">
+  <title><?= $showForm ? 'GEMB Gate' : ($access ? '✅ GO' : '⛔ STOP') ?></title>
+  <link rel="manifest" href="/gemb/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MBGE Gate">
+  <meta name="apple-mobile-web-app-title" content="GEMB Gate">
   <meta name="theme-color" content="#003366">
-  <link rel="apple-touch-icon" href="/mbge/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/gemb/icons/icon-192.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -747,7 +747,7 @@ $showForm = ($code === '');
 
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/mbge/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/gemb/sw.js').catch(()=>{});
 }
 </script>
 

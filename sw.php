@@ -2,8 +2,8 @@
 header('Content-Type: application/javascript');
 header('Cache-Control: no-cache');
 ?>
-// MBGE Guard Service Worker
-const CACHE = 'mbge-guard-v1';
+// GEMB Guard Service Worker
+const CACHE = 'gemb-guard-v1';
 const OFFLINE_URL = '/guard.php?action=login';
 
 self.addEventListener('install', e => {

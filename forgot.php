@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — forgot.php
+// GEMB Access Control — forgot.php
 // Self-service password / PIN reset via email OTP.
 // Roles: admin | resident | security   (NOT guard — guards are
 // reset by an admin or security officer.)
@@ -233,7 +233,7 @@ pageHeader('Forgot Password', $cfg['accent']);
   <div class="login-card">
     <div class="login-logo"><?= $cfg['icon'] ?></div>
     <h2>Reset Access</h2>
-    <div class="subtitle"><?= htmlspecialchars($cfg['title']) ?> — MBGE Access Control</div>
+    <div class="subtitle"><?= htmlspecialchars($cfg['title']) ?> — GEMB Access Control</div>
 
     <?= getFlash() ?>
     <?php if ($error): ?>

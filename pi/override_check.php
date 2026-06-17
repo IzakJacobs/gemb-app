@@ -3,8 +3,8 @@
  * pi/override_check.php — Gate override polling script (Pi side)
  *
  * Runs every 30 seconds via cron:
- *   * * * * * php /var/www/html/mbge/override_check.php >> /var/log/mbge_override.log 2>&1
- *   * * * * * sleep 30 && php /var/www/html/mbge/override_check.php >> /var/log/mbge_override.log 2>&1
+ *   * * * * * php /var/www/html/gemb/override_check.php >> /var/log/gemb_override.log 2>&1
+ *   * * * * * sleep 30 && php /var/www/html/gemb/override_check.php >> /var/log/gemb_override.log 2>&1
  *
  * Polls cloud for pending gate overrides and executes them locally.
  */

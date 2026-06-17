@@ -46,12 +46,12 @@ if ($action === 'login') {
 
     /* Device token — persistent 10-year cookie, separate from
        the resident portal's device cookie */
-    if (empty($_COOKIE['mbge_vote_device'])) {
+    if (empty($_COOKIE['gemb_vote_device'])) {
         $tok = bin2hex(random_bytes(24));
-        setcookie('mbge_vote_device', $tok, time() + (10 * 365 * 24 * 60 * 60), '/', '', true, true);
-        $_COOKIE['mbge_vote_device'] = $tok;
+        setcookie('gemb_vote_device', $tok, time() + (10 * 365 * 24 * 60 * 60), '/', '', true, true);
+        $_COOKIE['gemb_vote_device'] = $tok;
     }
-    $deviceToken = $_COOKIE['mbge_vote_device'];
+    $deviceToken = $_COOKIE['gemb_vote_device'];
 
     $error = '';
 

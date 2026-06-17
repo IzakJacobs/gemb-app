@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Security Gate - MBGE</title>
+  <title>Security Gate - GEMB</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
@@ -215,7 +215,7 @@
 <body>
 
   <header>
-    <h1>MBGE Security Gate</h1>
+    <h1>GEMB Security Gate</h1>
     <div class="hdr-right">
       <span class="date-badge" id="todayDate"></span>
       <button class="btn-hdr" onclick="openSecretModal()">Estate Key</button>
@@ -328,7 +328,7 @@
     }
 
     function getHmacSecret() {
-      return (JSON.parse(localStorage.getItem('mbge_settings') || '{}').hmacSecret) || '';
+      return (JSON.parse(localStorage.getItem('gemb_settings') || '{}').hmacSecret) || '';
     }
 
     // ---- Estate secret modal ----
@@ -348,18 +348,18 @@
     function closeSecretModal() { document.getElementById('secretModal').classList.remove('show'); }
     function saveSecret() {
       const val = document.getElementById('secretInput').value.trim();
-      const s   = JSON.parse(localStorage.getItem('mbge_settings') || '{}');
+      const s   = JSON.parse(localStorage.getItem('gemb_settings') || '{}');
       s.hmacSecret = val;
-      localStorage.setItem('mbge_settings', JSON.stringify(s));
+      localStorage.setItem('gemb_settings', JSON.stringify(s));
       closeSecretModal();
     }
 
     // ---- LocalStorage log ----
-    function getLog() { return JSON.parse(localStorage.getItem('mbge_access_log') || '[]'); }
+    function getLog() { return JSON.parse(localStorage.getItem('gemb_access_log') || '[]'); }
     function addLogEntry(e) {
       const log = getLog();
       log.unshift(e);
-      localStorage.setItem('mbge_access_log', JSON.stringify(log.slice(0, 1000)));
+      localStorage.setItem('gemb_access_log', JSON.stringify(log.slice(0, 1000)));
     }
 
     // ---- Tab switching ----

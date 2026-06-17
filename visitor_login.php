@@ -98,7 +98,7 @@ $conn->close();
 </head>
 <body>
   <div class="login-container">
-    <img src="logo.png" alt="MBGE Logo">
+    <img src="logo.png" alt="GEMB Logo">
     <h2>Welcome Back</h2>
     <?php if ($loginError): ?>
       <div class="error"><?php echo $loginError; ?></div>

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — gate_proximity_unlock.php
+// GEMB Access Control — gate_proximity_unlock.php
 // Resident proximity gate unlock (Schoeman St & Church St)
 // Requires resident session via layout.php / requireResident()
 // ============================================================

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — layout.php
+// GEMB Access Control — layout.php
 // Shared header, footer, auth guards, and CSS design system
 // ============================================================
 require_once __DIR__ . '/config.php';
@@ -8,18 +8,18 @@ date_default_timezone_set('Africa/Johannesburg');
 
 // ── SameSite=Strict on all device cookies ─────────────────
 // Called once at file-include time (before any output).
-// Re-issues every mbge_* device cookie with SameSite=Strict,
+// Re-issues every gemb_* device cookie with SameSite=Strict,
 // preventing them being sent in cross-site requests (CSRF layer).
 if (session_status() === PHP_SESSION_NONE) session_start();
 foreach ([
-    'mbge_admin_device',
-    'mbge_guard_device',
-    'mbge_security_device',
-    'mbge_resident_device',
-    'mbge_device',           // resident legacy name
-] as $_mbge_cookie) {
-    if (isset($_COOKIE[$_mbge_cookie])) {
-        setcookie($_mbge_cookie, $_COOKIE[$_mbge_cookie], [
+    'gemb_admin_device',
+    'gemb_guard_device',
+    'gemb_security_device',
+    'gemb_resident_device',
+    'gemb_device',           // resident legacy name
+] as $_gemb_cookie) {
+    if (isset($_COOKIE[$_gemb_cookie])) {
+        setcookie($_gemb_cookie, $_COOKIE[$_gemb_cookie], [
             'expires'  => time() + (10 * 365 * 24 * 60 * 60),
             'path'     => '/',
             'secure'   => true,
@@ -28,7 +28,7 @@ foreach ([
         ]);
     }
 }
-unset($_mbge_cookie);
+unset($_gemb_cookie);
 
 // ── Security headers ──────────────────────────────────────
 if (!headers_sent()) {
@@ -97,7 +97,7 @@ function pageHeader(string $title, string $role = ''): void {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title><?= htmlspecialchars($title) ?> | MBGE Access</title>
+<title><?= htmlspecialchars($title) ?> | GEMB Access</title>
 <link rel="manifest" href="<?= $role === 'resident' ? '/manifest-resident.php' : ($role === 'security' ? '/manifest-security.php' : ($role === 'admin' ? '/manifest-admin.php' : '/manifest-guard.php')) ?>">
 <meta name="theme-color" content="<?= $accent ?>">
 <style>
@@ -248,7 +248,7 @@ function pageFooter(): void {
     $role = $GLOBALS['_page_role'] ?? '';
     ?>
 <div class="site-footer">
-  MBGE Access Control &nbsp;|&nbsp; POPIA Act 4 of 2013 &nbsp;|&nbsp; PSIRA Act 56 of 2001
+  GEMB Access Control &nbsp;|&nbsp; POPIA Act 4 of 2013 &nbsp;|&nbsp; PSIRA Act 56 of 2001
   &nbsp;|&nbsp; HOA Reg. 1999/001249/08
 </div>
 <script>

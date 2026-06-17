@@ -137,7 +137,7 @@ if ($action === 'pull') {
             $ok++;
         } catch (Exception $e) {
             $errors[] = "row {$i}: " . $e->getMessage();
-            error_log('MBGE pi_sync push error: ' . $e->getMessage());
+            error_log('GEMB pi_sync push error: ' . $e->getMessage());
         }
     }
 

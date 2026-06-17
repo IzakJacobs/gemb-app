@@ -1,6 +1,6 @@
 {
-  "name": "MBGE Resident Portal",
-  "short_name": "MBGE Home",
+  "name": "GEMB Resident Portal",
+  "short_name": "GEMB Home",
   "description": "Mossel Bay Golf Estate — Resident Portal",
   "start_url": "/resident.php?action=menu",
   "display": "standalone",

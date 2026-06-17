@@ -3,8 +3,8 @@ header('Content-Type: application/manifest+json');
 header('Cache-Control: no-cache');
 ?>
 {
-  "name": "MBGE Resident Portal",
-  "short_name": "MBGE Resident",
+  "name": "GEMB Resident Portal",
+  "short_name": "GEMB Resident",
   "description": "Resident portal for Mossel Bay Golf Estate",
   "start_url": "/resident.php?action=login",
   "scope": "/",

@@ -2108,7 +2108,7 @@ if ($action === 'csv' && $motionId > 0) {
     $out = fopen('php://output', 'w');
     fputs($out, "\xEF\xBB\xBF");
 
-    fwrite($out, csvVoteRow(['MBGE HOA — Vote Result Certificate']));
+    fwrite($out, csvVoteRow(['GEMB HOA — Vote Result Certificate']));
     fwrite($out, csvVoteRow([]));
     fwrite($out, csvVoteRow(['Motion',          $motion['title']]));
     fwrite($out, csvVoteRow(['Resolution Type', $rt['label']]));

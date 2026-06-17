@@ -1,5 +1,5 @@
 -- ============================================================
--- gemB / MBGE — comms_contacts table
+-- gemB / GEMB — comms_contacts table
 -- ============================================================
 -- Run once. Creates the standalone contacts table used by the
 -- Communications module for bulk/levy/survey sends.

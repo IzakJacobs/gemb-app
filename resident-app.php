@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Resident PWA — resident-app.php
+// GEMB Resident PWA — resident-app.php
 // Entry point for the resident PWA home screen shortcut.
 // If already logged in → go to menu
 // If not logged in → go to login

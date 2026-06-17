@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Document Portal
+// GEMB Document Portal
 // Actions: menu | broadcast | levy | log
 // ============================================================
 require_once __DIR__ . '/layout.php';
@@ -149,7 +149,7 @@ if ($action === 'broadcast') {
             if (!$email) { $failed++; continue; }
 
             $name    = htmlspecialchars($r['resident_name'] ?? 'Resident');
-            $subject = 'MBGE Estate — ' . $title;
+            $subject = 'GEMB Estate — ' . $title;
             $html    = buildCircularEmail($name, $title, $downloadUrl, $notes);
 
             $ok = sendPortalEmail($email, $subject, $html);
@@ -391,7 +391,7 @@ jane@example.com,Jane Doe,1500.00,Levy due 30 June 2026</pre>
           <div class="form-group">
             <label>Email Subject Line *</label>
             <input type="text" name="subject" required
-                   placeholder="e.g. MBGE Estate — June 2026 Levy Notice">
+                   placeholder="e.g. GEMB Estate — June 2026 Levy Notice">
           </div>
           <div class="form-group">
             <label>CSV File *</label>
@@ -512,9 +512,9 @@ function sendPortalEmail(string $to, string $subject, string $html): bool {
     $headers = implode("\r\n", [
         'MIME-Version: 1.0',
         'Content-Type: text/html; charset=UTF-8',
-        'From: MBGE Estate <' . $from . '>',
+        'From: GEMB Estate <' . $from . '>',
         'Reply-To: ' . $from,
-        'X-Mailer: MBGE-DocPortal/1.0',
+        'X-Mailer: GEMB-DocPortal/1.0',
     ]);
     return mail($to, $subject, $html, $headers);
 }
@@ -527,7 +527,7 @@ function buildCircularEmail(string $name, string $title, string $url, string $no
 <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;
             box-shadow:0 2px 8px rgba(0,0,0,.1);">
   <div style="background:#003366;padding:24px 28px;">
-    <h1 style="color:#fff;margin:0;font-size:1.3rem;">🏡 MBGE Estate</h1>
+    <h1 style="color:#fff;margin:0;font-size:1.3rem;">🏡 GEMB Estate</h1>
     <p style="color:rgba(255,255,255,.8);margin:4px 0 0;font-size:.9rem;">Resident Communication</p>
   </div>
   <div style="padding:28px;">
@@ -545,7 +545,7 @@ function buildCircularEmail(string $name, string $title, string $url, string $no
       </a>
     </div>
     <p style="color:#888;font-size:.82rem;margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
-      This email was sent by MBGE Estate Management.<br>
+      This email was sent by GEMB Estate Management.<br>
       If you have any queries, please contact the estate office.
     </p>
   </div>
@@ -572,7 +572,7 @@ function buildLevyEmail(string $name, string $amount, string $message, string $s
 <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;
             box-shadow:0 2px 8px rgba(0,0,0,.1);">
   <div style="background:#003366;padding:24px 28px;">
-    <h1 style="color:#fff;margin:0;font-size:1.3rem;">🏡 MBGE Estate</h1>
+    <h1 style="color:#fff;margin:0;font-size:1.3rem;">🏡 GEMB Estate</h1>
     <p style="color:rgba(255,255,255,.8);margin:4px 0 0;font-size:.9rem;">Levy Notice</p>
   </div>
   <div style="padding:28px;">
@@ -580,7 +580,7 @@ function buildLevyEmail(string $name, string $amount, string $message, string $s
     {$amountHtml}
     {$msgHtml}
     <p style="color:#888;font-size:.82rem;margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
-      This levy notice was sent by MBGE Estate Management.<br>
+      This levy notice was sent by GEMB Estate Management.<br>
       If you have any queries, please contact the estate office.
     </p>
   </div>

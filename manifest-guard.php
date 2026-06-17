@@ -3,9 +3,9 @@ header('Content-Type: application/manifest+json');
 header('Cache-Control: no-cache');
 ?>
 {
-  "name": "MBGE Guard — Gate Access",
-  "short_name": "MBGE Guard",
-  "description": "Gate verification for MBGE security guards",
+  "name": "GEMB Guard — Gate Access",
+  "short_name": "GEMB Guard",
+  "description": "Gate verification for GEMB security guards",
   "start_url": "/guard.php?action=login",
   "scope": "/",
   "display": "standalone",

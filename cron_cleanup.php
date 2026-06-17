@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — cron_cleanup.php
+// GEMB Access Control — cron_cleanup.php
 // Run nightly via cPanel cron: 0 2 * * * php /path/to/cron_cleanup.php
 // Or test via browser: cron_cleanup.php?cron_key=your-key
 // ============================================================

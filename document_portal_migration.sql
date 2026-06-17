@@ -1,5 +1,5 @@
 -- ============================================================
--- MBGE Document Portal — Migration
+-- GEMB Document Portal — Migration
 -- Run once in phpMyAdmin SQL tab
 -- ============================================================
 

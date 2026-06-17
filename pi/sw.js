@@ -1,15 +1,15 @@
 /*
- * MBGE Gate — Service Worker
+ * GEMB Gate — Service Worker
  * Caches the verify page and assets so the app works
  * even when the Pi itself is temporarily unreachable.
  */
 
-const CACHE_NAME   = 'mbge-gate-v1';
+const CACHE_NAME   = 'gemb-gate-v1';
 const CACHE_ASSETS = [
-    '/mbge/verify.php',
-    '/mbge/manifest.json',
-    '/mbge/icons/icon-192.png',
-    '/mbge/icons/icon-512.png',
+    '/gemb/verify.php',
+    '/gemb/manifest.json',
+    '/gemb/icons/icon-192.png',
+    '/gemb/icons/icon-512.png',
 ];
 
 // ── Install: cache core assets ─────────────────────────────

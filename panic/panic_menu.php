@@ -1,8 +1,8 @@
 <?php
 // ============================================================
-// MBGE Access Control — panic/panic_menu.php
+// GEMB Access Control — panic/panic_menu.php
 // ============================================================
-session_name('mbge_panic');
+session_name('gemb_panic');
 session_start();
 
 require_once __DIR__ . '/../config.php';
@@ -19,7 +19,7 @@ $gate      = $_SESSION['panic_gate'] ?? 'Unknown';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PANIC — MBGE</title>
+<title>PANIC — GEMB</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body {

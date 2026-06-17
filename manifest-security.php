@@ -3,8 +3,8 @@ header('Content-Type: application/manifest+json');
 header('Cache-Control: no-cache');
 ?>
 {
-  "name": "MBGE Security Officer",
-  "short_name": "MBGE Security",
+  "name": "GEMB Security Officer",
+  "short_name": "GEMB Security",
   "description": "Security management portal for Mossel Bay Golf Estate",
   "start_url": "/security.php?action=login",
   "scope": "/",

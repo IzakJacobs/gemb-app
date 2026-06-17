@@ -2,8 +2,8 @@
 header('Content-Type: application/javascript');
 header('Cache-Control: no-cache');
 ?>
-// MBGE Security Service Worker
-const CACHE = 'mbge-security-v1';
+// GEMB Security Service Worker
+const CACHE = 'gemb-security-v1';
 const OFFLINE_URL = '/security.php?action=login';
 
 self.addEventListener('install', e => {

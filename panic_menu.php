@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE — panic/panic_menu.php (single session)
+// GEMB — panic/panic_menu.php (single session)
 // ============================================================
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -18,7 +18,7 @@ $gate      = $_SESSION['panic_gate'] ?? 'Unknown';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PANIC — MBGE</title>
+<title>PANIC — GEMB</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#8b0000; min-height:100vh; display:flex; align-items:center;

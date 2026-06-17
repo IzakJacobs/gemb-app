@@ -1,10 +1,10 @@
 <?php
 // ============================================================
-// MBGE Access Control — qr_cleanup_cron.php
+// GEMB Access Control — qr_cleanup_cron.php
 // Daily cron job: purge expired QR image files from temp/
 //
 // Schedule in cPanel cron (daily at 02:00 SAST):
-//   0 0 * * * /usr/bin/php /home/mbgebfev/public_html/qr_cleanup_cron.php
+//   0 0 * * * /usr/bin/php /home/gembbfev/public_html/qr_cleanup_cron.php
 //
 // What it deletes:
 //   temp/3XXXXX.png — visitor QR:   deleted if visit_date_to < today

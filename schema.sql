@@ -1,4 +1,4 @@
--- MBGE Estate Access System — Database Schema
+-- GEMB Estate Access System — Database Schema
 -- Run this in cPanel → phpMyAdmin on the visitor_system database.
 -- Safe to run on an existing database: uses IF NOT EXISTS / MODIFY.
 

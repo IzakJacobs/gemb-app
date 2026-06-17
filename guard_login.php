@@ -40,7 +40,7 @@ $csrf = csrfToken();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guard Access — MBGE</title>
+  <title>Guard Access — GEMB</title>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:linear-gradient(160deg,#0d3d1a 0%,#1a5c2a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -58,7 +58,7 @@ $csrf = csrfToken();
 </head>
 <body>
 <div class="card">
-  <img class="logo" src="logo.png" alt="MBGE Logo">
+  <img class="logo" src="logo.png" alt="GEMB Logo">
   <h2>Security Gate Access</h2>
   <p>Enter the guard access code to continue.<br>Set by the estate admin.</p>
   <?php if ($err): ?><div class="err"><?= e($err) ?></div><?php endif ?>

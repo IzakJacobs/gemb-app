@@ -1,5 +1,5 @@
 -- ============================================================
--- MBGE Access Control System — Database Installation
+-- GEMB Access Control System — Database Installation
 -- Run this once on a fresh MySQL database
 -- ============================================================
 
@@ -188,14 +188,14 @@ CREATE TABLE IF NOT EXISTS `settings` (
 ) ENGINE=InnoDB;
 
 -- ── Default data ─────────────────────────────────────────
--- Default admin (password: Admin@MBGE2026 — CHANGE IMMEDIATELY)
+-- Default admin (password: Admin@GEMB2026 — CHANGE IMMEDIATELY)
 INSERT IGNORE INTO `admins` (`username`,`password`,`full_name`,`email`)
-VALUES ('admin', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uHpwxpnWO', 'System Administrator', 'admin@mbge.co.za');
+VALUES ('admin', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uHpwxpnWO', 'System Administrator', 'admin@gemb.co.za');
 
 -- Default settings
 INSERT IGNORE INTO `settings` VALUES
-  ('site_name',   'MBGE Access Control',    NOW()),
-  ('site_url',    'https://mbge.ink',       NOW()),
+  ('site_name',   'GEMB Access Control',    NOW()),
+  ('site_url',    'https://gemb.ink',       NOW()),
   ('cron_key',    'change-me-random-key',   NOW()),
   ('whatsapp_enabled', '0',                NOW()),
   ('log_retention_days', '90',             NOW());
@@ -203,4 +203,4 @@ INSERT IGNORE INTO `settings` VALUES
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ── Done ─────────────────────────────────────────────────
-SELECT 'MBGE database installed successfully.' AS result;
+SELECT 'GEMB database installed successfully.' AS result;

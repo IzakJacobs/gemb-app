@@ -7,7 +7,7 @@
 -- type      : 'survey' or 'vote'
 -- target_id : survey_id  (for surveys)
 --             motion_id  (for votes)
--- device_id : 64-char random hex from the mbge_did cookie
+-- device_id : 64-char random hex from the gemb_did cookie
 -- response_id: survey_responses.id  OR  vote_cast.id
 --
 -- The UNIQUE KEY on (type, target_id, device_id) means:

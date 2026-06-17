@@ -121,7 +121,7 @@ if ($action === 'pending') {
                      . "Result: " . ($gateOk ? 'Gate opened successfully' : 'Gate trigger failed — ' . $gateMsg) . "\n"
                      . "Time: " . date('d M Y H:i:s') . "\n\n"
                      . "If you did not request this, please contact the estate office immediately.";
-                sendEmail($res['email'], 'MBGE Estate — Gate Opened Remotely', $msg);
+                sendEmail($res['email'], 'GEMB Estate — Gate Opened Remotely', $msg);
             }
         } catch (Exception $e) {
             error_log('Override resident notify error: ' . $e->getMessage());
@@ -136,7 +136,7 @@ if ($action === 'pending') {
         if ($adminEmail) {
             sendEmail(
                 $adminEmail,
-                'MBGE — Remote Gate Override by ' . $ov['officer_name'],
+                'GEMB — Remote Gate Override by ' . $ov['officer_name'],
                 "Remote gate override " . ($gateOk ? 'EXECUTED' : 'FAILED') . ".\n\n"
                 . "Officer: {$ov['officer_name']}\n"
                 . "Gate: {$gateLabel}\n"

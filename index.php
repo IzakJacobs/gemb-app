@@ -19,7 +19,7 @@
 </head>
 <body>
   <div class="card">
-    <img class="logo" src="logo.png" alt="MBGE Logo">
+    <img class="logo" src="logo.png" alt="GEMB Logo">
     <h1><?= e(APP_NAME) ?></h1>
     <p class="sub">Select your role to continue</p>
     <a class="role-btn r" href="login.php">Resident Portal</a>

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Document Archive — Role-aware document portal
+// GEMB Document Archive — Role-aware document portal
 // Accessible by: admin, security officer, resident
 // ============================================================
 require_once __DIR__ . '/layout.php';

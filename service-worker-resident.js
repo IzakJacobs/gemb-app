@@ -1,7 +1,7 @@
 // ============================================================
-// MBGE Resident PWA — service-worker-resident.js
+// GEMB Resident PWA — service-worker-resident.js
 // ============================================================
-const CACHE_NAME = 'mbge-resident-v1';
+const CACHE_NAME = 'gemb-resident-v1';
 
 const PRECACHE = [
   '/resident.php?action=login',

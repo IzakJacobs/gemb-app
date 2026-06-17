@@ -1,8 +1,8 @@
 <?php
 // ============================================================
-// MBGE Access Control — panic/panic_send.php
+// GEMB Access Control — panic/panic_send.php
 // ============================================================
-session_name('mbge_panic');
+session_name('gemb_panic');
 session_start();
 
 require_once __DIR__ . '/../config.php';
@@ -20,7 +20,7 @@ $sent      = false;
 $sentTo    = [];
 
 // Build full alert message
-$fullMessage = "🚨 MBGE PANIC ALERT\n"
+$fullMessage = "🚨 GEMB PANIC ALERT\n"
     . "Guard: $guardName\n"
     . "Gate: $gate\n"
     . "Type: $alertType\n"
@@ -52,7 +52,7 @@ try {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Alert Sent — MBGE</title>
+<title>Alert Sent — GEMB</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body {

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — guard.php
+// GEMB Access Control — guard.php
 // Actions: login | verify | reset
 //
 // Gate points:
@@ -45,13 +45,13 @@ const GATE_POINTS = [
 // ════════════════════════════════════════════════════════
 if ($action === 'login') {
 
-    if (empty($_COOKIE['mbge_guard_device'])) {
+    if (empty($_COOKIE['gemb_guard_device'])) {
         $tok = bin2hex(random_bytes(24));
-        setcookie('mbge_guard_device', $tok,
+        setcookie('gemb_guard_device', $tok,
             time() + (10 * 365 * 24 * 60 * 60), '/', '', true, true);
-        $_COOKIE['mbge_guard_device'] = $tok;
+        $_COOKIE['gemb_guard_device'] = $tok;
     }
-    $deviceToken = $_COOKIE['mbge_guard_device'];
+    $deviceToken = $_COOKIE['gemb_guard_device'];
     $step  = $_SESSION['guard_login_step'] ?? 'credentials';
     $error = '';
 
@@ -1074,7 +1074,7 @@ function logAccess(
             )->execute([$eventId, $entryRef]);
         }
     } catch (Exception $e) {
-        error_log('MBGE logAccess error: ' . $e->getMessage());
+        error_log('GEMB logAccess error: ' . $e->getMessage());
     }
 }
 

@@ -1,5 +1,5 @@
 -- ============================================================
--- MBGE — Service Provider Flow Migration (Final)
+-- GEMB — Service Provider Flow Migration (Final)
 -- Run ONCE in phpMyAdmin SQL tab
 -- ============================================================
 

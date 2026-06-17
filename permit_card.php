@@ -1,6 +1,6 @@
 <?php
 /**
- * permit_card.php — MBGE Credit Card Permit (85×54mm)
+ * permit_card.php — GEMB Credit Card Permit (85×54mm)
  * For: domestic, resident_worker, contractor_lead
  * Called by: security.php?action=print_permit&id=XX
  *
@@ -233,7 +233,7 @@ $html .= '
     </div>
   </div>
   <div class="card-footer">
-    <span>MBGE HOA Reg. 1999/001249/08</span>
+    <span>GEMB HOA Reg. 1999/001249/08</span>
     <span>POPIA Act 4 of 2013</span>
   </div>
 </div>';

@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// gemB / MBGE — comms_contacts.php
+// gemB / GEMB — comms_contacts.php
 // Standalone contact list management for the Communications module.
 // Completely independent of residents or any other application table.
 // Populated via CSV import or manual entry.

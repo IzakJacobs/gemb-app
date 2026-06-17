@@ -1,5 +1,5 @@
 -- ============================================================
--- MBGE Gate Override — Migration
+-- GEMB Gate Override — Migration
 -- Run once in phpMyAdmin SQL tab
 -- ============================================================
 

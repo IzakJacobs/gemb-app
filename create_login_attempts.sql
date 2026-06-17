@@ -1,5 +1,5 @@
 -- ============================================================
--- MBGE Access System — Brute Force Protection
+-- GEMB Access System — Brute Force Protection
 -- Run ONCE in phpMyAdmin SQL tab
 -- ============================================================
 

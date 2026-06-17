@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resident Login - MBGE</title>
+  <title>Resident Login - GEMB</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -124,7 +124,7 @@
   </div>
 
   <div class="card">
-    <img class="logo" src="logo.png" alt="MBGE Logo">
+    <img class="logo" src="logo.png" alt="GEMB Logo">
     <h2>Resident Portal</h2>
 
     <div class="tabs">
@@ -205,7 +205,7 @@
     }
 
     // ---- Lockout ----
-    const LOCKOUT_KEY   = 'mbge_lockout';
+    const LOCKOUT_KEY   = 'gemb_lockout';
     const MAX_ATTEMPTS  = 3;
     const LOCK_MS       = 5 * 60 * 1000;
 
@@ -240,24 +240,24 @@
     const SESSION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
     function createSession(data) {
-      localStorage.setItem('mbge_session', JSON.stringify({
+      localStorage.setItem('gemb_session', JSON.stringify({
         ...data, expiresAt: Date.now() + SESSION_MS
       }));
     }
 
     function getValidSession() {
-      const s = JSON.parse(localStorage.getItem('mbge_session') || 'null');
+      const s = JSON.parse(localStorage.getItem('gemb_session') || 'null');
       if (!s) return null;
       if (!s.expiresAt || Date.now() > s.expiresAt) {
-        localStorage.removeItem('mbge_session');
+        localStorage.removeItem('gemb_session');
         return null;
       }
       return s;
     }
 
     // ---- Data ----
-    function getResidents()   { return JSON.parse(localStorage.getItem('mbge_residents') || '[]'); }
-    function setResidents(r)  { localStorage.setItem('mbge_residents', JSON.stringify(r)); }
+    function getResidents()   { return JSON.parse(localStorage.getItem('gemb_residents') || '[]'); }
+    function setResidents(r)  { localStorage.setItem('gemb_residents', JSON.stringify(r)); }
 
     // ---- UI helpers ----
     function showOverlay(msg) {

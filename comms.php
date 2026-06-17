@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Communications Portal — comms.php
+// GEMB Communications Portal — comms.php
 // Welcome / splash screen.
 // Automatically redirects to the login page after 10 seconds.
 // Standalone — no shared styling or dependencies with the
@@ -20,7 +20,7 @@ if (!empty($_SESSION['comms_logged_in']) || !empty($_SESSION['admin_id'])) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="refresh" content="10;url=comms_login.php">
-  <title>MBGE Communications Portal</title>
+  <title>GEMB Communications Portal</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -156,7 +156,7 @@ if (!empty($_SESSION['comms_logged_in']) || !empty($_SESSION['admin_id'])) {
 
   <div class="brand">
     <span class="brand-icon">📣</span>
-    <h1>MBGE Communications</h1>
+    <h1>GEMB Communications</h1>
     <p class="tagline">Estate Communications &amp; Engagement Portal</p>
   </div>
 
@@ -190,7 +190,7 @@ if (!empty($_SESSION['comms_logged_in']) || !empty($_SESSION['admin_id'])) {
   </div>
 
   <div class="splash-footer">
-    MBGE Estate &nbsp;&middot;&nbsp; Communications Module &nbsp;&middot;&nbsp; POPIA Act 4 of 2013
+    GEMB Estate &nbsp;&middot;&nbsp; Communications Module &nbsp;&middot;&nbsp; POPIA Act 4 of 2013
   </div>
 
   <script>

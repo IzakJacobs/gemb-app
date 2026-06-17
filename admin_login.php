@@ -47,7 +47,7 @@ $csrf = csrfToken();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login — MBGE</title>
+  <title>Admin Login — GEMB</title>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:linear-gradient(160deg,#001a3a 0%,#002855 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -66,7 +66,7 @@ $csrf = csrfToken();
 </head>
 <body>
 <div class="card">
-  <img class="logo" src="logo.png" alt="MBGE Logo">
+  <img class="logo" src="logo.png" alt="GEMB Logo">
   <h2>Estate Admin Login</h2>
   <?php if ($err): ?><div class="err"><?= e($err) ?></div><?php endif ?>
   <form method="POST">

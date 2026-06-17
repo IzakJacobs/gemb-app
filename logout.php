@@ -1,6 +1,6 @@
 <?php
 /**
- * logout.php — MBGE Access Control
+ * logout.php — GEMB Access Control
  * Clears session completely and redirects each role to their own login screen.
  *
  * Security fixes applied (v2):

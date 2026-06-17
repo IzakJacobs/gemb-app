@@ -23,13 +23,13 @@
  *
  *   // BulkSMS (alternative SMS gateway — South Africa, cheaper)
  *   define('BULKSMS_API_TOKEN', 'your_bulksms_token');
- *   define('BULKSMS_FROM',      'MBGE');              // alphanumeric sender (max 11 chars)
+ *   define('BULKSMS_FROM',      'GEMB');              // alphanumeric sender (max 11 chars)
  *
  *   // Choose gateway: 'twilio' | 'bulksms'
  *   define('SMS_GATEWAY',  'bulksms');
  *   define('WA_GATEWAY',   'twilio');                 // currently only twilio supported
  *
- *   define('MBGE_HOST',    'https://gemb.co.za');
+ *   define('GEMB_HOST',    'https://gemb.co.za');
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -77,14 +77,14 @@ if (!$v) {
 }
 
 /* ── build message ── */
-$host    = defined('MBGE_HOST') ? MBGE_HOST : 'https://gemb.co.za';
+$host    = defined('GEMB_HOST') ? GEMB_HOST : 'https://gemb.co.za';
 $passUrl = $host . '/visitor_qr.php?code=' . urlencode($v['code']);
 
 $fromDate = date('d M Y', strtotime($v['visit_date']));
 $toDate   = date('d M Y', strtotime($v['visit_date_to']));
 $resident = $v['resident_name'] ?? $v['resident_name'] ?? 'a resident';
 
-$message = "🏡 *MBGE Visitor Pass*\n"
+$message = "🏡 *GEMB Visitor Pass*\n"
          . "Hi {$v['visitor_name']},\n\n"
          . "Your access pass for Mossel Bay Golf Estate is ready.\n\n"
          . "📅 Valid: {$fromDate} – {$toDate}\n"
@@ -93,7 +93,7 @@ $message = "🏡 *MBGE Visitor Pass*\n"
          . $passUrl . "\n\n"
          . "Show this screen to the guard. The guard will scan your QR or enter "
          . "code *{$v['code']}*.\n\n"
-         . "_MBGE HOA | POPIA Act 4 of 2013_";
+         . "_GEMB HOA | POPIA Act 4 of 2013_";
 
 /* normalise phone: strip spaces, ensure +27 prefix */
 $rawPhone = preg_replace('/\s+/', '', $v['visitor_phone'] ?? '');
@@ -203,7 +203,7 @@ function bulkSmsSend(string $to, string $body): array
     $payload = json_encode([
         'to'   => $to,
         'body' => $body,
-        // 'from' => defined('BULKSMS_FROM') ? BULKSMS_FROM : 'MBGE',  // uncomment if approved
+        // 'from' => defined('BULKSMS_FROM') ? BULKSMS_FROM : 'GEMB',  // uncomment if approved
     ]);
     $ch = curl_init('https://api.bulksms.com/v1/messages');
     curl_setopt_array($ch, [

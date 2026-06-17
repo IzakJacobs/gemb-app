@@ -2,8 +2,8 @@
 header('Content-Type: application/javascript');
 header('Cache-Control: no-cache');
 ?>
-// MBGE Admin Service Worker
-const CACHE = 'mbge-admin-v1';
+// GEMB Admin Service Worker
+const CACHE = 'gemb-admin-v1';
 const OFFLINE_URL = '/admin.php?action=login';
 
 self.addEventListener('install', e => {

@@ -1,6 +1,6 @@
 <?php
 /**
- * visitor_qr.php  — MBGE Visitor Pass display (visitor's phone)
+ * visitor_qr.php  — GEMB Visitor Pass display (visitor's phone)
  * Code format:  3XXXXX  (digit 3 + 5 digits, e.g. 368652)
  * QR payload:   https://gemb.co.za/visitor_qr_verify.php?code=368652
  */
@@ -116,7 +116,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>MBGE Visitor Pass</title>
+  <title>GEMB Visitor Pass</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -259,7 +259,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
 
   <div class="card-header">
     <div class="logo">🏌️</div>
-    <h1>MBGE Visitor Pass</h1>
+    <h1>GEMB Visitor Pass</h1>
     <p>Mossel Bay Golf Estate</p>
   </div>
 
@@ -319,7 +319,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
   $isNew        = !empty($_GET['new']);
   $visitorPhone = $visitor['visitor_phone'] ?? '';
   if ($access && ($isNew || $visitorPhone)):
-      $waMsg  = "🏡 MBGE Visitor Pass\n\n"
+      $waMsg  = "🏡 GEMB Visitor Pass\n\n"
               . "Your access pass for Mossel Bay Golf Estate:\n\n"
               . "📅 Valid: {$fmtFrom} – {$fmtTo}\n"
               . "🏠 Visiting: {$residentName}\n"
@@ -340,7 +340,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
       📲 Send Pass via WhatsApp
     </a>
     <?php if ($visitorPhone): ?>
-    <a href="sms:<?= preg_replace('/\D/','',$visitorPhone) ?>?body=<?= rawurlencode("MBGE Visitor Pass — open your pass: https://gemb.co.za/visitor_qr.php?code={$code}") ?>"
+    <a href="sms:<?= preg_replace('/\D/','',$visitorPhone) ?>?body=<?= rawurlencode("GEMB Visitor Pass — open your pass: https://gemb.co.za/visitor_qr.php?code={$code}") ?>"
        style="display:block; width:100%; padding:14px; background:#f5f7fa; color:#0f2744;
               border:2px solid #dde3ea; border-radius:12px; text-align:center;
               font-size:0.95rem; font-weight:700; text-decoration:none;">
@@ -391,7 +391,7 @@ $appleUrl   = 'https://maps.apple.com/?daddr=' . $navQuery;
 
   <div class="card-footer">
     Present this screen to the guard on arrival.<br>
-    MBGE HOA Reg. 1999/001249/08 &nbsp;|&nbsp; POPIA Act 4 of 2013
+    GEMB HOA Reg. 1999/001249/08 &nbsp;|&nbsp; POPIA Act 4 of 2013
   </div>
 
 </div>

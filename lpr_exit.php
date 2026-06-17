@@ -91,7 +91,7 @@ try {
     $stmt->execute([$plate]);
     $visit = $stmt->fetch();
 } catch (Exception $e) {
-    error_log('MBGE lpr_exit lookup: ' . $e->getMessage());
+    error_log('GEMB lpr_exit lookup: ' . $e->getMessage());
 }
 
 if (!$visit) {
@@ -109,7 +109,7 @@ if (!$visit) {
         $rstmt->execute([$plate]);
         $resident = $rstmt->fetch();
     } catch (Exception $e) {
-        error_log('MBGE lpr_exit resident lookup: ' . $e->getMessage());
+        error_log('GEMB lpr_exit resident lookup: ' . $e->getMessage());
     }
 
     if ($resident) {
@@ -153,7 +153,7 @@ try {
         "UPDATE active_vehicle_visits SET exited_at = NOW() WHERE id = ?"
     )->execute([(int)$visit['id']]);
 } catch (Exception $e) {
-    error_log('MBGE lpr_exit update: ' . $e->getMessage());
+    error_log('GEMB lpr_exit update: ' . $e->getMessage());
 }
 
 // ── Log the exit event ─────────────────────────────────────
@@ -173,7 +173,7 @@ try {
             $resEmail,
             $visit['visitor_name'] ?? 'Visitor',
             'visitor',
-            'MBGE Exit Gate'
+            'GEMB Exit Gate'
         );
     }
 } catch (Exception $e) {}
@@ -246,7 +246,7 @@ function logLprEvent(string $plateClean, string $plateRaw,
              VALUES (?, ?, ?, ?, ?)"
         )->execute([$plateClean, $plateRaw, $status, $gate, $note]);
     } catch (Exception $e) {
-        error_log('MBGE logLprEvent: ' . $e->getMessage());
+        error_log('GEMB logLprEvent: ' . $e->getMessage());
     }
 }
 

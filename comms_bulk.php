@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// gemB / MBGE — comms_bulk.php
+// gemB / GEMB — comms_bulk.php
 // Bulk messages: general circulars/PDFs to all residents + email
 // Actions: menu | send | log
 //
@@ -207,7 +207,7 @@ if ($action === 'send') {
             }
 
             $name    = htmlspecialchars($r['name'] ?? 'Resident');
-            $subject = 'MBGE Estate — ' . $title;
+            $subject = 'GEMB Estate — ' . $title;
             $html    = commsBuildCircularEmail($name, $title, $downloadUrl, $notes);
 
             $ok = commsSendAndLog($broadcastId, 'bulk', $email, $r['name'] ?? '', $subject, $html);

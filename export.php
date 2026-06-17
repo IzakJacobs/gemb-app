@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — export.php (clean rebuild)
+// GEMB Access Control — export.php (clean rebuild)
 // ============================================================
 require_once __DIR__ . '/layout.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -21,7 +21,7 @@ function exportCSV(string $filename, array $headers, array $rows): void {
                 . ($_SERVER['REMOTE_ADDR'] ?? '?'),
         ]);
     } catch (Exception $e) {
-        error_log('MBGE export audit log failed: ' . $e->getMessage());
+        error_log('GEMB export audit log failed: ' . $e->getMessage());
     }
 
     header('Content-Type: text/csv; charset=utf-8');
@@ -56,7 +56,7 @@ if ($action === 'residents') {
         SELECT resident_erfno, resident_name, address, phone, email, status, created_at
         FROM residents
         ORDER BY CAST(resident_erfno AS UNSIGNED), resident_erfno")->fetchAll();
-    exportCSV('MBGE_Residents_' . date('Ymd') . '.csv',
+    exportCSV('GEMB_Residents_' . date('Ymd') . '.csv',
         ['Erf No','Full Name','Address','Phone','Email','Status','Created'], $rows);
 }
 
@@ -70,14 +70,14 @@ if ($action === 'visitors') {
         WHERE visit_date BETWEEN ? AND ?
         ORDER BY visit_date DESC");
     $stmt->execute([$from, $to]);
-    exportCSV('MBGE_Visitors_' . $from . '_to_' . $to . '.csv',
+    exportCSV('GEMB_Visitors_' . $from . '_to_' . $to . '.csv',
         ['Visitor','Plate','ID No','Visit Date','Until','Time','Status','Used','Arrived','Resident','Created'],
         $stmt->fetchAll());
 }
 
 if ($action === 'guards') {
     $rows = db()->query("SELECT name, username, gate, phone, created_at FROM guards ORDER BY name")->fetchAll();
-    exportCSV('MBGE_Guards_' . date('Ymd') . '.csv',
+    exportCSV('GEMB_Guards_' . date('Ymd') . '.csv',
         ['Name','Username','Gate','Phone','Created'], $rows);
 }
 
@@ -88,7 +88,7 @@ if ($action === 'sp') {
                resident_erfno, resident_name, created_at
         FROM service_providers
         ORDER BY end_date DESC")->fetchAll();
-    exportCSV('MBGE_ServiceProviders_' . date('Ymd') . '.csv',
+    exportCSV('GEMB_ServiceProviders_' . date('Ymd') . '.csv',
         ['Service/Name','Company','ID No','Notes','Start','End','Approved','Expired','Erf','Resident','Created'],
         $rows);
 }
@@ -104,7 +104,7 @@ if ($action === 'logs') {
         WHERE DATE(created_at) BETWEEN ? AND ?
         ORDER BY created_at DESC");
     $stmt->execute([$from, $to]);
-    exportCSV('MBGE_AccessLog_' . $from . '_to_' . $to . '.csv',
+    exportCSV('GEMB_AccessLog_' . $from . '_to_' . $to . '.csv',
         ['Event ID','Gate','Dir','Type','Person','Visitor','Plate','Guard','Deny Reason','Date/Time'],
         $stmt->fetchAll());
 }

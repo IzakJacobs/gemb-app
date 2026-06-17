@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE — newsletter_download.php
+// GEMB — newsletter_download.php
 // Serves newsletter files stored as blobs in the DB
 // Requires resident login
 // ============================================================

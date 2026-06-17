@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE — panic/panic_send.php (single session)
+// GEMB — panic/panic_send.php (single session)
 // panic_log columns: resident_name, emergency_type, address, alert_time
 // ============================================================
 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -17,7 +17,7 @@ $alertType = trim($_POST['alert_type'] ?? 'Emergency');
 $message   = trim($_POST['message'] ?? '');
 $sent      = false;
 
-$fullMessage = "🚨 MBGE PANIC ALERT\n"
+$fullMessage = "🚨 GEMB PANIC ALERT\n"
     . "From: $guardName\n"
     . "Location: $gate\n"
     . "Type: $alertType\n"
@@ -45,7 +45,7 @@ unset($_SESSION['panic_guard_name'], $_SESSION['panic_gate']);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Alert <?= $sent?'Sent':'Failed' ?> — MBGE</title>
+<title>Alert <?= $sent?'Sent':'Failed' ?> — GEMB</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:<?= $sent?'#155724':'#8b0000' ?>; min-height:100vh;

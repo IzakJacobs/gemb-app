@@ -38,7 +38,7 @@ $erfno      = trim($_POST['resident_erfno'] ?? '');
 $visName    = trim($_POST['visitor_name']   ?? '');
 $entryType  = trim($_POST['entry_type']     ?? 'visitor');
 $direction  = strtoupper(trim($_POST['direction'] ?? 'ENTRY'));
-$gateLabel  = trim($_POST['gate_label']    ?? 'MBGE Gate');
+$gateLabel  = trim($_POST['gate_label']    ?? 'GEMB Gate');
 $timestamp  = trim($_POST['timestamp']     ?? date('d M Y H:i'));
 
 if (!$erfno || !$visName) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estate Admin - MBGE</title>
+  <title>Estate Admin - GEMB</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
@@ -166,7 +166,7 @@
   <!-- Login -->
   <div class="login-screen" id="loginScreen">
     <div class="login-card">
-      <img class="logo" src="logo.png" alt="MBGE Logo">
+      <img class="logo" src="logo.png" alt="GEMB Logo">
       <h2>Estate Admin</h2>
       <p class="sub" id="loginSub">Enter your 6-digit admin PIN.</p>
       <div class="pin-row" id="adminPins">
@@ -186,7 +186,7 @@
   <!-- Admin shell -->
   <div class="admin-shell" id="adminShell">
     <header>
-      <h1>MBGE Estate Admin</h1>
+      <h1>GEMB Estate Admin</h1>
       <button class="btn-so" onclick="adminLogout()">Sign Out</button>
     </header>
     <nav class="tabs">
@@ -330,7 +330,7 @@
     }
 
     // ---- Lockout ----
-    const LOCK_KEY = 'mbge_admin_lockout';
+    const LOCK_KEY = 'gemb_admin_lockout';
     const MAX_TRIES = 3, LOCK_MS = 5 * 60 * 1000;
     function isAdminLocked() {
       const l = JSON.parse(localStorage.getItem(LOCK_KEY) || '{"count":0,"until":0}');
@@ -350,8 +350,8 @@
     function clearAdminLock() { localStorage.removeItem(LOCK_KEY); }
 
     // ---- Settings ----
-    function getSettings() { return JSON.parse(localStorage.getItem('mbge_settings') || '{}'); }
-    function setSettings(s) { localStorage.setItem('mbge_settings', JSON.stringify(s)); }
+    function getSettings() { return JSON.parse(localStorage.getItem('gemb_settings') || '{}'); }
+    function setSettings(s) { localStorage.setItem('gemb_settings', JSON.stringify(s)); }
 
     async function ensureAdminPin() {
       const s = getSettings();
@@ -367,10 +367,10 @@
     }
 
     // ---- Data ----
-    function getResidents()   { return JSON.parse(localStorage.getItem('mbge_residents')   || '[]'); }
-    function setResidents(r)  { localStorage.setItem('mbge_residents', JSON.stringify(r)); }
-    function getInvitations() { return JSON.parse(localStorage.getItem('mbge_invitations') || '[]'); }
-    function getLog()         { return JSON.parse(localStorage.getItem('mbge_access_log')  || '[]'); }
+    function getResidents()   { return JSON.parse(localStorage.getItem('gemb_residents')   || '[]'); }
+    function setResidents(r)  { localStorage.setItem('gemb_residents', JSON.stringify(r)); }
+    function getInvitations() { return JSON.parse(localStorage.getItem('gemb_invitations') || '[]'); }
+    function getLog()         { return JSON.parse(localStorage.getItem('gemb_access_log')  || '[]'); }
 
     // ---- PIN row helpers ----
     function getPin(id) {
@@ -703,21 +703,21 @@
       }, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'mbge-data-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.download = 'gemb-data-' + new Date().toISOString().slice(0, 10) + '.json';
       a.click();
       URL.revokeObjectURL(a.href);
     }
 
     function clearLog() {
       if (!confirm('Clear all access log entries? This cannot be undone.')) return;
-      localStorage.removeItem('mbge_access_log');
+      localStorage.removeItem('gemb_access_log');
       renderLog();
     }
 
     function resetAll() {
       if (!confirm('DELETE ALL DATA — residents, invitations, access log, settings? This is irreversible.')) return;
       if (!confirm('Final confirmation: delete everything?')) return;
-      ['mbge_residents','mbge_invitations','mbge_access_log','mbge_saved_visitors','mbge_session','mbge_settings','mbge_lockout','mbge_admin_lockout'].forEach(k => localStorage.removeItem(k));
+      ['gemb_residents','gemb_invitations','gemb_access_log','gemb_saved_visitors','gemb_session','gemb_settings','gemb_lockout','gemb_admin_lockout'].forEach(k => localStorage.removeItem(k));
       adminLogout();
     }
 

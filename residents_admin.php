@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Access Control — residents_admin.php
+// GEMB Access Control — residents_admin.php
 // Manages residents with multi-occupant support per erf
 //
 // Occupant convention:

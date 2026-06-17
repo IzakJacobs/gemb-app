@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE Communications Portal — comms_menu.php
+// GEMB Communications Portal — comms_menu.php
 // Main hub after login. Handles menu, reports, and user management.
 //
 // Actions: menu (default) | reports | users
@@ -35,7 +35,7 @@ function cmHeader(string $title, ?string $back = null): void {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title><?= htmlspecialchars($title) ?> — MBGE Communications</title>
+  <title><?= htmlspecialchars($title) ?> — GEMB Communications</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -335,7 +335,7 @@ function cmHeader(string $title, ?string $back = null): void {
     <div class="topbar-brand">
       <span class="tb-icon">📣</span>
       <div>
-        <h1>MBGE Communications</h1>
+        <h1>GEMB Communications</h1>
         <div class="tb-sub">Estate Communications Portal</div>
       </div>
     </div>
@@ -358,7 +358,7 @@ function cmHeader(string $title, ?string $back = null): void {
 function cmFooter(): void {
     ?>
     <div class="popia-foot">
-      MBGE Estate &nbsp;&middot;&nbsp; Communications Module
+      GEMB Estate &nbsp;&middot;&nbsp; Communications Module
       &nbsp;&middot;&nbsp; POPIA Act 4 of 2013 &nbsp;&middot;&nbsp;
       All activity is logged.
     </div>

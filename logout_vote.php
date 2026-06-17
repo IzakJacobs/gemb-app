@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// logout_vote.php — MBGE Access Control
+// logout_vote.php — GEMB Access Control
 // Clears the token-based voting session (vote_login.php /
 // vote_cast.php) and returns to the voting login screen.
 //
@@ -8,7 +8,7 @@
 // portal roles: admin, resident, guard, security). The voting
 // session uses its own session keys (vote_meeting_id, vote_erf,
 // vote_last_activity) and its own device cookie
-// (mbge_vote_device), which is intentionally preserved — it is
+// (gemb_vote_device), which is intentionally preserved — it is
 // the legitimate one-token-per-device binding and must persist
 // so a returning voter can be recognised on the same device.
 // ============================================================

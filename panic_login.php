@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// MBGE — panic/panic_login.php (simplified — single session)
+// GEMB — panic/panic_login.php (simplified — single session)
 // ============================================================
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PANIC ALERT — MBGE</title>
+<title>PANIC ALERT — GEMB</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:#8b0000; min-height:100vh; display:flex; align-items:center;

@@ -59,9 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'send'
     if ($otp_code) {
         require_once __DIR__ . '/smtp_mail.php';
 
-        $subject = 'MBGE Access Control - Your Login Code';
+        $subject = 'GEMB Access Control - Your Login Code';
         $html = '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;">'
-              . '<h2 style="color:#002855;">MBGE Access Control</h2>'
+              . '<h2 style="color:#002855;">GEMB Access Control</h2>'
               . '<p>Your one-time login code is:</p>'
               . '<div style="font-size:2.5rem;font-weight:800;letter-spacing:0.3em;color:#002855;'
               . 'background:#f0f4f8;padding:16px;text-align:center;border-radius:8px;margin:16px 0;">'

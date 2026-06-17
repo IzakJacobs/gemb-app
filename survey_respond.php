@@ -12,16 +12,39 @@
 // and the browser auto-redirects to https://www.google.com
 // after 10 seconds.
 //
-// Duplicate-submission guard: a session flag prevents the same
-// browser session from submitting twice.
+// Duplicate-submission guard:
+//   A random device ID is generated on first visit and stored
+//   in the mbge_did cookie (5-year expiry). On submission the
+//   (device_id, survey_id) pair is saved to survey_device_locks.
+//   Every subsequent visit checks that table — the DB is the
+//   source of truth, not the cookie value.
 //
 // DB note: public respondents are stored with user_id = NULL
 // and user_role = 'resident' (closest valid ENUM value).
+// Requires: survey_device_locks table (survey_device_locks_schema.sql)
 // ============================================================
 
 require_once 'layout.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+// ── Device ID — generated once, lives in cookie for 5 years ──
+// The cookie carries only an opaque random ID; the actual lock
+// record lives in survey_device_locks so clearing the cookie
+// does not automatically allow a second submission (the ID is
+// gone, but a new ID won't match the old DB record).
+if (empty($_COOKIE['mbge_did'])) {
+    $deviceId = bin2hex(random_bytes(32));   // 64-char hex
+    setcookie('mbge_did', $deviceId, [
+        'expires'  => time() + (5 * 365 * 24 * 3600),
+        'path'     => '/',
+        'secure'   => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['mbge_did'] = $deviceId;
+}
+$deviceId = $_COOKIE['mbge_did'];
 
 $action   = $_GET['action'] ?? 'take';
 $surveyId = (int)($_GET['id'] ?? 0);
@@ -31,34 +54,31 @@ $surveyId = (int)($_GET['id'] ?? 0);
 // ============================================================
 if ($action === 'take' && $surveyId > 0) {
 
-    // Persistent device lock — cookie survives browser restarts (1 year)
-    $cookieName = 'mbge_sv_' . $surveyId;
-    if (!empty($_COOKIE[$cookieName])) {
-        $prevId = (int)$_COOKIE[$cookieName];
-        $chk = db()->prepare("SELECT id FROM survey_responses WHERE id = ? AND survey_id = ?");
-        $chk->execute([$prevId, $surveyId]);
-        if ($chk->fetch()) {
-            // Confirmed in DB — this device already responded
-            pageHeader('Already Submitted', 'public');
-            ?>
-            <div class="container" style="max-width:520px;text-align:center;padding-top:60px;">
-              <div class="card" style="padding:40px 28px;">
-                <div style="font-size:3.5rem;margin-bottom:16px;">✅</div>
-                <h2 style="margin-bottom:10px;">Already Submitted</h2>
-                <p style="color:#555;margin-bottom:20px;">
-                  You have already submitted a response to this survey from this device.
-                  Only one response per device is allowed.
-                </p>
-                <a href="https://www.google.com" class="btn btn-primary">Close</a>
-              </div>
-            </div>
-            <?php
-            pageFooter(); exit;
-        }
-        // Cookie exists but no DB record — allow re-submission (e.g. DB was reset)
+    // ── Device lock check — source of truth is the DB ────────
+    $lock = db()->prepare(
+        "SELECT response_id FROM survey_device_locks
+         WHERE survey_id = ? AND device_id = ?"
+    );
+    $lock->execute([$surveyId, $deviceId]);
+    if ($lock->fetch()) {
+        pageHeader('Already Submitted', 'public');
+        ?>
+        <div class="container" style="max-width:520px;text-align:center;padding-top:60px;">
+          <div class="card" style="padding:40px 28px;">
+            <div style="font-size:3.5rem;margin-bottom:16px;">✅</div>
+            <h2 style="margin-bottom:10px;">Already Submitted</h2>
+            <p style="color:#555;margin-bottom:20px;">
+              You have already submitted a response to this survey from this device.
+              Only one response per device is allowed.
+            </p>
+            <a href="https://www.google.com" class="btn btn-primary">Close</a>
+          </div>
+        </div>
+        <?php
+        pageFooter(); exit;
     }
 
-    // Session guard for the current browser session
+    // Session guard — catches double-clicks within the same session
     if (!empty($_SESSION['survey_submitted_' . $surveyId])) {
         header("Location: survey_respond.php?action=done&id={$surveyId}"); exit;
     }
@@ -174,16 +194,15 @@ if ($action === 'take' && $surveyId > 0) {
                     ]);
                 }
 
+                // Save device lock to DB before committing
+                $pdo->prepare(
+                    "INSERT IGNORE INTO survey_device_locks
+                     (survey_id, device_id, response_id)
+                     VALUES (?, ?, ?)"
+                )->execute([$surveyId, $deviceId, $responseId]);
+
                 $pdo->commit();
 
-                // Lock this device for 1 year — value is the DB response ID for verification
-                setcookie('mbge_sv_' . $surveyId, (string)$responseId, [
-                    'expires'  => time() + (365 * 24 * 3600),
-                    'path'     => '/',
-                    'secure'   => !empty($_SERVER['HTTPS']),
-                    'httponly' => true,
-                    'samesite' => 'Lax',
-                ]);
                 $_SESSION['survey_submitted_' . $surveyId] = $responseId;
                 header("Location: survey_respond.php?action=done&id={$surveyId}"); exit;
 
@@ -369,9 +388,17 @@ if ($action === 'take' && $surveyId > 0) {
 // ============================================================
 if ($action === 'done' && $surveyId > 0) {
 
-    // Accept session (just submitted) or cookie (returning to done URL later)
-    $responseId = $_SESSION['survey_submitted_' . $surveyId]
-               ?? ((int)($_COOKIE['mbge_sv_' . $surveyId] ?? 0) ?: null);
+    // Accept session (just submitted) or DB device lock (returning to done URL later)
+    $responseId = $_SESSION['survey_submitted_' . $surveyId] ?? null;
+    if (!$responseId) {
+        $dl = db()->prepare(
+            "SELECT response_id FROM survey_device_locks
+             WHERE survey_id = ? AND device_id = ?"
+        );
+        $dl->execute([$surveyId, $deviceId]);
+        $row = $dl->fetch();
+        $responseId = $row ? (int)$row['response_id'] : null;
+    }
 
     if (!$responseId) {
         header('Location: https://www.google.com'); exit;

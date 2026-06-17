@@ -5,10 +5,12 @@
 //
 // Actions:
 //   take  — display and submit a survey (?action=take&id=N)
+//   done  — confirmation page after successful submission
 //
 // Anyone with the link can respond — no login required.
-// After successful submission the browser is redirected to
-// https://www.google.com.
+// After successful submission, a confirmation page is shown
+// and the browser auto-redirects to https://www.google.com
+// after 10 seconds.
 //
 // Duplicate-submission guard: a session flag prevents the same
 // browser session from submitting twice.
@@ -146,8 +148,8 @@ if ($action === 'take' && $surveyId > 0) {
                 }
 
                 $pdo->commit();
-                $_SESSION['survey_submitted_' . $surveyId] = true;
-                header('Location: https://www.google.com'); exit;
+                $_SESSION['survey_submitted_' . $surveyId] = $responseId;
+                header("Location: survey_respond.php?action=done&id={$surveyId}"); exit;
 
             } catch (Exception $e) {
                 if (db()->inTransaction()) db()->rollBack();
@@ -324,6 +326,95 @@ if ($action === 'take' && $surveyId > 0) {
     </div>
 
     <?php pageFooter(); exit;
+}
+
+// ============================================================
+// DONE — confirmation after successful submission
+// ============================================================
+if ($action === 'done' && $surveyId > 0) {
+
+    // Must have arrived here via a successful submission this session
+    $responseId = $_SESSION['survey_submitted_' . $surveyId] ?? null;
+
+    if (!$responseId) {
+        // No session record — not a valid post-submit visit
+        header('Location: https://www.google.com'); exit;
+    }
+
+    // Verify the response actually exists in the database
+    $chk = db()->prepare(
+        "SELECT id FROM survey_responses WHERE id = ? AND survey_id = ?"
+    );
+    $chk->execute([$responseId, $surveyId]);
+    $confirmed = (bool)$chk->fetch();
+
+    // Fetch survey title for the message
+    $s = db()->prepare("SELECT title FROM surveys WHERE id = ?");
+    $s->execute([$surveyId]);
+    $survey = $s->fetch();
+
+    pageHeader('Thank You', 'public');
+    ?>
+
+    <div style="background:var(--accent);color:#fff;padding:14px 20px;">
+      <span style="font-size:1.05rem;font-weight:600;">📋 <?= htmlspecialchars($survey['title'] ?? 'Survey') ?></span>
+    </div>
+
+    <div class="container" style="max-width:520px;text-align:center;padding-top:50px;">
+      <div class="card" style="padding:40px 28px;">
+
+        <?php if ($confirmed): ?>
+          <div style="font-size:3.5rem;margin-bottom:16px;">✅</div>
+          <h2 style="color:#28a745;margin-bottom:10px;">Thank You!</h2>
+          <p style="color:#444;font-size:1rem;margin-bottom:6px;">
+            Your response to <strong><?= htmlspecialchars($survey['title'] ?? 'the survey') ?></strong>
+            has been successfully saved.
+          </p>
+          <p style="color:#888;font-size:.88rem;margin-bottom:28px;">
+            We appreciate you taking the time to complete this survey.
+          </p>
+          <p style="color:#aaa;font-size:.82rem;">
+            You will be redirected in <strong id="countdown">10</strong> seconds…
+          </p>
+          <div style="margin-top:20px;">
+            <a href="https://www.google.com" class="btn btn-primary">
+              Continue now →
+            </a>
+          </div>
+        <?php else: ?>
+          <div style="font-size:3.5rem;margin-bottom:16px;">⚠️</div>
+          <h2 style="color:#dc3545;margin-bottom:10px;">Something Went Wrong</h2>
+          <p style="color:#666;margin-bottom:20px;">
+            Your response could not be confirmed. Please try again or contact the estate office.
+          </p>
+          <a href="survey_respond.php?action=take&id=<?= $surveyId ?>" class="btn btn-primary">
+            Try Again
+          </a>
+        <?php endif; ?>
+
+        <div class="popia-notice" style="margin-top:24px;">
+          Response data is processed under POPIA §11 for estate management purposes.
+        </div>
+      </div>
+    </div>
+
+    <?php if ($confirmed): ?>
+    <script>
+      var secs = 10;
+      var el   = document.getElementById('countdown');
+      var timer = setInterval(function() {
+        secs--;
+        if (el) el.textContent = secs;
+        if (secs <= 0) {
+          clearInterval(timer);
+          window.location.href = 'https://www.google.com';
+        }
+      }, 1000);
+    </script>
+    <?php endif; ?>
+
+    <?php
+    pageFooter(); exit;
 }
 
 // Fallback — no valid action or survey id

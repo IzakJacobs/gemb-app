@@ -31,6 +31,20 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 requireVoteSession();
 
+// ── Device ID — shared with survey_respond.php via mbge_did cookie ──
+if (empty($_COOKIE['mbge_did'])) {
+    $deviceId = bin2hex(random_bytes(32));
+    setcookie('mbge_did', $deviceId, [
+        'expires'  => time() + (5 * 365 * 24 * 3600),
+        'path'     => '/',
+        'secure'   => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['mbge_did'] = $deviceId;
+}
+$deviceId = $_COOKIE['mbge_did'];
+
 $meetingId = (int)$_SESSION['vote_meeting_id'];
 $rerf      = strtoupper(trim($_SESSION['vote_erf'] ?? ''));
 $action    = $_GET['action'] ?? 'list';
@@ -192,6 +206,16 @@ if ($action === 'vote' && $motionId > 0) {
         header('Location: vote_cast.php?action=list'); exit;
     }
 
+    $dcheck = db()->prepare(
+        "SELECT response_id FROM device_response_locks
+         WHERE type = 'vote' AND target_id = ? AND device_id = ?"
+    );
+    $dcheck->execute([$motionId, $deviceId]);
+    if ($dcheck->fetch()) {
+        setFlash('error', 'A vote for this motion has already been submitted from this device.');
+        header('Location: vote_cast.php?action=list'); exit;
+    }
+
     $rt = VOTE_RESOLUTION_TYPES[$motion['resolution_type']] ?? ['label'=>$motion['resolution_type'],'threshold'=>0];
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -225,6 +249,12 @@ if ($action === 'vote' && $motionId > 0) {
                 $pdo->prepare(
                     "INSERT INTO vote_tally (cast_id, vote_option, is_blank) VALUES (?,?,?)"
                 )->execute([$castId, $vote, $blank]);
+
+                $pdo->prepare(
+                    "INSERT IGNORE INTO device_response_locks
+                     (type, target_id, device_id, response_id)
+                     VALUES ('vote', ?, ?, ?)"
+                )->execute([$motionId, $deviceId, $castId]);
 
                 $pdo->commit();
                 header("Location: vote_cast.php?action=done&id={$motionId}&v=" . urlencode($vote)); exit;

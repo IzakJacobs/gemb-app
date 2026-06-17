@@ -56,8 +56,8 @@ if ($action === 'take' && $surveyId > 0) {
 
     // ── Device lock check — source of truth is the DB ────────
     $lock = db()->prepare(
-        "SELECT response_id FROM survey_device_locks
-         WHERE survey_id = ? AND device_id = ?"
+        "SELECT response_id FROM device_response_locks
+         WHERE type = 'survey' AND target_id = ? AND device_id = ?"
     );
     $lock->execute([$surveyId, $deviceId]);
     if ($lock->fetch()) {
@@ -196,9 +196,9 @@ if ($action === 'take' && $surveyId > 0) {
 
                 // Save device lock to DB before committing
                 $pdo->prepare(
-                    "INSERT IGNORE INTO survey_device_locks
-                     (survey_id, device_id, response_id)
-                     VALUES (?, ?, ?)"
+                    "INSERT IGNORE INTO device_response_locks
+                     (type, target_id, device_id, response_id)
+                     VALUES ('survey', ?, ?, ?)"
                 )->execute([$surveyId, $deviceId, $responseId]);
 
                 $pdo->commit();
@@ -392,8 +392,8 @@ if ($action === 'done' && $surveyId > 0) {
     $responseId = $_SESSION['survey_submitted_' . $surveyId] ?? null;
     if (!$responseId) {
         $dl = db()->prepare(
-            "SELECT response_id FROM survey_device_locks
-             WHERE survey_id = ? AND device_id = ?"
+            "SELECT response_id FROM device_response_locks
+             WHERE type = 'survey' AND target_id = ? AND device_id = ?"
         );
         $dl->execute([$surveyId, $deviceId]);
         $row = $dl->fetch();

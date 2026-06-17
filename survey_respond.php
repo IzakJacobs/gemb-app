@@ -207,7 +207,9 @@ if ($action === 'take' && $surveyId > 0) {
                 header("Location: survey_respond.php?action=done&id={$surveyId}"); exit;
 
             } catch (Exception $e) {
-                if (db()->inTransaction()) db()->rollBack();
+                if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+                error_log('survey_respond POST error: ' . $e->getMessage() . ' | survey=' . $surveyId . ' | line=' . $e->getLine());
+                $_SESSION['survey_debug_error'] = $e->getMessage();
                 setFlash('error', 'An error occurred saving your response. Please try again.');
             }
         }
@@ -405,11 +407,17 @@ if ($action === 'done' && $surveyId > 0) {
     }
 
     // Verify the response actually exists in the database
-    $chk = db()->prepare(
-        "SELECT id FROM survey_responses WHERE id = ? AND survey_id = ?"
-    );
-    $chk->execute([$responseId, $surveyId]);
-    $confirmed = (bool)$chk->fetch();
+    try {
+        $chk = db()->prepare(
+            "SELECT id FROM survey_responses WHERE id = ? AND survey_id = ?"
+        );
+        $chk->execute([$responseId, $surveyId]);
+        $confirmed = (bool)$chk->fetch();
+    } catch (Exception $e) {
+        error_log('survey_respond DONE verify error: ' . $e->getMessage() . ' | responseId=' . $responseId . ' | survey=' . $surveyId);
+        $_SESSION['survey_debug_error'] = 'DB verify: ' . $e->getMessage();
+        $confirmed = false;
+    }
 
     // Fetch survey title for the message
     $s = db()->prepare("SELECT title FROM surveys WHERE id = ?");
@@ -450,6 +458,13 @@ if ($action === 'done' && $surveyId > 0) {
           <p style="color:#666;margin-bottom:20px;">
             Your response could not be confirmed. Please try again or contact the estate office.
           </p>
+          <?php if (!empty($_SESSION['survey_debug_error'])): ?>
+          <p style="font-size:.75rem;color:#999;word-break:break-all;margin-bottom:12px;">
+            Debug: <?= htmlspecialchars($_SESSION['survey_debug_error']) ?><br>
+            responseId=<?= (int)$responseId ?> surveyId=<?= $surveyId ?><br>
+            sessionKey=<?= isset($_SESSION['survey_submitted_' . $surveyId]) ? 'set' : 'not set' ?>
+          </p>
+          <?php endif; ?>
           <a href="survey_respond.php?action=take&id=<?= $surveyId ?>" class="btn btn-primary">
             Try Again
           </a>

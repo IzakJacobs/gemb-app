@@ -1,33 +1,19 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-function db(): mysqli {
-    static $conn = null;
-    if ($conn === null) {
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        if ($conn->connect_error) {
-            http_response_code(500);
-            die('Database unavailable. Please try again later.');
-        }
-        $conn->set_charset('utf8mb4');
-    }
-    return $conn;
-}
+// db() and $conn are provided by config.php — do not redeclare here.
 
 function sessionStart(): void {
     if (session_status() !== PHP_SESSION_NONE) return;
-    $secure   = HTTPS;
-    $lifetime = SESSION_HOURS * 3600;
     session_set_cookie_params([
-        'lifetime' => $lifetime,
+        'lifetime' => SESSION_TIMEOUT,
         'path'     => '/',
-        'secure'   => $secure,
+        'secure'   => true,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
     session_start();
-    // Expire sessions by inactivity
-    if (isset($_SESSION['last_active']) && (time() - $_SESSION['last_active']) > $lifetime) {
+    if (isset($_SESSION['last_active']) && (time() - $_SESSION['last_active']) > SESSION_TIMEOUT) {
         session_unset();
         session_destroy();
         session_start();
@@ -51,16 +37,18 @@ function verifyCsrf(): void {
     }
 }
 
-// Lockout (stored in login_attempts table)
+// Lockout (stored in login_attempts table) — uses global $conn (mysqli)
 function isLocked(string $id): bool {
-    $stmt = db()->prepare('SELECT 1 FROM login_attempts WHERE identifier=? AND locked_until > NOW()');
+    global $conn;
+    $stmt = $conn->prepare('SELECT 1 FROM login_attempts WHERE identifier=? AND locked_until > NOW()');
     $stmt->bind_param('s', $id);
     $stmt->execute();
     return $stmt->get_result()->num_rows > 0;
 }
 
 function lockoutSeconds(string $id): int {
-    $stmt = db()->prepare('SELECT GREATEST(0, TIMESTAMPDIFF(SECOND, NOW(), locked_until)) s FROM login_attempts WHERE identifier=?');
+    global $conn;
+    $stmt = $conn->prepare('SELECT GREATEST(0, TIMESTAMPDIFF(SECOND, NOW(), locked_until)) s FROM login_attempts WHERE identifier=?');
     $stmt->bind_param('s', $id);
     $stmt->execute();
     $r = $stmt->get_result()->fetch_assoc();
@@ -68,8 +56,8 @@ function lockoutSeconds(string $id): int {
 }
 
 function recordFail(string $id, int $max = 3, int $lockMins = 5): int {
-    // Upsert: increment attempt counter; lock when threshold reached
-    $stmt = db()->prepare('
+    global $conn;
+    $stmt = $conn->prepare('
         INSERT INTO login_attempts (identifier, attempts, locked_until)
         VALUES (?, 1, NULL)
         ON DUPLICATE KEY UPDATE
@@ -79,7 +67,7 @@ function recordFail(string $id, int $max = 3, int $lockMins = 5): int {
     $stmt->bind_param('sii', $id, $max, $lockMins);
     $stmt->execute();
 
-    $stmt2 = db()->prepare('SELECT attempts FROM login_attempts WHERE identifier=?');
+    $stmt2 = $conn->prepare('SELECT attempts FROM login_attempts WHERE identifier=?');
     $stmt2->bind_param('s', $id);
     $stmt2->execute();
     $r = $stmt2->get_result()->fetch_assoc();
@@ -87,14 +75,16 @@ function recordFail(string $id, int $max = 3, int $lockMins = 5): int {
 }
 
 function clearLock(string $id): void {
-    $stmt = db()->prepare('DELETE FROM login_attempts WHERE identifier=?');
+    global $conn;
+    $stmt = $conn->prepare('DELETE FROM login_attempts WHERE identifier=?');
     $stmt->bind_param('s', $id);
     $stmt->execute();
 }
 
 // Settings table
 function getSetting(string $key, string $default = ''): string {
-    $stmt = db()->prepare('SELECT value FROM settings WHERE `key`=?');
+    global $conn;
+    $stmt = $conn->prepare('SELECT value FROM settings WHERE `key`=?');
     $stmt->bind_param('s', $key);
     $stmt->execute();
     $r = $stmt->get_result()->fetch_assoc();
@@ -102,7 +92,8 @@ function getSetting(string $key, string $default = ''): string {
 }
 
 function setSetting(string $key, string $value): void {
-    $stmt = db()->prepare('INSERT INTO settings(`key`,value) VALUES(?,?) ON DUPLICATE KEY UPDATE value=?');
+    global $conn;
+    $stmt = $conn->prepare('INSERT INTO settings(`key`,value) VALUES(?,?) ON DUPLICATE KEY UPDATE value=?');
     $stmt->bind_param('sss', $key, $value, $value);
     $stmt->execute();
 }

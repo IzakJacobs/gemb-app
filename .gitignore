@@ -67,3 +67,4 @@ mbge_debug.txt
 
 # ── Claude Code session files ─────────────────────────────
 .claude/
+pi/data/

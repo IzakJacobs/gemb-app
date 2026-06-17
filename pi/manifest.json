@@ -1,0 +1,25 @@
+{
+  "name": "MBGE Gate",
+  "short_name": "MBGE Gate",
+  "description": "MBGE Estate Gate — Offline Verification",
+  "start_url": "/mbge/verify.php",
+  "scope": "/mbge/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#003366",
+  "icons": [
+    {
+      "src": "/mbge/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/mbge/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

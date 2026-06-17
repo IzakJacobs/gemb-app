@@ -207,7 +207,7 @@ if ($action === 'send') {
             }
 
             $name    = htmlspecialchars($r['name'] ?? 'Resident');
-            $subject = 'GEMB Estate — ' . $title;
+            $subject = 'GEMB Estate - ' . $title;
             $html    = commsBuildCircularEmail($name, $title, $downloadUrl, $notes);
 
             $ok = commsSendAndLog($broadcastId, 'bulk', $email, $r['name'] ?? '', $subject, $html);

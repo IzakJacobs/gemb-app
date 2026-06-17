@@ -306,12 +306,15 @@ if ($action === 'menu') {
         <a href="admin.php?action=add_guard"       class="menu-btn"><span class="icon">👮</span>Guards</a>
         <a href="export.php?action=menu"           class="menu-btn"><span class="icon">📊</span>Export</a>
         <a href="admin.php?action=helpdesk"        class="menu-btn"><span class="icon">🔧</span>Helpdesk</a>
+        <a href="document_portal.php"              class="menu-btn"><span class="icon">📤</span>Send Documents</a>
+        <a href="document_archive.php"             class="menu-btn"><span class="icon">📄</span>Document Archive</a>
         <a href="admin.php?action=cleanup"         class="menu-btn"><span class="icon">🧹</span>Cleanup</a>
         <a href="admin.php?action=add_admin"       class="menu-btn"><span class="icon">👤</span>Admins</a>
         <a href="admin.php?action=change_pw"        class="menu-btn"><span class="icon">🔑</span>Change Password</a>
-        <a href="comms.php" class="menu-btn"><span class="icon">📣</span>Comms</a>
 
-      </div>
+        <a href="admin_surveys.php?action=list" class="menu-btn"><span class="icon">📋</span>Surveys</a>
+        <a href="admin_votes.php?action=list"   class="menu-btn"><span class="icon">🗳️</span>Voting</a>
+
       </div>
     </div>
     <?php pageFooter(); exit; ?>
@@ -387,17 +390,6 @@ if ($action === 'change_pw') {
 
 // ════════════════════════════════════════════════════════
 // ADMINISTRATORS — list / add / edit / delete
-// Layout mirrors residents_admin.php (search + add bar,
-// summary line, table, separate add/edit pages).
-//
-// Lockout safety:
-//   1. Cannot delete the account you are logged in with
-//   2. Cannot delete the last remaining administrator
-//   3. Cannot delete administrator id 1 (bootstrap account);
-//      also enforced at the database level by a trigger
-// Both are enforced server-side AND shown as a disabled
-// Delete button with a tooltip (same idiom as the resident
-// "primary with siblings" rule).
 // ════════════════════════════════════════════════════════
 if ($action === 'add_admin') {
 
@@ -507,7 +499,6 @@ if ($action === 'add_admin') {
                     db()->prepare("DELETE FROM admins WHERE id=?")->execute([$uid]);
                     setFlash('success', 'Administrator removed.');
                 } catch (Exception $e) {
-                    /* Backstop: a database trigger may protect this row */
                     setFlash('error', 'This administrator is protected and cannot be deleted.');
                 }
             }
@@ -808,7 +799,6 @@ if ($action === 'add_security') {
                         setFlash('error', 'PIN must be 4–8 digits.');
                         header('Location: admin.php?action=add_security&edit=' . $uid); exit;
                     }
-                    /* PIN change: reset device token + restart 30-day clock */
                     db()->prepare(
                         "UPDATE security_users SET name=?, username=?, phone=?, email=?,
                                 pin=?, device_token=NULL, password_changed_at=NOW() WHERE id=?"

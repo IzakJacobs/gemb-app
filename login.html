@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resident Login - MBGE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(160deg, #001a3a 0%, #0047ab 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+    }
+    .logo { display: block; width: 120px; margin: 0 auto 16px; }
+    h2 { text-align: center; color: #002855; font-size: 20px; margin-bottom: 20px; }
+    .tabs {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #007bff;
+      margin-bottom: 22px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #fff;
+      color: #007bff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn.active { background: #007bff; color: #fff; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
+    .field input[type="email"],
+    .field input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: #007bff; }
+    .pin-row { display: flex; gap: 7px; }
+    .pin-row input {
+      flex: 1;
+      height: 50px;
+      font-size: 22px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      padding: 0;
+    }
+    .pin-row input:focus { border-color: #007bff; }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: #007bff;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-primary:hover { background: #0062cc; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .back-link { display: block; text-align: center; margin-top: 18px; color: #007bff; text-decoration: none; font-size: 13px; }
+    .msg { font-size: 13px; margin-top: 8px; padding: 9px 11px; border-radius: 6px; display: none; line-height: 1.45; }
+    .msg.error   { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; display: block; }
+    .msg.success { background: #f0fff4; color: #1e7e34; border: 1px solid #b7dfc0; display: block; }
+    .msg.info    { background: #e8f4fd; color: #0c5460; border: 1px solid #bee5eb; display: block; }
+    /* Loading overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 200;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+    }
+    .overlay.show { display: flex; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay">
+    <div class="spinner"></div>
+    <span id="overlayMsg">Verifying...</span>
+  </div>
+
+  <div class="card">
+    <img class="logo" src="logo.png" alt="MBGE Logo">
+    <h2>Resident Portal</h2>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn"        onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginSection" class="section active">
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>6-Digit PIN</label>
+        <div class="pin-row" id="loginPins">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="off">
+        </div>
+      </div>
+      <div id="loginMsg" class="msg"></div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Login</button>
+    </div>
+
+    <!-- Register -->
+    <div id="registerSection" class="section">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="e.g. John Smith">
+      </div>
+      <div class="field">
+        <label>Unit Number</label>
+        <input type="text" id="regUnit" placeholder="e.g. A12">
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label>Set 6-Digit PIN</label>
+        <div class="pin-row" id="regPins">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="new-password">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="new-password">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="new-password">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="new-password">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="new-password">
+          <input type="password" maxlength="1" inputmode="numeric" autocomplete="new-password">
+        </div>
+      </div>
+      <div id="regMsg" class="msg"></div>
+      <button class="btn-primary" id="regBtn" onclick="doRegister()">Create Account</button>
+    </div>
+
+    <a class="back-link" href="index.html">Back to home</a>
+  </div>
+
+  <script>
+    // ---- Crypto helpers ----
+    async function hashPin(pin, salt) {
+      const enc = new TextEncoder();
+      const keyMat = await crypto.subtle.importKey(
+        'raw', enc.encode(pin), { name: 'PBKDF2' }, false, ['deriveBits']
+      );
+      const bits = await crypto.subtle.deriveBits(
+        { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
+        keyMat, 256
+      );
+      return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function randomHex(bytes = 16) {
+      return Array.from(crypto.getRandomValues(new Uint8Array(bytes)))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // ---- Lockout ----
+    const LOCKOUT_KEY   = 'mbge_lockout';
+    const MAX_ATTEMPTS  = 3;
+    const LOCK_MS       = 5 * 60 * 1000;
+
+    function getLockoutEntry(id) {
+      return (JSON.parse(localStorage.getItem(LOCKOUT_KEY) || '{}'))[id] || { count: 0, until: 0 };
+    }
+    function isLocked(id) {
+      const l = getLockoutEntry(id);
+      return l.until > 0 && Date.now() < l.until;
+    }
+    function lockoutSecs(id) {
+      return Math.ceil((getLockoutEntry(id).until - Date.now()) / 1000);
+    }
+    function recordFail(id) {
+      const all = JSON.parse(localStorage.getItem(LOCKOUT_KEY) || '{}');
+      const l   = all[id] || { count: 0, until: 0 };
+      // Reset an expired lock
+      if (l.until > 0 && Date.now() >= l.until) { l.count = 0; l.until = 0; }
+      l.count++;
+      if (l.count >= MAX_ATTEMPTS) { l.until = Date.now() + LOCK_MS; }
+      all[id] = l;
+      localStorage.setItem(LOCKOUT_KEY, JSON.stringify(all));
+      return l;
+    }
+    function clearLock(id) {
+      const all = JSON.parse(localStorage.getItem(LOCKOUT_KEY) || '{}');
+      delete all[id];
+      localStorage.setItem(LOCKOUT_KEY, JSON.stringify(all));
+    }
+
+    // ---- Session ----
+    const SESSION_MS = 8 * 60 * 60 * 1000; // 8 hours
+
+    function createSession(data) {
+      localStorage.setItem('mbge_session', JSON.stringify({
+        ...data, expiresAt: Date.now() + SESSION_MS
+      }));
+    }
+
+    function getValidSession() {
+      const s = JSON.parse(localStorage.getItem('mbge_session') || 'null');
+      if (!s) return null;
+      if (!s.expiresAt || Date.now() > s.expiresAt) {
+        localStorage.removeItem('mbge_session');
+        return null;
+      }
+      return s;
+    }
+
+    // ---- Data ----
+    function getResidents()   { return JSON.parse(localStorage.getItem('mbge_residents') || '[]'); }
+    function setResidents(r)  { localStorage.setItem('mbge_residents', JSON.stringify(r)); }
+
+    // ---- UI helpers ----
+    function showOverlay(msg) {
+      document.getElementById('overlayMsg').textContent = msg || 'Verifying...';
+      document.getElementById('overlay').classList.add('show');
+    }
+    function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
+    function setMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'msg ' + (type || '');
+    }
+    function clearMsg(id) { document.getElementById(id).className = 'msg'; }
+
+    function getPin(containerId) {
+      return Array.from(document.querySelectorAll('#' + containerId + ' input'))
+        .map(i => i.value).join('');
+    }
+
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('loginSection').classList.toggle('active', isLogin);
+      document.getElementById('registerSection').classList.toggle('active', !isLogin);
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', (i === 0) === isLogin);
+      });
+    }
+
+    function setupPins(id) {
+      const inputs = document.querySelectorAll('#' + id + ' input');
+      inputs.forEach((inp, i) => {
+        inp.addEventListener('input', () => {
+          if (!/^\d$/.test(inp.value)) { inp.value = ''; return; }
+          if (i < inputs.length - 1) inputs[i + 1].focus();
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i - 1].focus();
+        });
+      });
+    }
+    setupPins('loginPins');
+    setupPins('regPins');
+
+    // ---- Login ----
+    async function doLogin() {
+      clearMsg('loginMsg');
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const pin   = getPin('loginPins');
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setMsg('loginMsg', 'Please enter a valid email address.', 'error'); return;
+      }
+      if (!/^\d{6}$/.test(pin)) {
+        setMsg('loginMsg', 'Please enter your 6-digit PIN.', 'error'); return;
+      }
+      if (isLocked(email)) {
+        setMsg('loginMsg', `Too many failed attempts. Try again in ${lockoutSecs(email)} seconds.`, 'error'); return;
+      }
+
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      showOverlay('Verifying PIN…');
+
+      try {
+        const resident = getResidents().find(r => r.email.toLowerCase() === email);
+
+        if (!resident || !resident.pinHash) {
+          const l = recordFail(email);
+          if (isLocked(email)) {
+            setMsg('loginMsg', 'Too many failed attempts. Account locked for 5 minutes.', 'error');
+          } else {
+            setMsg('loginMsg', `Incorrect email or PIN. ${MAX_ATTEMPTS - l.count} attempt(s) remaining.`, 'error');
+          }
+          btn.disabled = false;
+          hideOverlay();
+          return;
+        }
+
+        const hash = await hashPin(pin, resident.salt);
+        if (hash !== resident.pinHash) {
+          const l = recordFail(email);
+          if (isLocked(email)) {
+            setMsg('loginMsg', 'Too many failed attempts. Account locked for 5 minutes.', 'error');
+          } else {
+            setMsg('loginMsg', `Incorrect PIN. ${MAX_ATTEMPTS - l.count} attempt(s) remaining.`, 'error');
+          }
+          btn.disabled = false;
+          hideOverlay();
+          return;
+        }
+
+        clearLock(email);
+
+        if (resident.status === 'pending') {
+          setMsg('loginMsg', 'Your account is pending admin approval. Please contact estate management.', 'info');
+          btn.disabled = false;
+          hideOverlay();
+          return;
+        }
+
+        createSession({ email: resident.email, name: resident.name, unit: resident.unit });
+        window.location.href = 'visitor.html';
+      } catch (err) {
+        setMsg('loginMsg', 'An error occurred. Please try again.', 'error');
+        btn.disabled = false;
+        hideOverlay();
+      }
+    }
+
+    // ---- Register ----
+    async function doRegister() {
+      clearMsg('regMsg');
+      const name  = document.getElementById('regName').value.trim();
+      const unit  = document.getElementById('regUnit').value.trim().toUpperCase();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const pin   = getPin('regPins');
+
+      if (!name)  { setMsg('regMsg', 'Please enter your full name.', 'error'); return; }
+      if (!unit)  { setMsg('regMsg', 'Please enter your unit number.', 'error'); return; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setMsg('regMsg', 'Please enter a valid email address.', 'error'); return;
+      }
+      if (!/^\d{6}$/.test(pin)) {
+        setMsg('regMsg', 'Please set a 6-digit numeric PIN.', 'error'); return;
+      }
+
+      const residents = getResidents();
+      if (residents.find(r => r.email.toLowerCase() === email)) {
+        setMsg('regMsg', 'An account with this email already exists. Please log in.', 'error'); return;
+      }
+
+      const btn = document.getElementById('regBtn');
+      btn.disabled = true;
+      showOverlay('Securing your PIN…');
+
+      try {
+        const salt    = randomHex(16);
+        const pinHash = await hashPin(pin, salt);
+
+        residents.push({
+          email, name, unit, pinHash, salt,
+          status: 'pending',
+          addedAt: new Date().toISOString()
+        });
+        setResidents(residents);
+
+        setMsg('regMsg',
+          'Account created! Your request is pending admin approval. You will be notified when access is granted.',
+          'success'
+        );
+        document.getElementById('regName').value  = '';
+        document.getElementById('regUnit').value  = '';
+        document.getElementById('regEmail').value = '';
+        document.querySelectorAll('#regPins input').forEach(i => i.value = '');
+      } catch (err) {
+        setMsg('regMsg', 'An error occurred. Please try again.', 'error');
+      }
+
+      btn.disabled = false;
+      hideOverlay();
+    }
+
+    // ---- Init: redirect if session still valid ----
+    if (getValidSession()) window.location.href = 'visitor.html';
+  </script>
+</body>
+</html>

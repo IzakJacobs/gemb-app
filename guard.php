@@ -1,1096 +1,341 @@
 <?php
-// ============================================================
-// MBGE Access Control — guard.php
-// Actions: login | verify | reset
-//
-// Gate points:
-//   SSgate: SS_CAR_IN1, SS_CAR_IN2, SS_CAR_OUT, SS_TURN
-//   CSgate: CS_CAR_IN,  CS_CAR_OUT,  CS_CONT,   CS_TURN
-//
-// Entry/Exit rules:
-//   Residents    — always permitted, any time, any direction
-//   Visitors     — permitted within visit_date / visit_date_to
-//   Service Prov — permitted within start_date/end_date +
-//                  access_days + access_start/access_end
-// ============================================================
-require_once __DIR__ . '/layout.php';
-require_once __DIR__ . '/twilio_helper.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/db.php';
+requireGuard();
+$csrf = csrfToken();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Gate — MBGE</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
+    header{background:#1a5c2a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 18px}
+    header h1{font-size:16px}
+    .hbtn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:7px 12px;font-size:12px;cursor:pointer;text-decoration:none}
+    .hbtn:hover{background:rgba(255,255,255,.25)}
+    .date-badge{background:rgba(255,255,255,.15);padding:5px 10px;border-radius:6px;font-size:12px}
+    .tabs{display:flex;background:#fff;border-bottom:2px solid #e0e8f0}
+    .tab-btn{flex:1;padding:13px 8px;border:none;background:transparent;font-size:14px;font-weight:600;color:#777;cursor:pointer;border-bottom:3px solid transparent}
+    .tab-btn.active{color:#1a5c2a;border-bottom-color:#1a5c2a}
+    .tab-content{display:none;padding:16px;max-width:540px;margin:0 auto}
+    .tab-content.active{display:block}
+    /* Scanner */
+    .scan-wrap{position:relative;background:#111;border-radius:12px;overflow:hidden;aspect-ratio:4/3;max-height:300px;display:flex;align-items:center;justify-content:center}
+    #video{width:100%;height:100%;object-fit:cover;display:none}
+    .scan-ph{color:#888;text-align:center;padding:20px;font-size:14px}
+    .scan-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid rgba(255,255,255,.7);border-radius:12px;display:none}
+    .scan-overlay.on{display:block}
+    #canvas{display:none}
+    .btn-scan{width:100%;padding:13px;margin-top:10px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:#1a5c2a}
+    .btn-scan:hover{background:#145221}
+    .btn-scan.stop{background:#c0392b}
+    .btn-scan.stop:hover{background:#a93226}
+    /* Visitor card */
+    .vcard{display:none;background:#fff;border-radius:14px;padding:18px;margin-top:14px;box-shadow:0 2px 12px rgba(0,0,0,.1);border-left:5px solid #6c757d}
+    .vcard.verified{border-left-color:#28a745}.vcard.unsigned{border-left-color:#ffc107}.vcard.invalid{border-left-color:#dc3545}
+    .vbadge,.dbadge{display:inline-block;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700;margin-bottom:8px}
+    .vbadge{margin-right:4px}
+    .vb-verified{background:#d4edda;color:#155724}.vb-unsigned{background:#fff3cd;color:#856404}.vb-invalid{background:#f8d7da;color:#721c24}.vb-nosec{background:#cce5ff;color:#004085}
+    .db-today{background:#d4edda;color:#155724}.db-future{background:#fff3cd;color:#856404}.db-expired{background:#f8d7da;color:#721c24}.db-none{background:#e2e8f0;color:#444}
+    .vrow{display:flex;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
+    .vrow:last-of-type{border-bottom:none}
+    .vlabel{color:#777;width:90px;flex-shrink:0}.vval{color:#111;font-weight:600}
+    .act-row{display:flex;gap:10px;margin-top:14px}
+    .btn-g,.btn-d{flex:1;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;color:#fff}
+    .btn-g{background:#28a745}.btn-g:hover{background:#218838}
+    .btn-d{background:#dc3545}.btn-d:hover{background:#c0392b}
+    .act-result{display:none;padding:14px;border-radius:10px;text-align:center;font-size:15px;font-weight:700;margin-top:10px}
+    .act-result.granted{background:#d4edda;color:#155724}.act-result.denied{background:#f8d7da;color:#721c24}
+    .btn-reset{width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid #ccc;border-radius:8px;font-size:14px;cursor:pointer;color:#555}
+    .btn-reset:hover{background:#f5f5f5}
+    .qr-err{display:none;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px}
+    /* Manual */
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px}
+    .field input{width:100%;padding:12px;font-size:15px;border:1px solid #d0d7e0;border-radius:8px;outline:none}
+    .field input:focus{border-color:#1a5c2a}
+    .man-row{display:flex;gap:10px;margin-top:6px}
+    #manResult{margin-top:12px;padding:12px;border-radius:8px;font-size:14px;font-weight:600;display:none}
+    #manResult.granted{background:#d4edda;color:#155724}#manResult.denied{background:#f8d7da;color:#721c24}
+    /* Log */
+    .log-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .log-hdr h3{color:#002855;font-size:15px}
+    .log-filter{padding:7px 10px;border:1px solid #d0d7e0;border-radius:8px;font-size:13px;outline:none}
+    .log-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+    .log-table th{background:#002855;color:#fff;padding:10px 8px;text-align:left;font-size:12px}
+    .log-table td{padding:9px 8px;border-bottom:1px solid #f0f4f8;vertical-align:top}
+    .log-table tr:last-child td{border-bottom:none}
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+    .badge.granted{background:#d4edda;color:#155724}.badge.denied{background:#f8d7da;color:#721c24}.badge.manual{background:#cce5ff;color:#004085}
+    .empty-log{text-align:center;color:#aaa;padding:24px;font-size:14px}
+    .log-count{font-size:12px;color:#777;margin-top:8px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>MBGE Security Gate</h1>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="date-badge" id="todayDate"></span>
+    <a class="hbtn" href="logout.php">Exit</a>
+  </div>
+</header>
 
-$action = $_GET['action'] ?? 'login';
+<nav class="tabs">
+  <button class="tab-btn active" onclick="sw('scan')">Scan QR</button>
+  <button class="tab-btn"        onclick="sw('manual')">Manual</button>
+  <button class="tab-btn"        onclick="sw('log')">Access Log</button>
+</nav>
 
-if ($action === 'login' && !empty($_SESSION['guard_id'])) {
-    header('Location: guard.php?action=verify'); exit;
-}
+<!-- Scan -->
+<div id="scanTab" class="tab-content active">
+  <div class="scan-wrap">
+    <div class="scan-ph" id="scanPH"><div style="font-size:36px;margin-bottom:8px">&#x25A6;</div>Press <strong>Start Scanner</strong></div>
+    <video id="video" playsinline autoplay></video>
+    <canvas id="canvas"></canvas>
+    <div class="scan-overlay" id="scanOverlay"></div>
+  </div>
+  <button class="btn-scan" id="startBtn" onclick="startScan()">Start Scanner</button>
+  <button class="btn-scan stop" id="stopBtn" onclick="stopScan()" style="display:none">Stop Scanner</button>
+  <div class="qr-err" id="qrErr"></div>
 
-// ── Gate point definitions ────────────────────────────────
-const GATE_POINTS = [
-    'SSgate' => [
-        'SS_CAR_IN1' => ['label' => '🚗 Schoeman — Car Entry 1',       'directions' => ['ENTRY']],
-        'SS_CAR_IN2' => ['label' => '🚗 Schoeman — Car Entry 2',       'directions' => ['ENTRY']],
-        'SS_CAR_OUT' => ['label' => '🚗 Schoeman — Car Exit',          'directions' => ['EXIT']],
-        'SS_TURN'    => ['label' => '🚶 Schoeman — Pedestrian Turnstile','directions' => ['ENTRY','EXIT']],
-    ],
-    'CSgate' => [
-        'CS_CAR_IN'  => ['label' => '🚗 Church — Car Entry',           'directions' => ['ENTRY']],
-        'CS_CAR_OUT' => ['label' => '🚗 Church — Car Exit',            'directions' => ['EXIT']],
-        'CS_CONT'    => ['label' => '👷 Church — Contractor Gate',      'directions' => ['ENTRY','EXIT']],
-        'CS_TURN'    => ['label' => '🚶 Church — Pedestrian Turnstile', 'directions' => ['ENTRY','EXIT']],
-    ],
-];
-
-// ════════════════════════════════════════════════════════
-// LOGIN  (3-step: credentials → otp → reset)
-// Extended: guard now also selects gate point on login
-// ════════════════════════════════════════════════════════
-if ($action === 'login') {
-
-    if (empty($_COOKIE['mbge_guard_device'])) {
-        $tok = bin2hex(random_bytes(24));
-        setcookie('mbge_guard_device', $tok,
-            time() + (10 * 365 * 24 * 60 * 60), '/', '', true, true);
-        $_COOKIE['mbge_guard_device'] = $tok;
-    }
-    $deviceToken = $_COOKIE['mbge_guard_device'];
-    $step  = $_SESSION['guard_login_step'] ?? 'credentials';
-    $error = '';
-
-    if (isset($_GET['cancel'])) {
-        session_unset(); session_destroy();
-        header('Location: guard.php?action=login'); exit;
-    }
-    if (isset($_GET['err']) && $_GET['err'] === 'otp') {
-        $error = 'Incorrect OTP. Session reset. Please try again.';
-        $step  = 'credentials';
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-        // ── Step 1: credentials + gate + gate_point ───────
-        if ($step === 'credentials'
-            && isset($_POST['username'], $_POST['password'])) {
-
-            $user       = trim($_POST['username']);
-            $pass       = $_POST['password'];
-            $gate       = $_POST['gate']       ?? 'SSgate';
-            $gate_point = $_POST['gate_point'] ?? '';
-
-            $lockCheck = bfIsLocked('guard', $user);
-            if ($lockCheck['locked']) {
-                $error = bfLockoutMessage($lockCheck);
-            } else {
-                $stmt = db()->prepare(
-                    "SELECT id, name, username, pin, phone, device_token, gate
-                     FROM guards WHERE username = ? LIMIT 1"
-                );
-                $stmt->execute([$user]);
-                $guard = $stmt->fetch();
-
-                if (!$guard || !password_verify($pass, $guard['pin'])) {
-                    bfRecordFailure('guard', $user);
-                    $remaining = bfAttemptsRemaining('guard', $user);
-                    $error = 'Invalid username or PIN.'
-                           . ($remaining <= 2
-                               ? ' ' . bfWarningMessage($remaining) : '');
-                } else {
-                    bfClearAttempts('guard', $user);
-
-                    // Validate gate_point belongs to gate
-                    $validPoints = array_keys(GATE_POINTS[$gate] ?? []);
-                    if (!in_array($gate_point, $validPoints)) {
-                        $gate_point = $validPoints[0] ?? '';
-                    }
-
-                    // Persist gate_point to DB for this guard
-                    db()->prepare(
-                        "UPDATE guards SET gate=?, gate_point=? WHERE id=?"
-                    )->execute([$gate, $gate_point, $guard['id']]);
-
-                    if (empty($guard['device_token'])) {
-                        db()->prepare(
-                            "UPDATE guards SET device_token=? WHERE id=?"
-                        )->execute([hashDeviceToken($deviceToken), $guard['id']]);
-                        guardGrantAccess($guard, $gate, $gate_point); exit;
-                    } elseif (hash_equals($guard['device_token'], hashDeviceToken($deviceToken))) {
-                        guardGrantAccess($guard, $gate, $gate_point); exit;
-                    } else {
-                        $_SESSION['guard_login_step']    = 'otp';
-                        $_SESSION['guard_pending_id']    = $guard['id'];
-                        $_SESSION['guard_pending_gate']  = $gate;
-                        $_SESSION['guard_pending_gp']    = $gate_point;
-                        $_SESSION['guard_pending_phone'] = $guard['phone'] ?? '';
-                        header('Location: guard.php?action=login'); exit;
-                    }
-                }
-            }
-        }
-
-        // ── Step 2: OTP ───────────────────────────────────
-        elseif ($step === 'otp' && isset($_POST['otp'])) {
-            $otp      = preg_replace('/\D/', '', trim($_POST['otp']));
-            $phone    = $_SESSION['guard_pending_phone'] ?? '';
-            $expected = substr(preg_replace('/\D/', '', $phone), -6);
-
-            if (strlen($otp) !== 6) {
-                $error = 'OTP must be 6 digits.';
-            } elseif ($otp !== $expected) {
-                session_unset(); session_destroy();
-                header('Location: guard.php?action=login&err=otp'); exit;
-            } else {
-                $_SESSION['guard_login_step'] = 'reset';
-                header('Location: guard.php?action=login'); exit;
-            }
-        }
-
-        // ── Step 3: New PIN + register device ─────────────
-        elseif ($step === 'reset'
-                && isset($_POST['new_password'], $_POST['confirm_password'])) {
-            $newPass = trim($_POST['new_password']);
-            $conPass = trim($_POST['confirm_password']);
-            $pid     = (int)($_SESSION['guard_pending_id']  ?? 0);
-            $gate    = $_SESSION['guard_pending_gate'] ?? 'SSgate';
-            $gp      = $_SESSION['guard_pending_gp']   ?? '';
-
-            if (strlen($newPass) < 4) {
-                $error = 'PIN must be at least 4 digits.';
-            } elseif ($newPass !== $conPass) {
-                $error = 'PINs do not match.';
-            } elseif (!$pid) {
-                session_unset(); session_destroy();
-                header('Location: guard.php?action=login'); exit;
-            } else {
-                db()->prepare(
-                    "UPDATE guards SET pin=?, device_token=?, gate=?, gate_point=?
-                     WHERE id=?"
-                )->execute([
-                    password_hash($newPass, PASSWORD_BCRYPT),
-                    hashDeviceToken($deviceToken), $gate, $gp, $pid
-                ]);
-                $guard = db()->prepare(
-                    "SELECT id, name, username, pin, phone, device_token, gate
-                     FROM guards WHERE id=? LIMIT 1"
-                );
-                $guard->execute([$pid]);
-                guardGrantAccess($guard->fetch(), $gate, $gp);
-                exit;
-            }
-        }
-    }
-
-    // ── Masked phone for OTP screen ───────────────────────
-    $maskedPhone = '';
-    if ($step === 'otp' && !empty($_SESSION['guard_pending_phone'])) {
-        $p = preg_replace('/\D/', '', $_SESSION['guard_pending_phone']);
-        $maskedPhone = substr($p, 0, 4) . '***' . substr($p, -3);
-    }
-
-    pageHeader('Guard Login', 'guard');
-    ?>
-    <div class="login-wrap">
-      <div class="login-card">
-        <div class="login-logo">🔐</div>
-        <h2>Guard Login</h2>
-        <div class="subtitle">Gate Access Verification</div>
-
-        <?php if ($error): ?>
-          <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-
-        <?php if ($step === 'credentials'): ?>
-        <form method="POST" action="guard.php?action=login" id="loginForm">
-          <?= csrfField() ?>
-
-          <div class="form-group">
-            <label>Username</label>
-            <input type="text" name="username" required autocomplete="username">
-          </div>
-          <div class="form-group">
-            <label>4-digit PIN</label>
-            <input type="password" name="password" required
-                   autocomplete="current-password" inputmode="numeric"
-                   maxlength="4" pattern="\d{4}"
-                   style="font-size:1.6rem;letter-spacing:0.4em;text-align:center;">
-          </div>
-
-          <!-- Gate selection — drives gate_point options -->
-          <div class="form-group">
-            <label>Gate</label>
-            <select name="gate" id="gateSelect"
-                    onchange="updateGatePoints(this.value)"
-                    style="font-size:1rem;">
-              <option value="SSgate">Schoeman Street Gate</option>
-              <option value="CSgate">Church Street Gate</option>
-            </select>
-          </div>
-
-          <!-- Gate point — updated by JS when gate changes -->
-          <div class="form-group">
-            <label>Gate Point</label>
-            <select name="gate_point" id="gatePointSelect"
-                    style="font-size:.95rem;">
-              <!-- populated by JS on load -->
-            </select>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-block"
-                  style="margin-top:8px;">Login</button>
-        </form>
-
-        <script>
-        const gatePoints = <?= json_encode(array_map(
-            fn($pts) => array_map(fn($p) => $p['label'], $pts),
-            GATE_POINTS
-        )) ?>;
-
-        function updateGatePoints(gate) {
-            const sel = document.getElementById('gatePointSelect');
-            sel.innerHTML = '';
-            const pts = gatePoints[gate] || {};
-            Object.entries(pts).forEach(([code, label]) => {
-                const opt = document.createElement('option');
-                opt.value = code;
-                opt.textContent = label;
-                sel.appendChild(opt);
-            });
-        }
-        updateGatePoints('SSgate');
-        </script>
-
-        <?php elseif ($step === 'otp'): ?>
-        <div class="alert alert-info" style="font-size:.88rem;">
-          🔐 <strong>New device detected.</strong><br><br>
-          Enter the <strong>last 6 digits</strong> of your registered
-          phone number.<br>
-          Number on file: <strong><?= htmlspecialchars($maskedPhone) ?></strong>
-        </div>
-        <form method="POST" action="guard.php?action=login">
-          <?= csrfField() ?>
-          <div class="form-group">
-            <label>6-digit OTP</label>
-            <input type="text" name="otp" required autofocus
-                   style="font-size:1.6rem;letter-spacing:0.4em;text-align:center;"
-                   maxlength="6" pattern="\d{6}" inputmode="numeric"
-                   placeholder="_ _ _ _ _ _">
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Verify OTP</button>
-        </form>
-        <a href="guard.php?action=login&cancel=1"
-           style="display:block;text-align:center;margin-top:14px;
-                  font-size:.85rem;color:var(--muted);">
-          ← Cancel and start over
-        </a>
-
-        <?php elseif ($step === 'reset'): ?>
-        <div class="alert alert-success" style="font-size:.88rem;">
-          ✅ Identity verified. Set a new 4-digit PIN for this device.
-        </div>
-        <form method="POST" action="guard.php?action=login">
-          <?= csrfField() ?>
-          <div class="form-group">
-            <label>New 4-digit PIN</label>
-            <input type="password" name="new_password" required autofocus
-                   autocomplete="new-password" minlength="4">
-          </div>
-          <div class="form-group">
-            <label>Confirm PIN</label>
-            <input type="password" name="confirm_password" required
-                   autocomplete="new-password" minlength="4">
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">
-            Save PIN &amp; Login
-          </button>
-        </form>
-        <?php endif; ?>
-
-        <div class="popia-notice">
-          Guard access logged for security audit per POPIA §11.
-        </div>
-      </div>
+  <div class="vcard" id="vcard">
+    <div><span class="vbadge" id="vbadge"></span><span class="dbadge" id="dbadge"></span></div>
+    <div class="vrow"><span class="vlabel">Visitor</span><span class="vval" id="vName"></span></div>
+    <div class="vrow"><span class="vlabel">Plate</span>  <span class="vval" id="vPlate"></span></div>
+    <div class="vrow"><span class="vlabel">ID No.</span> <span class="vval" id="vId"></span></div>
+    <div class="vrow"><span class="vlabel">Date</span>   <span class="vval" id="vDate"></span></div>
+    <div class="vrow"><span class="vlabel">Invited by</span><span class="vval" id="vBy"></span></div>
+    <div class="act-row" id="actRow">
+      <button class="btn-g" onclick="logAccess('granted')">GRANT ACCESS</button>
+      <button class="btn-d" onclick="logAccess('denied')">DENY ENTRY</button>
     </div>
-    <?php pageFooter(); exit; ?>
-<?php } // end login
+    <div class="act-result" id="actResult"></div>
+    <button class="btn-reset" id="scanAgain" style="display:none" onclick="resetScan()">Scan Another</button>
+  </div>
+</div>
 
-// ════════════════════════════════════════════════════════
-// VERIFY — main gate screen
-// ════════════════════════════════════════════════════════
-if ($action === 'verify') {
-    requireGuard();
+<!-- Manual -->
+<div id="manualTab" class="tab-content">
+  <div class="field"><label>Visitor Full Name</label><input type="text" id="manName" placeholder="e.g. John Jones"></div>
+  <div class="field"><label>Licence Plate</label><input type="text" id="manPlate" placeholder="e.g. ABC123GP"></div>
+  <div class="field"><label>Invited by — Resident / Unit <small style="font-weight:400;color:#999">(optional)</small></label><input type="text" id="manBy" placeholder="e.g. John Smith / A12"></div>
+  <div class="man-row">
+    <button class="btn-g" onclick="manAction('granted')">GRANT ACCESS</button>
+    <button class="btn-d" onclick="manAction('denied')">DENY ENTRY</button>
+  </div>
+  <div id="manResult"></div>
+</div>
 
-    $gate       = $_SESSION['guard_gate']       ?? 'SSgate';
-    $gate_point = $_SESSION['guard_gate_point'] ?? '';
-    $guardName  = $_SESSION['guard_name']        ?? '';
-    $guardId    = $_SESSION['guard_id']          ?? 0;
-    $result     = null;
+<!-- Log -->
+<div id="logTab" class="tab-content">
+  <div class="log-hdr">
+    <h3>Access Log</h3>
+    <select class="log-filter" id="logFilter" onchange="loadLog()">
+      <option value="today">Today</option>
+      <option value="all">All entries</option>
+    </select>
+  </div>
+  <table class="log-table">
+    <thead><tr><th>Time</th><th>Visitor</th><th>Plate</th><th>Status</th></tr></thead>
+    <tbody id="logBody"></tbody>
+  </table>
+  <p class="log-count" id="logCount"></p>
+</div>
 
-    // Determine allowed directions for this gate point
-    $gpInfo       = GATE_POINTS[$gate][$gate_point] ?? null;
-    $allowedDirs  = $gpInfo ? $gpInfo['directions'] : ['ENTRY', 'EXIT'];
-    $defaultDir   = count($allowedDirs) === 1
-                    ? $allowedDirs[0]
-                    : ($_POST['direction'] ?? $_GET['dir'] ?? 'ENTRY');
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+  const CSRF    = <?= json_encode($csrf) ?>;
+  const today   = new Date().toISOString().split('T')[0];
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-ZA',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST'
-        && isset($_POST['verify_input'], $_POST['direction'])) {
+  let stream=null, scanning=false, currentVisitor=null;
+  const video=document.getElementById('video'), canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
 
-        $direction = strtoupper(trim($_POST['direction']));
-        if (!in_array($direction, ['ENTRY', 'EXIT'])) $direction = 'ENTRY';
-        // Enforce gate-point direction restrictions
-        if (!empty($allowedDirs) && !in_array($direction, $allowedDirs)) {
-            $direction = $allowedDirs[0];
-        }
+  function sw(tab){
+    ['scan','manual','log'].forEach((t,i)=>{
+      document.querySelectorAll('.tab-btn')[i].classList.toggle('active',t===tab);
+      document.getElementById(t+'Tab').classList.toggle('active',t===tab);
+    });
+    if(tab==='log') loadLog();
+    if(tab!=='scan') stopScan();
+  }
 
-        $type  = $_POST['verify_type'] ?? '';
-        $input = strtoupper(trim($_POST['verify_input'] ?? ''));
-        $now   = new DateTime('now', new DateTimeZone('Africa/Johannesburg'));
-        $today = $now->format('Y-m-d');
-        $time  = $now->format('H:i:s');
-        $dow   = $now->format('D'); // Mon Tue Wed Thu Fri Sat Sun
-
-        // ── Helper: find open ENTRY event_id for exit matching ──
-        $findEntryRef = function(string $codeOrPlate, string $codeType)
-                        use ($gate) : ?string {
-            // Look for most recent unmatched ENTRY in last 24h
-            $stmt = db()->prepare("
-                SELECT event_id FROM access_log
-                WHERE (qr_code = ? OR plate = ?)
-                  AND direction = 'ENTRY'
-                  AND granted   = 1
-                  AND entry_ref IS NULL
-                  AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-                ORDER BY created_at DESC LIMIT 1
-            ");
-            $stmt->execute([$codeOrPlate, $codeOrPlate]);
-            $row = $stmt->fetch();
-            return $row ? $row['event_id'] : null;
-        };
-
-        // ────────────────────────────────────────────────
-        // VISITOR  (code prefix 3)
-        // ────────────────────────────────────────────────
-        if ($type === 'qr') {
-            $stmt = db()->prepare("
-                SELECT * FROM visitors
-                WHERE code = ? AND status = 'active' AND expired = 0
-                  AND ? BETWEEN visit_date
-                           AND COALESCE(visit_date_to, visit_date)
-            ");
-            $stmt->execute([$input, $today]);
-            $vis = $stmt->fetch();
-
-            if ($vis) {
-                $entryRef = null;
-                if ($direction === 'EXIT') {
-                    $entryRef = $findEntryRef($input, 'qr');
-                    // EXIT without a prior ENTRY still allowed — log it
-                }
-                $result = [
-                    'granted'  => true,
-                    'type'     => 'Visitor',
-                    'name'     => $vis['visitor_name'],
-                    'detail'   => 'Visiting ' . $vis['resident_name'],
-                    'direction'=> $direction,
-                ];
-                logAccess(
-                    'visitor', $vis['visitor_name'], $gate, $gate_point,
-                    $direction, $vis['plate'] ?? null, $input,
-                    $guardId, $guardName, null, $entryRef
-                );
-                $resPhone = getResidentEmailByErf($vis['resident_erfno'] ?? '');
-                if ($resPhone) {
-                    $gpLabel = GATE_POINTS[$gate][$gate_point]['label'] ?? $gate_point;
-                    if ($direction === 'EXIT') {
-                        notifyResidentExit($resPhone, $vis['visitor_name'], 'visitor', $gpLabel);
-                    } else {
-                        notifyResidentEntry($resPhone, $vis['visitor_name'], 'visitor', $gpLabel);
-                    }
-                }
-            } else {
-                // Check if exists but wrong date
-                $anyVis = db()->prepare(
-                    "SELECT visit_date, visit_date_to, status, expired
-                     FROM visitors WHERE code=? LIMIT 1"
-                );
-                $anyVis->execute([$input]);
-                $anyVis = $anyVis->fetch();
-                $reason = 'QR code not found.';
-                if ($anyVis) {
-                    if ($anyVis['expired'])          $reason = 'Pass already expired.';
-                    elseif ($anyVis['status'] !== 'active') $reason = 'Pass is not active.';
-                    else $reason = "Pass valid " . $anyVis['visit_date']
-                                 . ($anyVis['visit_date_to'] ? " – " . $anyVis['visit_date_to'] : '')
-                                 . ". Today: {$today}.";
-                }
-                $result = [
-                    'granted'  => false,
-                    'type'     => 'Visitor',
-                    'name'     => $input,
-                    'detail'   => $reason,
-                    'direction'=> $direction,
-                ];
-                logAccess('visitor', $input, $gate, $gate_point,
-                    $direction, null, $input,
-                    $guardId, $guardName, $reason, null);
-            }
-
-        // ────────────────────────────────────────────────
-        // SERVICE PROVIDER  (code prefix 7)
-        // ────────────────────────────────────────────────
-        } elseif ($type === 'sp') {
-            $stmt = db()->prepare("
-                SELECT * FROM service_providers
-                WHERE unique_code = ?
-                  AND (approved = 'true' OR approved = 1)
-                  AND expired = 0
-                  AND ? BETWEEN start_date AND end_date
-            ");
-            $stmt->execute([$input, $today]);
-            $sp = $stmt->fetch();
-
-            if ($sp) {
-                // ── Day check ────────────────────────────
-                $accessDays  = array_map('trim', explode(',', $sp['access_days'] ?? ''));
-                $dayOk       = empty($accessDays) || in_array($dow, $accessDays, true);
-
-                // ── Time check ───────────────────────────
-                $startTime = substr($sp['access_start'] ?? '07:00:00', 0, 8);
-                $endTime   = substr($sp['access_end']   ?? '17:00:00', 0, 8);
-                $timeOk    = ($time >= $startTime && $time <= $endTime);
-
-                if ($dayOk && $timeOk) {
-                    $entryRef = ($direction === 'EXIT')
-                                ? $findEntryRef($input, 'sp') : null;
-                    $result = [
-                        'granted'  => true,
-                        'type'     => 'Service Provider',
-                        'name'     => $sp['service_name'],
-                        'detail'   => ($sp['company_name'] ? $sp['company_name'] . ' — ' : '')
-                                    . 'Erf ' . ($sp['resident_erfno'] ?? 'Estate'),
-                        'direction'=> $direction,
-                    ];
-                    logAccess(
-                        'service_provider', $sp['service_name'],
-                        $gate, $gate_point, $direction,
-                        null, $input, $guardId, $guardName, null, $entryRef
-                    );
-                    $resPhone = getResidentEmailByErf($sp['resident_erfno'] ?? '');
-                    if ($resPhone) {
-                        $gpLabel = GATE_POINTS[$gate][$gate_point]['label'] ?? $gate_point;
-                        if ($direction === 'EXIT') {
-                            notifyResidentExit($resPhone, $sp['service_name'], 'service_provider', $gpLabel);
-                        } else {
-                            notifyResidentEntry($resPhone, $sp['service_name'], 'service_provider', $gpLabel);
-                        }
-                    }
-                } else {
-                    $reason = !$dayOk
-                        ? "Access not permitted on {$dow}. Allowed: {$sp['access_days']}."
-                        : "Access not permitted at {$now->format('H:i')}. Allowed: "
-                          . substr($startTime,0,5) . "–" . substr($endTime,0,5) . ".";
-                    $result = [
-                        'granted'  => false,
-                        'type'     => 'Service Provider',
-                        'name'     => $sp['service_name'],
-                        'detail'   => $reason,
-                        'direction'=> $direction,
-                    ];
-                    logAccess(
-                        'service_provider', $sp['service_name'],
-                        $gate, $gate_point, $direction,
-                        null, $input, $guardId, $guardName, $reason, null
-                    );
-                }
-            } else {
-                // SP not found or not approved
-                $anySp = db()->prepare(
-                    "SELECT approved, expired, start_date, end_date
-                     FROM service_providers WHERE unique_code=? LIMIT 1"
-                );
-                $anySp->execute([$input]);
-                $anySp = $anySp->fetch();
-                $reason = 'Code not found.';
-                if ($anySp) {
-                    if ($anySp['expired'])
-                        $reason = 'Permit expired.';
-                    elseif ($anySp['approved'] !== 'true' && $anySp['approved'] != 1)
-                        $reason = 'Permit not yet approved by Security.';
-                    else
-                        $reason = "Permit valid {$anySp['start_date']} – {$anySp['end_date']}. Today: {$today}.";
-                }
-                $result = [
-                    'granted'  => false,
-                    'type'     => 'Service Provider',
-                    'name'     => $input,
-                    'detail'   => $reason,
-                    'direction'=> $direction,
-                ];
-                logAccess('service_provider', $input, $gate, $gate_point,
-                    $direction, null, $input,
-                    $guardId, $guardName, $reason, null);
-            }
-
-        // ────────────────────────────────────────────────
-        // RESIDENT  (plate lookup — always permitted)
-        // ────────────────────────────────────────────────
-        } elseif ($type === 'plate') {
-            $stmt = db()->prepare("
-                SELECT rv.plate, r.resident_name, r.resident_erfno, r.address
-                FROM resident_vehicles rv
-                JOIN residents r ON r.id = rv.resident_id
-                WHERE rv.plate = ? AND rv.active = 1 AND r.status = 'active'
-            ");
-            $stmt->execute([$input]);
-            $row = $stmt->fetch();
-
-            if ($row) {
-                $entryRef = ($direction === 'EXIT')
-                            ? $findEntryRef($input, 'plate') : null;
-                $result = [
-                    'granted'  => true,
-                    'type'     => 'Resident',
-                    'name'     => $row['resident_name'],
-                    'detail'   => 'Erf ' . $row['resident_erfno'] . ' — ' . $row['address'],
-                    'direction'=> $direction,
-                ];
-                logAccess(
-                    'resident', $row['resident_name'],
-                    $gate, $gate_point, $direction,
-                    $input, null, $guardId, $guardName, null, $entryRef
-                );
-            } else {
-                $reason = 'Plate not registered.';
-                $result = [
-                    'granted'  => false,
-                    'type'     => 'Unknown vehicle',
-                    'name'     => $input,
-                    'detail'   => $reason,
-                    'direction'=> $direction,
-                ];
-                logAccess('unknown', $input, $gate, $gate_point,
-                    $direction, $input, null,
-                    $guardId, $guardName, $reason, null);
-            }
-        }
-    } // end POST
-
-    // ── Recent log (last 15 events at this gate point) ────
-    $recentLogs = db()->prepare(
-        "SELECT * FROM access_log
-         WHERE gate = ?
-         ORDER BY created_at DESC LIMIT 15"
-    );
-
-    $recentLogs->execute([$gate]);
-    $recentLogs = $recentLogs->fetchAll();
-
-    // ── On-estate count (unmatched entries) ───────────────
-    try {
-        $onEstate = db()->query(
-            "SELECT COUNT(*) FROM access_log
-             WHERE direction = 'ENTRY' AND granted = 1
-               AND entry_ref IS NULL
-               AND created_at >= CURDATE()"
-        )->fetchColumn();
-    } catch (Exception $e) {
-        $onEstate = '—';
+  async function startScan(){
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+      video.srcObject=stream; await video.play();
+      scanning=true; video.style.display='block';
+      document.getElementById('scanPH').style.display='none';
+      document.getElementById('scanOverlay').classList.add('on');
+      document.getElementById('startBtn').style.display='none';
+      document.getElementById('stopBtn').style.display='block';
+      document.getElementById('qrErr').style.display='none';
+      requestAnimationFrame(scanFrame);
+    }catch(e){
+      document.getElementById('qrErr').textContent='Camera access denied. Use Manual tab.';
+      document.getElementById('qrErr').style.display='block';
     }
+  }
 
-    $gpLabel = GATE_POINTS[$gate][$gate_point]['label'] ?? $gate_point;
+  function stopScan(){
+    scanning=false;
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    video.srcObject=null; video.style.display='none';
+    document.getElementById('scanPH').style.display='block';
+    document.getElementById('scanOverlay').classList.remove('on');
+    document.getElementById('startBtn').style.display='block';
+    document.getElementById('stopBtn').style.display='none';
+  }
 
-    pageHeader('Gate — ' . $gpLabel, 'guard');
-    renderHeader('🔐 ' . $gpLabel . ' — ' . $guardName, 'logout.php');
-    ?>
-    <div class="container">
-      <?= getFlash() ?>
+  function scanFrame(){
+    if(!scanning)return;
+    if(video.readyState<video.HAVE_ENOUGH_DATA){requestAnimationFrame(scanFrame);return;}
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    ctx.drawImage(video,0,0);
+    const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+    if(code){stopScan(); verifyQR(code.data);}
+    else requestAnimationFrame(scanFrame);
+  }
 
-      <?php if ($result): ?>
-      <?php
-        $dirIcon = $result['direction'] === 'EXIT' ? '⬆️' : '⬇️';
-        $dirWord = $result['direction'];
-        $okColor = $result['granted'] ? '#28a745' : '#dc3545';
-        $okIcon  = $result['granted'] ? '✅' : '⛔';
-        $okWord  = $result['granted'] ? 'GRANTED' : 'DENIED';
-      ?>
-      <div class="card" style="border-left:5px solid <?= $okColor ?>;
-                               margin-bottom:18px;">
-        <div style="text-align:center;font-size:2.2rem;margin-bottom:6px;">
-          <?= $okIcon ?> <?= $dirIcon ?>
-        </div>
-        <div style="text-align:center;font-size:1.2rem;font-weight:700;
-                    color:<?= $okColor ?>;">
-          <?= $dirWord ?> <?= $okWord ?> — <?= htmlspecialchars($result['type']) ?>
-        </div>
-        <div style="text-align:center;font-size:1rem;margin-top:6px;">
-          <?= htmlspecialchars($result['name']) ?>
-        </div>
-        <div style="text-align:center;font-size:.85rem;color:#666;margin-top:4px;">
-          <?= htmlspecialchars($result['detail']) ?>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <!-- On-estate counter -->
-      <div class="card" style="display:flex;justify-content:space-between;
-                                align-items:center;padding:12px 18px;
-                                margin-bottom:14px;">
-        <div style="font-size:.85rem;color:#666;">On estate today</div>
-        <div style="font-size:1.4rem;font-weight:700;
-                    color:var(--accent);"><?= $onEstate ?></div>
-      </div>
-
-      <!-- ═══ DIRECTION TOGGLE ═══ -->
-      <?php
-        // Only show toggle if gate point allows both directions
-        $showToggle = count($allowedDirs) > 1;
-        $activeDir  = $_POST['direction'] ?? $defaultDir;
-      ?>
-      <?php if ($showToggle): ?>
-      <div style="display:flex;gap:0;margin-bottom:16px;border-radius:8px;
-                  overflow:hidden;border:2px solid var(--accent);">
-        <a href="?action=verify&dir=ENTRY"
-           style="flex:1;padding:12px;text-align:center;font-weight:700;
-                  font-size:1rem;text-decoration:none;
-                  background:<?= $activeDir==='ENTRY' ? 'var(--accent)' : '#fff' ?>;
-                  color:<?= $activeDir==='ENTRY' ? '#fff' : 'var(--accent)' ?>;">
-          ⬇️ ENTRY
-        </a>
-        <a href="?action=verify&dir=EXIT"
-           style="flex:1;padding:12px;text-align:center;font-weight:700;
-                  font-size:1rem;text-decoration:none;
-                  background:<?= $activeDir==='EXIT' ? 'var(--accent)' : '#fff' ?>;
-                  color:<?= $activeDir==='EXIT' ? '#fff' : 'var(--accent)' ?>;">
-          ⬆️ EXIT
-        </a>
-      </div>
-      <?php else: ?>
-      <!-- Fixed direction gate — show label only -->
-      <div style="background:var(--accent);color:#fff;padding:10px 16px;
-                  border-radius:8px;text-align:center;font-weight:700;
-                  margin-bottom:16px;font-size:1rem;">
-        <?= $allowedDirs[0] === 'EXIT' ? '⬆️ EXIT GATE' : '⬇️ ENTRY GATE' ?>
-      </div>
-      <?php endif; ?>
-
-      <!-- Current direction hidden field — shared by all forms below -->
-      <?php $curDir = $showToggle ? $activeDir : $allowedDirs[0]; ?>
-
-      <!-- ── Visitor QR (3XXXXX) ───────────────────────── -->
-      <div class="card">
-        <div class="card-title">📱 Visitor Pass (3XXXXX)</div>
-        <form method="POST" style="display:flex;gap:8px;">
-          <?= csrfField() ?>
-          <input type="hidden" name="verify_type"  value="qr">
-          <input type="hidden" name="direction"    value="<?= $curDir ?>">
-          <div class="form-group" style="flex:1;margin:0;">
-            <input type="text" name="verify_input"
-                   placeholder="3XXXXX — scan or type"
-                   style="text-transform:uppercase;font-family:monospace;
-                          font-size:1.1rem;letter-spacing:0.1em;"
-                   autocomplete="off" inputmode="numeric" maxlength="6"
-                   autofocus>
-          </div>
-          <button type="submit" class="btn btn-success">Verify</button>
-        </form>
-      </div>
-
-      <!-- ── Service Provider QR (7XXXXX) ─────────────── -->
-      <div class="card">
-        <div class="card-title">🔧 Service Provider (7XXXXX)</div>
-        <form method="POST" style="display:flex;gap:8px;">
-          <?= csrfField() ?>
-          <input type="hidden" name="verify_type" value="sp">
-          <input type="hidden" name="direction"   value="<?= $curDir ?>">
-          <div class="form-group" style="flex:1;margin:0;">
-            <input type="text" name="verify_input"
-                   placeholder="7XXXXX — scan or type"
-                   style="text-transform:uppercase;font-family:monospace;
-                          font-size:1.1rem;letter-spacing:0.1em;"
-                   autocomplete="off" inputmode="numeric" maxlength="6">
-          </div>
-          <button type="submit" class="btn btn-primary"
-                  style="background:#8e44ad;">Verify</button>
-        </form>
-      </div>
-
-      <!-- ── Resident plate ────────────────────────────── -->
-      <div class="card">
-        <div class="card-title">🚗 Resident Vehicle Plate</div>
-        <form method="POST" style="display:flex;gap:8px;">
-          <?= csrfField() ?>
-          <input type="hidden" name="verify_type" value="plate">
-          <input type="hidden" name="direction"   value="<?= $curDir ?>">
-          <div class="form-group" style="flex:1;margin:0;">
-            <input type="text" name="verify_input"
-                   placeholder="e.g. CBS 10009"
-                   style="text-transform:uppercase;"
-                   autocomplete="off">
-          </div>
-          <button type="submit" class="btn btn-primary">Check</button>
-        </form>
-      </div>
-
-      <!-- ── Recent events ─────────────────────────────── -->
-      <?php if (!empty($recentLogs)): ?>
-      <div class="card">
-        <div class="card-title">📋 Last 15 Events — <?= htmlspecialchars($gate) ?></div>
-        <div class="table-wrap"><table>
-          <tr>
-            <th>Time</th>
-            <th>Dir</th>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Gate Point</th>
-            <th>Result</th>
-          </tr>
-          <?php foreach ($recentLogs as $l): ?>
-          <tr>
-            <td style="white-space:nowrap;font-size:.82rem;">
-              <?= date('H:i', strtotime($l['created_at'])) ?>
-            </td>
-            <td>
-              <span style="font-weight:700;color:<?=
-                ($l['direction']??'ENTRY')==='EXIT' ? '#8e44ad' : '#1565c0'
-              ?>;">
-                <?= ($l['direction']??'ENTRY')==='EXIT' ? '⬆️' : '⬇️' ?>
-                <?= htmlspecialchars($l['direction'] ?? 'ENTRY') ?>
-              </span>
-            </td>
-            <td style="font-size:.82rem;">
-              <?= htmlspecialchars($l['entry_type'] ?? '') ?>
-            </td>
-            <td style="font-size:.82rem;">
-              <?= htmlspecialchars(
-                $l['person_name'] ?? $l['visitor_name'] ?? $l['plate'] ?? '—'
-              ) ?>
-            </td>
-            <td style="font-size:.78rem;color:#888;">
-              <?= htmlspecialchars($l['gate_point'] ?? '') ?>
-            </td>
-            <td>
-              <span class="badge badge-<?=
-                ($l['granted'] ?? (empty($l['deny_reason']) ? 1 : 0))
-                ? 'success' : 'danger'
-              ?>">
-                <?= ($l['granted'] ?? (empty($l['deny_reason']) ? 1 : 0))
-                    ? 'OK' : 'DENIED' ?>
-              </span>
-            </td>
-          </tr>
-          <?php endforeach; ?>
-        </table></div>
-      </div>
-      <?php endif; ?>
-
-      <!-- Change gate point without logging out -->
-      <div class="card" style="padding:12px 16px;">
-        <form method="POST" action="guard.php?action=change_point"
-              style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <?= csrfField() ?>
-          <label style="font-size:.85rem;color:#666;white-space:nowrap;">
-            Change gate point:
-          </label>
-          <select name="gate_point" style="flex:1;padding:6px 10px;
-                  border:1px solid #dee2e6;border-radius:6px;">
-            <?php foreach (GATE_POINTS[$gate] as $code => $info): ?>
-            <option value="<?= $code ?>"
-              <?= $code === $gate_point ? 'selected' : '' ?>>
-              <?= htmlspecialchars($info['label']) ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
-          <button type="submit" class="btn btn-secondary btn-sm">Switch</button>
-        </form>
-      </div>
-
-    </div>
-
-    <!-- ═══ QR CAMERA SCANNER OVERLAY ═══════════════════════════ -->
-    <!-- Uses jsQR — no app install needed, works in mobile browser -->
-    <div id="scanner-overlay"
-         style="display:none;position:fixed;inset:0;background:#000;z-index:999;
-                flex-direction:column;align-items:center;justify-content:center;">
-      <div style="color:#fff;font-size:1rem;margin-bottom:12px;">
-        📷 Point camera at QR code…
-      </div>
-      <video id="qr-video"
-             style="width:100%;max-width:480px;border-radius:12px;"
-             playsinline></video>
-      <canvas id="qr-canvas" style="display:none;"></canvas>
-      <div id="qr-status"
-           style="color:#ffdd00;margin-top:12px;font-size:.9rem;min-height:1.2em;"></div>
-      <button onclick="stopQrScan()"
-              style="margin-top:16px;padding:14px 32px;background:#ffdd00;color:#000;
-                     border:none;border-radius:10px;font-size:1rem;
-                     font-weight:800;cursor:pointer;">
-        ✕ Cancel
-      </button>
-    </div>
-
-    <!-- Floating scan button (fixed bottom-right, always visible) -->
-    <button onclick="startQrScan()"
-            style="position:fixed;bottom:24px;right:20px;
-                   width:64px;height:64px;border-radius:50%;
-                   background:var(--accent);color:#fff;border:none;
-                   font-size:1.6rem;cursor:pointer;
-                   box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:100;"
-            title="Scan QR code">
-      📷
-    </button>
-
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script>
-    let qrStream  = null;
-    let qrLoop    = null;
-    let curDir    = '<?= htmlspecialchars($curDir) ?>';
-
-    function startQrScan() {
-        const overlay = document.getElementById('scanner-overlay');
-        const video   = document.getElementById('qr-video');
-        const canvas  = document.getElementById('qr-canvas');
-        const status  = document.getElementById('qr-status');
-        const ctx     = canvas.getContext('2d');
-
-        overlay.style.display = 'flex';
-        status.textContent    = 'Starting camera…';
-
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(s => {
-                qrStream       = s;
-                video.srcObject = s;
-                video.play();
-                status.textContent = 'Scanning…';
-
-                qrLoop = setInterval(() => {
-                    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-                    canvas.width  = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const qr  = jsQR(img.data, img.width, img.height);
-                    if (qr && qr.data) {
-                        stopQrScan();
-                        handleScannedCode(qr.data);
-                    }
-                }, 200);
-            })
-            .catch(err => {
-                stopQrScan();
-                alert('Camera error: ' + err.message
-                    + '\nYou can type the code manually instead.');
-            });
+  async function verifyQR(raw){
+    try{
+      const res=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'verify_qr',csrf:CSRF,qr:raw})});
+      const data=await res.json();
+      if(!data.ok){
+        document.getElementById('qrErr').textContent=data.error||'Unrecognised QR code.';
+        document.getElementById('qrErr').style.display='block'; return;
+      }
+      currentVisitor={...data.visitor, verifyState:data.verifyState, dateState:data.dateState};
+      showCard(data.visitor, data.verifyState, data.dateState);
+    }catch(e){
+      document.getElementById('qrErr').textContent='Server error. Try again.';
+      document.getElementById('qrErr').style.display='block';
     }
+  }
 
-    function stopQrScan() {
-        clearInterval(qrLoop);
-        if (qrStream) {
-            qrStream.getTracks().forEach(t => t.stop());
-            qrStream = null;
-        }
-        document.getElementById('scanner-overlay').style.display = 'none';
-    }
+  function maskId(id){if(!id||id.length<4)return id||'N/A'; return '*'.repeat(id.length-4)+id.slice(-4);}
+  function fmtDate(d){if(!d)return 'Not specified'; return new Date(d+'T00:00:00').toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
 
-    function handleScannedCode(raw) {
-        // QR payload may be a full URL or a raw 6-digit code
-        let code = raw.trim();
-        try {
-            const url = new URL(raw);
-            code = url.searchParams.get('code') || code;
-        } catch(e) { /* not a URL — use raw */ }
+  function showCard(v, vs, ds){
+    const vbMap={verified:['vb-verified','SIGNATURE VERIFIED'],invalid:['vb-invalid','INVALID SIGNATURE'],unsigned:['vb-unsigned','UNSIGNED — VERIFY MANUALLY'],'no-secret':['vb-nosec','UNVERIFIED']};
+    const [vc,vt]=vbMap[vs]||['vb-nosec','UNVERIFIED'];
+    document.getElementById('vbadge').className='vbadge '+vc;
+    document.getElementById('vbadge').textContent=vt;
 
-        // Strip non-digits
-        code = code.replace(/\D/g, '').toUpperCase();
+    const dbMap={today:['db-today','Valid today'],future:['db-future','Future date — not valid today'],expired:['db-expired','EXPIRED'],none:['db-none','Date not specified']};
+    const [dc,dt]=dbMap[ds]||['db-none',''];
+    document.getElementById('dbadge').className='dbadge '+dc;
+    document.getElementById('dbadge').textContent=dt;
 
-        if (!/^\d{6}$/.test(code)) {
-            alert('Unrecognised QR code: ' + raw);
-            return;
-        }
+    document.getElementById('vcard').className='vcard '+(vs==='verified'?'verified':vs==='invalid'?'invalid':'unsigned');
+    document.getElementById('vName').textContent =v.name||'N/A';
+    document.getElementById('vPlate').textContent=v.plate||'N/A';
+    document.getElementById('vId').textContent   =maskId(v.id);
+    document.getElementById('vDate').textContent =fmtDate(v.date);
+    document.getElementById('vBy').textContent   =[v.byN,v.unit].filter(Boolean).join(' — Unit ')||'Unknown';
 
-        const prefix = code[0];
-        let type     = '';
-        if (prefix === '3')      type = 'qr';   // visitor
-        else if (prefix === '7') type = 'sp';   // service provider
-        else {
-            alert('Unknown code type: ' + code
-                + '\nVisitor codes start with 3, SP codes with 7.');
-            return;
-        }
+    document.getElementById('vcard').style.display='block';
+    document.getElementById('actResult').style.display='none';
+    document.getElementById('scanAgain').style.display='none';
+    document.getElementById('actRow').style.display='flex';
+  }
 
-        // Auto-submit via a hidden form so the full server-side
-        // validation, logging, and result display runs normally
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'guard.php?action=verify&dir=' + encodeURIComponent(curDir);
+  async function logAccess(action){
+    if(!currentVisitor)return;
+    const body={action:'log_access',csrf:CSRF,name:currentVisitor.name,plate:currentVisitor.plate,
+      idnum:currentVisitor.id,date:currentVisitor.date||today,byN:currentVisitor.byN||'',
+      unit:currentVisitor.unit||'',action:action,source:'qr',verifyState:currentVisitor.verifyState,invId:currentVisitor.invId||null};
+    await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 
-        const fields = {
-            verify_type:  type,
-            verify_input: code,
-            direction:    curDir,
-            csrf_token:   '<?= htmlspecialchars(generateCsrfToken()) ?>',
-        };
-        Object.entries(fields).forEach(([k, v]) => {
-            const inp = document.createElement('input');
-            inp.type  = 'hidden';
-            inp.name  = k;
-            inp.value = v;
-            form.appendChild(inp);
-        });
-        document.body.appendChild(form);
-        form.submit();
-    }
-    </script>
+    const r=document.getElementById('actResult');
+    r.textContent=action==='granted'?'ACCESS GRANTED — Entry recorded':'ENTRY DENIED — Record logged';
+    r.className='act-result '+action; r.style.display='block';
+    document.getElementById('actRow').style.display='none';
+    document.getElementById('scanAgain').style.display='block';
+  }
 
-    <?php pageFooter(); exit; ?>
-<?php } // end verify
+  function resetScan(){
+    currentVisitor=null;
+    document.getElementById('vcard').style.display='none';
+    document.getElementById('actResult').style.display='none';
+    document.getElementById('scanAgain').style.display='none';
+    document.getElementById('actRow').style.display='flex';
+    document.getElementById('qrErr').style.display='none';
+  }
 
-// ════════════════════════════════════════════════════════
-// CHANGE GATE POINT — without logging out
-// ════════════════════════════════════════════════════════
-if ($action === 'change_point') {
-    requireGuard();
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        verifyCsrfToken();
-        $gate       = $_SESSION['guard_gate'] ?? 'SSgate';
-        $gate_point = $_POST['gate_point']    ?? '';
-        $validPts   = array_keys(GATE_POINTS[$gate] ?? []);
-        if (in_array($gate_point, $validPts)) {
-            $_SESSION['guard_gate_point'] = $gate_point;
-            db()->prepare(
-                "UPDATE guards SET gate_point=? WHERE id=?"
-            )->execute([$gate_point, $_SESSION['guard_id']]);
-            setFlash('success', 'Gate point updated to: '
-                . (GATE_POINTS[$gate][$gate_point]['label'] ?? $gate_point));
-        }
-    }
-    header('Location: guard.php?action=verify'); exit;
-}
+  async function manAction(action){
+    const name =document.getElementById('manName').value.trim();
+    const plate=document.getElementById('manPlate').value.trim().toUpperCase();
+    const by   =document.getElementById('manBy').value.trim();
+    if(!name||!plate){alert('Enter Visitor Name and Plate.');return;}
 
-// ════════════════════════════════════════════════════════
-// RESET PIN (when already logged in)
-// ════════════════════════════════════════════════════════
-if ($action === 'reset') {
-    requireGuard();
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        verifyCsrfToken();
-        $new = trim($_POST['new_password']     ?? '');
-        $con = trim($_POST['confirm_password'] ?? '');
-        if (strlen($new) < 4)  { setFlash('error', 'PIN must be at least 4 digits.'); }
-        elseif ($new !== $con) { setFlash('error', 'PINs do not match.'); }
-        else {
-            db()->prepare("UPDATE guards SET pin=? WHERE id=?")
-                ->execute([password_hash($new, PASSWORD_BCRYPT),
-                           $_SESSION['guard_id']]);
-            setFlash('success', 'PIN updated.');
-            header('Location: guard.php?action=verify'); exit;
-        }
-    }
-    pageHeader('Change PIN', 'guard');
-    renderHeader('🔑 Change PIN', 'guard.php?action=verify');
-    ?>
-    <div class="container" style="max-width:420px;">
-      <div class="card">
-        <?= getFlash() ?>
-        <form method="POST">
-          <?= csrfField() ?>
-          <div class="form-group">
-            <label>New 4-digit PIN</label>
-            <input type="password" name="new_password" required
-                   inputmode="numeric" maxlength="4" pattern="\d{4}"
-                   style="font-size:1.6rem;letter-spacing:0.4em;text-align:center;">
-          </div>
-          <div class="form-group">
-            <label>Confirm</label>
-            <input type="password" name="confirm_password" required
-                   inputmode="numeric" maxlength="4" pattern="\d{4}"
-                   style="font-size:1.6rem;letter-spacing:0.4em;text-align:center;">
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Update</button>
-        </form>
-      </div>
-    </div>
-    <?php pageFooter(); exit; ?>
-<?php } // end reset
+    await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'log_access',csrf:CSRF,name,plate,idnum:'',date:today,byN:by||'Manual entry',unit:'',action,source:'manual',verifyState:'manual',invId:null})});
 
-header('Location: guard.php?action=verify'); exit;
+    const r=document.getElementById('manResult');
+    r.textContent=(action==='granted'?'ACCESS GRANTED':'ENTRY DENIED')+' — '+name+' ('+plate+')';
+    r.className=action; r.style.display='block';
+    document.getElementById('manName').value=document.getElementById('manPlate').value=document.getElementById('manBy').value='';
+    setTimeout(()=>r.style.display='none',4000);
+  }
 
-// ════════════════════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════════════════════
-function guardGrantAccess(array $guard, string $gate,
-                          string $gate_point): void {
-    session_regenerate_id(true);
-    $_SESSION['guard_id']         = $guard['id'];
-    $_SESSION['guard_name']       = $guard['name'];
-    $_SESSION['guard_gate']       = $gate;
-    $_SESSION['guard_gate_point'] = $gate_point;
-    $_SESSION['last_activity']    = time();
-    unset($_SESSION['guard_login_step'],
-          $_SESSION['guard_pending_id'],
-          $_SESSION['guard_pending_gate'],
-          $_SESSION['guard_pending_gp'],
-          $_SESSION['guard_pending_phone']);
-    $redirect = $_SESSION['after_qr'] ?? '';
-    unset($_SESSION['after_qr']);
-    header('Location: ' . ($redirect ?: 'guard.php?action=verify'));
-}
+  async function loadLog(){
+    const filter=document.getElementById('logFilter').value;
+    const date  =filter==='today'?today:'';
+    const url   ='api.php?action_get=log'+(date?'&date='+date:'');
+    // Use POST for consistency
+    const res=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'log_access_get',csrf:CSRF,date,filter})});
+    // Note: we use a direct DB query on this page for simplicity (guard session verified by PHP)
+    // Reload log via inline approach below
+    loadLogDirect(date);
+  }
 
-function logAccess(
-    string  $type,
-    string  $name,
-    string  $gate,
-    string  $gate_point,
-    string  $direction,
-    ?string $plate,
-    ?string $qr,
-    int     $guardId,
-    string  $guardName,
-    ?string $denyReason,
-    ?string $entryRef
-): void {
-    try {
-        $eventId = generateEventId();
-        $granted = ($denyReason === null || $denyReason === '') ? 1 : 0;
+  async function loadLogDirect(date){
+    // Fetch entries via dedicated action
+    const res=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'get_log_guard',csrf:CSRF,date})});
+    // Fallback: handle via separate endpoint
+    fetchLog(date);
+  }
 
-        db()->prepare("
-            INSERT INTO access_log
-              (event_id, gate, gate_point, direction,
-               entry_type, person_name,
-               plate, qr_code,
-               guard_id, guard_name,
-               deny_reason, granted,
-               entry_ref, created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
-        ")->execute([
-            $eventId, $gate, $gate_point, $direction,
-            $type, $name,
-            $plate, $qr,
-            $guardId, $guardName,
-            $denyReason ?: null, $granted,
-            $entryRef,
-        ]);
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+<?php
+// Inline log fetch (guard page — server-side render avoids extra round-trip)
+// Accessed via AJAX from guard.php JS
+?>
+<script>
+  async function fetchLog(date){
+    try{
+      const params=new URLSearchParams({action:'get_log',date:date||''});
+      const res=await fetch('log_data.php?'+params);
+      const data=await res.json();
+      renderLog(data.entries||[]);
+    }catch(e){ document.getElementById('logBody').innerHTML='<tr><td colspan="4" class="empty-log">Error loading log.</td></tr>'; }
+  }
 
-        // If this is an EXIT, close the matching ENTRY record
-        if ($entryRef && $granted) {
-            db()->prepare(
-                "UPDATE access_log
-                 SET entry_ref = ?
-                 WHERE event_id = ? AND direction = 'ENTRY'"
-            )->execute([$eventId, $entryRef]);
-        }
-    } catch (Exception $e) {
-        error_log('MBGE logAccess error: ' . $e->getMessage());
-    }
-}
+  function renderLog(entries){
+    const tbody=document.getElementById('logBody');
+    tbody.innerHTML='';
+    if(!entries.length){ tbody.innerHTML='<tr><td colspan="4" class="empty-log">No entries found</td></tr>'; document.getElementById('logCount').textContent=''; return; }
+    entries.forEach(e=>{
+      const t=new Date(e.logged_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+      const src=e.source==='manual'?' <span class="badge manual">manual</span>':'';
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+t+'</td><td>'+esc(e.visitor_name)+(e.invited_by_name&&e.invited_by_name!=='Manual entry'?'<br><small style="color:#999">'+esc(e.invited_by_name)+'</small>':'')+'</td><td>'+esc(e.plate)+'</td><td><span class="badge '+e.action+'">'+(e.action==='granted'?'GRANTED':'DENIED')+'</span>'+src+'</td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('logCount').textContent=entries.length+' entr'+(entries.length===1?'y':'ies');
+  }
 
-function getResidentEmailByErf(string $erf): string {
-    if (!$erf) return '';
-    try {
-        $stmt = db()->prepare(
-            "SELECT email FROM residents
-             WHERE UPPER(resident_erfno) = UPPER(?) AND is_primary = 1
-             LIMIT 1"
-        );
-        $stmt->execute([$erf]);
-        return (string)($stmt->fetchColumn() ?: '');
-    } catch (Exception $e) {
-        return '';
-    }
-}
+  // Initial log load
+  fetchLog(today);
+</script>
+</body>
+</html>

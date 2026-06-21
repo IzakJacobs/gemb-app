@@ -41,6 +41,10 @@ if ($action === 'login') {
         $error = 'Incorrect OTP. Session reset. Please try again.';
         $step  = 'credentials';
     }
+    if (isset($_GET['err']) && $_GET['err'] === 'elsewhere') {
+        $error = 'You have been signed out because this account was signed in from another device.';
+        $step  = 'credentials';
+    }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
@@ -284,9 +288,15 @@ function adminGrantAccess(array $adm): void {
         header('Location: admin.php?action=login'); exit;
     }
     session_regenerate_id(true);
-    $_SESSION['admin_id']         = $adm['id'];
-    $_SESSION['admin_name']       = $adm['username'];
-    $_SESSION['last_activity']    = time();
+
+    $sessionToken = bin2hex(random_bytes(32));
+    db()->prepare("UPDATE admins SET active_session_token=? WHERE id=?")
+        ->execute([$sessionToken, $adm['id']]);
+
+    $_SESSION['admin_id']            = $adm['id'];
+    $_SESSION['admin_name']          = $adm['username'];
+    $_SESSION['admin_session_token'] = $sessionToken;
+    $_SESSION['last_activity']       = time();
     unset($_SESSION['admin_login_step'],
           $_SESSION['admin_pending_id'],
           $_SESSION['admin_pending_email']);

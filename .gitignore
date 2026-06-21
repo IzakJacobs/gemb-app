@@ -78,3 +78,5 @@ uploads/documents/
 *.zip
 Backup*/
 mnt/
+layout_addition_requireVoteSession.php
+secret_pin.php

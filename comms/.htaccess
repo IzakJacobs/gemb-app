@@ -1,0 +1,14 @@
+# Allow PHP includes to work in this directory
+<FilesMatch "^(config|brute_force_helper)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# PHP settings for comms
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_value error_log /home/gembcoza/logs/php.error.log
+    php_flag session.cookie_httponly On
+    php_flag session.cookie_secure On
+    php_value session.cookie_samesite Strict
+</IfModule>

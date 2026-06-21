@@ -149,7 +149,7 @@ if ($action === 'broadcast') {
             if (!$email) { $failed++; continue; }
 
             $name    = htmlspecialchars($r['resident_name'] ?? 'Resident');
-            $subject = 'GEMB Estate - ' . $title;
+            $subject = 'GEMB Estate — ' . $title;
             $html    = buildCircularEmail($name, $title, $downloadUrl, $notes);
 
             $ok = sendPortalEmail($email, $subject, $html);
@@ -235,41 +235,15 @@ if ($action === 'levy') {
             setFlash('error', 'Title and email subject are required.');
             header('Location: document_portal.php?action=levy'); exit;
         }
-
-        // Block non-ASCII subject — the mail relay rejects subjects
-        // containing em dashes, curly quotes, or other special chars.
-        if (!mb_check_encoding($subject, 'ASCII')) {
-            setFlash('error',
-                'Email subject contains special characters (such as — or curved quotes) '
-              . 'that will cause delivery to fail. '
-              . 'Use only plain letters, numbers and hyphens (-).');
-            header('Location: document_portal.php?action=levy'); exit;
-        }
-
-        // Check PHP upload error code — gives a specific failure reason
-        $uploadErr = $_FILES['csv']['error'] ?? UPLOAD_ERR_NO_FILE;
-        if ($uploadErr !== UPLOAD_ERR_OK) {
-            $errMap = [
-                UPLOAD_ERR_INI_SIZE   => 'File exceeds server upload limit ('
-                                       . ini_get('upload_max_filesize')
-                                       . '). Reduce the CSV size or ask your host to raise upload_max_filesize.',
-                UPLOAD_ERR_FORM_SIZE  => 'File exceeds the form size limit.',
-                UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded. Please try again.',
-                UPLOAD_ERR_NO_FILE    => 'No file was selected. Please choose a CSV file.',
-                UPLOAD_ERR_NO_TMP_DIR => 'Server temporary folder is missing. Contact your host.',
-                UPLOAD_ERR_CANT_WRITE => 'Server could not save the uploaded file. Check folder permissions.',
-                UPLOAD_ERR_EXTENSION  => 'Upload was blocked by a PHP extension.',
-            ];
-            $errMsg = $errMap[$uploadErr] ?? "Upload failed (PHP error code {$uploadErr}).";
-            setFlash('error', $errMsg);
+        if (empty($_FILES['csv']['tmp_name'])) {
+            setFlash('error', 'Please select a CSV file.');
             header('Location: document_portal.php?action=levy'); exit;
         }
 
         $file = $_FILES['csv'];
         $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, ['csv', 'txt'])) {
-            setFlash('error', 'Only CSV files are allowed. '
-                . 'In Excel use File > Save As > CSV (Comma delimited).');
+            setFlash('error', 'Only CSV files are allowed.');
             header('Location: document_portal.php?action=levy'); exit;
         }
 
@@ -308,10 +282,7 @@ if ($action === 'levy') {
         }
 
         if (empty($rows)) {
-            setFlash('error',
-                'CSV file is empty or could not be parsed. '
-              . 'Make sure it is saved as plain CSV (not .xlsx) '
-              . 'with an "email" column header in the first row.');
+            setFlash('error', 'CSV file is empty or could not be parsed.');
             header('Location: document_portal.php?action=levy'); exit;
         }
 
@@ -420,7 +391,7 @@ jane@example.com,Jane Doe,1500.00,Levy due 30 June 2026</pre>
           <div class="form-group">
             <label>Email Subject Line *</label>
             <input type="text" name="subject" required
-                   placeholder="e.g. GEMB Estate - June 2026 Levy Notice">
+                   placeholder="e.g. GEMB Estate — June 2026 Levy Notice">
           </div>
           <div class="form-group">
             <label>CSV File *</label>

@@ -55,6 +55,21 @@ function requireAdmin(): void {
     if (empty($_SESSION['admin_id'])) {
         header('Location: admin.php?action=login'); exit;
     }
+
+    // Single-active-session enforcement: a newer login from another
+    // device overwrites admins.active_session_token, which invalidates
+    // every other session for that account on its very next request.
+    $tok = $_SESSION['admin_session_token'] ?? '';
+    $stmt = db()->prepare("SELECT active_session_token FROM admins WHERE id=? LIMIT 1");
+    $stmt->execute([$_SESSION['admin_id']]);
+    $current = $stmt->fetchColumn();
+
+    if ($tok === '' || $current === false || !hash_equals((string)$current, $tok)) {
+        session_unset();
+        session_destroy();
+        header('Location: admin.php?action=login&err=elsewhere');
+        exit;
+    }
 }
 function requireSecurity(): void {
     if (session_status() === PHP_SESSION_NONE) session_start();

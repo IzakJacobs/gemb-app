@@ -23,7 +23,7 @@
  *  void onTagRead(uint64_t tagId) {
  *      char url[256];
  *      snprintf(url, sizeof(url),
- *          "https://gemb.ink/wiegand_gate.php"
+ *          "https://gemb.co.za/wiegand_gate.php"
  *          "?action=gate&key=%s&tag=%llu&bits=%d",
  *          WIEGAND_API_KEY, tagId, wiegandBits);
  *      httpGet(url);   // or POST with body

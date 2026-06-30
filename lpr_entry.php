@@ -12,7 +12,7 @@
  *   or: Configuration → Smart Event → ANPR → Upload Settings
  *
  *   Protocol:   HTTPS
- *   Host:       gemb.ink
+ *   Host:       gemb.co.za
  *   Port:       443
  *   URL:        /lpr_entry.php?key=<LPR_ENTRY_API_KEY>
  *   Method:     POST

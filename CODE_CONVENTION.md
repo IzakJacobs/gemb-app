@@ -13,8 +13,8 @@
 - The first digit alone determines which verify endpoint handles the code
 - code_entry.php reads the first character and routes accordingly
 - QR payload = full verify URL, e.g.:
-    https://gemb.ink/visitor_qr_verify.php?code=312847
-    https://gemb.ink/service_qr_verify.php?code=712394
+    https://gemb.co.za/visitor_qr_verify.php?code=312847
+    https://gemb.co.za/service_qr_verify.php?code=712394
 
 ## What was wrong (now fixed)
 - service_qr_verify.php had regex ^9\d{5}$ — should be ^7\d{5}$

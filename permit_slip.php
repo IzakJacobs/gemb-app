@@ -115,16 +115,17 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
   }
 
   /* Header */
-  .slip-header {
+  .slip-header-table {
+    width: 100%;
     background: #1a3c5e;
-    color: #fff;
-    padding: 3mm 5mm;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
-  .slip-header h1 { font-size: 11pt; letter-spacing: 0.3pt; }
-  .slip-header .type {
+  .slip-header-table td {
+    padding: 3mm 5mm;
+    vertical-align: middle;
+    color: #fff;
+  }
+  .slip-header-table h1 { font-size: 11pt; letter-spacing: 0.3pt; color: #fff; }
+  .slip-header-table .type {
     font-size: 8pt;
     background: #c8a84b;
     color: #000;
@@ -132,25 +133,22 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     border-radius: 2mm;
     font-weight: bold;
     white-space: nowrap;
-    margin-left: 4mm;
   }
 
-  /* Body: left column (photo + QR) | right column (details) */
-  .slip-body {
-    display: flex;
-    gap: 4mm;
+  /* Body: left column (photo + QR) | right column (details) — table layout for Dompdf reliability */
+  .slip-body-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .slip-body-table > tbody > tr > td {
     padding: 4mm 5mm;
-    align-items: flex-start;
+    vertical-align: top;
   }
 
-  /* Left column */
-  .slip-left {
-    flex-shrink: 0;
+  /* Left column cell */
+  .slip-left-cell {
     width: 46mm;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3mm;
+    text-align: center;
   }
 
   /* Photo box */
@@ -161,9 +159,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     border-radius: 2mm;
     overflow: hidden;
     background: #e8edf2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin: 0 auto;
   }
   .photo-img {
     width: 100%;
@@ -175,14 +171,15 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     font-size: 6pt;
     color: #888;
     text-align: center;
-    margin-top: -1mm;
+    margin-top: 1mm;
   }
 
   /* QR box */
   .qr-box {
     text-align: center;
+    margin-top: 3mm;
   }
-  .qr-img { width: 40mm; height: 40mm; display: block; }
+  .qr-img { width: 40mm; height: 40mm; display: block; margin: 0 auto; }
   .qr-code {
     font-size: 7pt;
     font-weight: bold;
@@ -197,8 +194,8 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     margin-top: 0.5mm;
   }
 
-  /* Right column — details */
-  .slip-details { flex: 1; min-width: 0; }
+  /* Right column cell — details */
+  .slip-details-cell { padding-left: 0; }
   .slip-details table { width: 100%; border-collapse: collapse; }
   .slip-details td {
     padding: 1.5mm 2mm;
@@ -238,29 +235,30 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
   }
 
   /* Footer */
-  .slip-footer {
+  .slip-footer-table {
+    width: 100%;
     background: #f5f5f5;
     border-top: 0.3mm solid #ddd;
+  }
+  .slip-footer-table td {
     padding: 1.5mm 5mm;
     font-size: 6.5pt;
     color: #888;
-    display: flex;
-    justify-content: space-between;
   }
 </style>
 </head><body>
 
 <div class="slip">
 
-  <div class="slip-header">
-    <h1>GEMB TEMPORARY ACCESS PERMIT</h1>
-    <span class="type">' . $catLabel . '</span>
-  </div>
+  <table class="slip-header-table"><tr>
+    <td style="text-align:left;"><h1>GEMB TEMPORARY ACCESS PERMIT</h1></td>
+    <td style="text-align:right;"><span class="type">' . $catLabel . '</span></td>
+  </tr></table>
 
-  <div class="slip-body">
+  <table class="slip-body-table"><tbody><tr>
 
     <!-- Left: Photo + QR stacked -->
-    <div class="slip-left">
+    <td class="slip-left-cell">
 
       <div class="photo-box">
         ' . $photoTag . '
@@ -273,10 +271,11 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
         <div class="qr-hint">Scan at gate for entry</div>
       </div>
 
-    </div>
+    </td>
 
     <!-- Right: Details -->
-    <div class="slip-details">
+    <td class="slip-details-cell">
+      <div class="slip-details">
       <table>
         <tr class="name-row">
           <td colspan="2">' . htmlspecialchars($sp['service_name']) . '</td>
@@ -336,18 +335,19 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
               . htmlspecialchars($_SESSION['security_name'] ?? 'Security') . '</td>
         </tr>
       </table>
-    </div>
+      </div>
+    </td>
 
-  </div>
+  </tr></tbody></table>
 
   <div class="slip-warning">
     THIS PERMIT MUST BE PRESENTED TOGETHER WITH A PERSONAL IDENTITY DOCUMENT AT THE GATE
   </div>
 
-  <div class="slip-footer">
-    <span>GEMB HOA Reg. 1999/001249/08</span>
-    <span>POPIA Act 4 of 2013</span>
-  </div>
+  <table class="slip-footer-table"><tr>
+    <td style="text-align:left;">GEMB HOA Reg. 1999/001249/08</td>
+    <td style="text-align:right;">POPIA Act 4 of 2013</td>
+  </tr></table>
 
 </div>
 

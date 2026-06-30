@@ -106,12 +106,12 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: Arial, sans-serif; background:#fff; }
 
-  .page {
-    width: 210mm;
-    padding: 10mm;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8mm;
+  .page-table {
+    width: 100%;
+  }
+  .page-table td {
+    padding: 0 4mm 8mm 0;
+    vertical-align: top;
   }
 
   /* 85×54mm card */
@@ -127,22 +127,22 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
   }
 
   /* Header band */
-  .card-header {
-    background: #1a3c5e;
-    color: #fff;
-    padding: 1.5mm 2mm 1mm;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .card-header-table {
+    width: 100%;
     height: 8mm;
+    background: #1a3c5e;
   }
-  .card-header .estate {
+  .card-header-table td {
+    padding: 1.5mm 2mm 1mm;
+    vertical-align: middle;
+  }
+  .estate {
     font-size: 5pt;
     font-weight: bold;
     letter-spacing: 0.3pt;
     text-transform: uppercase;
   }
-  .card-header .cat {
+  .cat {
     font-size: 4.5pt;
     background: #c8a84b;
     color: #000;
@@ -152,25 +152,25 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     white-space: nowrap;
   }
 
-  /* Body: photo | details | QR */
-  .card-body {
-    display: flex;
-    height: calc(54mm - 8mm - 6mm); /* minus header and footer */
+  /* Body: photo | details | QR — table layout for Dompdf reliability */
+  .card-body-table {
+    width: 100%;
+    height: calc(54mm - 8mm - 6mm);
+    border-collapse: collapse;
+  }
+  .card-body-table td {
     padding: 1.5mm;
-    gap: 1.5mm;
+    vertical-align: middle;
   }
 
   /* Photo strip — left */
   .card-photo {
-    flex-shrink: 0;
     width: 18mm;
+    height: 24mm;
     border: 0.3mm solid #d0d8e0;
     border-radius: 1mm;
     overflow: hidden;
     background: #e8edf2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .card-photo img, .card-photo svg {
     width: 100%;
@@ -181,10 +181,6 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
 
   /* Details — centre */
   .card-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     min-width: 0;
   }
   .card-details .name {
@@ -209,12 +205,8 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
 
   /* QR — right */
   .card-qr {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     width: 22mm;
+    text-align: center;
   }
   .card-qr img {
     width: 20mm;
@@ -231,41 +223,45 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
   }
 
   /* Footer */
-  .card-footer {
+  .card-footer-table {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
+    width: 100%;
     background: #f5f5f5;
     border-top: 0.3mm solid #ddd;
+    height: 6mm;
+  }
+  .card-footer-table td {
     padding: 0.8mm 2mm;
     font-size: 4pt;
     color: #888;
-    display: flex;
-    justify-content: space-between;
-    height: 6mm;
-    align-items: center;
+    vertical-align: middle;
   }
 </style>
-</head><body><div class="page">';
+</head><body><table class="page-table"><tr>';
 
 for ($copy = 1; $copy <= 2; $copy++):
 $html .= '
+<td>
 <div class="card">
-  <div class="card-header">
-    <span class="estate">MOSSEL BAY GOLF ESTATE</span>
-    <span class="cat">' . htmlspecialchars($catLabel) . '</span>
-  </div>
+  <table class="card-header-table"><tr>
+    <td style="text-align:left;"><span class="estate" style="color:#fff;">MOSSEL BAY GOLF ESTATE</span></td>
+    <td style="text-align:right;"><span class="cat">' . htmlspecialchars($catLabel) . '</span></td>
+  </tr></table>
 
-  <div class="card-body">
+  <table class="card-body-table"><tr>
 
     <!-- Photo -->
-    <div class="card-photo">
-      ' . $photoTag . '
-    </div>
+    <td style="width:18mm;">
+      <div class="card-photo">
+        ' . $photoTag . '
+      </div>
+    </td>
 
     <!-- Details -->
-    <div class="card-details">
+    <td class="card-details">
       <div class="name">' . htmlspecialchars($sp['service_name']) . '</div>
       ' . ($sp['id_number'] ? '
       <div class="row"><span>ID: </span>' . htmlspecialchars($sp['id_number']) . '</div>' : '') . '
@@ -281,24 +277,25 @@ $html .= '
         . '–'
         . substr($sp['access_end']   ?? '17:00:00', 0, 5) . '
       </div>
-    </div>
+    </td>
 
     <!-- QR -->
-    <div class="card-qr">
+    <td class="card-qr">
       ' . $qrTag . '
       <div class="code">' . htmlspecialchars($sp['unique_code']) . '</div>
-    </div>
+    </td>
 
-  </div>
+  </tr></table>
 
-  <div class="card-footer">
-    <span>GEMB HOA Reg. 1999/001249/08</span>
-    <span>POPIA Act 4 of 2013</span>
-  </div>
-</div>';
+  <table class="card-footer-table"><tr>
+    <td style="text-align:left;">GEMB HOA Reg. 1999/001249/08</td>
+    <td style="text-align:right;">POPIA Act 4 of 2013</td>
+  </tr></table>
+</div>
+</td>';
 endfor;
 
-$html .= '</div></body></html>';
+$html .= '</tr></table></body></html>';
 
 $opt = new Options();
 $opt->set('isRemoteEnabled', true);

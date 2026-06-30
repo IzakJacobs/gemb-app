@@ -1,0 +1,384 @@
+<?php
+/**
+ * permit_photo_upload.php — Photo upload + crop interstitial
+ *
+ * Flow: security.php "Print permit" button links here first
+ *   1. Security uploads a photo file (any common image format)
+ *   2. Photo is shown in a live cropper, locked to portrait ratio
+ *   3. On "Approve & Print", the cropped image (base64 PNG) is POSTed
+ *      to permit_card.php or permit_slip.php as `photo_data`
+ *   4. Nothing is saved to disk or DB — fresh upload required every print
+ *
+ * Usage: permit_photo_upload.php?id=42&type=card
+ *        permit_photo_upload.php?id=42&type=slip
+ */
+session_start();
+require_once __DIR__ . '/config.php';
+
+if (empty($_SESSION['security_id']) && empty($_SESSION['admin_id'])) {
+    header('Location: security.php?action=login'); exit;
+}
+
+$id   = (int)($_GET['id'] ?? 0);
+$type = ($_GET['type'] ?? '') === 'card' ? 'card' : 'slip';
+if (!$id) die('Missing ID');
+
+$sp = db()->prepare("SELECT id, service_name, category, unique_code FROM service_providers WHERE id=? LIMIT 1");
+$sp->execute([$id]);
+$sp = $sp->fetch();
+if (!$sp) die('Record not found');
+
+// Crop ratio differs slightly between the two permit formats —
+// both are close to a passport portrait, so one ratio works for both.
+$cropTargetW = ($type === 'card') ? 240 : 320;  // px, output resolution
+$cropTargetH = ($type === 'card') ? 320 : 400;  // 3:4 portrait ratio
+
+$printAction = ($type === 'card') ? 'permit_card.php' : 'permit_slip.php';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GEMB Permit Photo — <?= htmlspecialchars($sp['service_name']) ?></title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #1a1a1a;
+    padding: 24px;
+  }
+  .wrap {
+    max-width: 560px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #dde3e8;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .header {
+    background: #1a3c5e;
+    color: #fff;
+    padding: 16px 20px;
+  }
+  .header h1 { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+  .header p { font-size: 12px; opacity: 0.85; }
+
+  .body { padding: 20px; }
+
+  .step { margin-bottom: 18px; }
+  .step-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #1a3c5e;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+
+  input[type=file] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed #b7c2cc;
+    border-radius: 6px;
+    background: #fafbfc;
+    font-size: 13px;
+  }
+
+  .cropper-area {
+    display: none;
+    margin-top: 14px;
+  }
+  .cropper-area.active { display: block; }
+
+  .cropper-box {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    aspect-ratio: 3 / 4;
+    background: #222;
+    overflow: hidden;
+    border-radius: 6px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .cropper-box.dragging { cursor: grabbing; }
+  .cropper-box img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    max-width: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .zoom-row label { font-size: 12px; color: #555; white-space: nowrap; }
+  .zoom-row input[type=range] { flex: 1; }
+
+  .preview-row {
+    display: none;
+    align-items: center;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .preview-row.active { display: flex; }
+  .preview-row .thumb {
+    width: 70px;
+    height: 88px;
+    border: 1px solid #1a3c5e;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #e8edf2;
+  }
+  .preview-row .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .preview-row .meta { font-size: 12px; color: #555; line-height: 1.6; }
+  .preview-row .meta b { color: #1a1a1a; }
+
+  .sp-info {
+    background: #f0f4f8;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  .sp-info b { color: #1a3c5e; }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    justify-content: flex-end;
+  }
+  button {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 10px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-secondary {
+    background: #e9edf1;
+    color: #444;
+  }
+  .btn-secondary:hover { background: #dde3e8; }
+  .btn-primary {
+    background: #1a3c5e;
+    color: #fff;
+  }
+  .btn-primary:disabled {
+    background: #aab8c2;
+    cursor: not-allowed;
+  }
+  .btn-primary:not(:disabled):hover { background: #142d47; }
+
+  .hint { font-size: 11px; color: #888; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <h1>Permit photo</h1>
+    <p>Upload a clear, front-facing photo before printing the <?= $type === 'card' ? 'permit card' : 'permit slip' ?></p>
+  </div>
+
+  <div class="body">
+
+    <div class="sp-info">
+      <b><?= htmlspecialchars($sp['service_name']) ?></b><br>
+      Code: <?= htmlspecialchars($sp['unique_code']) ?>
+    </div>
+
+    <div class="step">
+      <div class="step-label">1. Select photo</div>
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="hint">JPG, PNG, GIF, or WEBP. Will be cropped to a portrait shape.</div>
+    </div>
+
+    <div class="step cropper-area" id="cropperArea">
+      <div class="step-label">2. Adjust crop</div>
+      <div class="cropper-box" id="cropperBox">
+        <img id="cropperImg" src="" alt="">
+      </div>
+      <div class="zoom-row">
+        <label for="zoomSlider">Zoom</label>
+        <input type="range" id="zoomSlider" min="1" max="3" step="0.01" value="1">
+      </div>
+      <div class="hint" style="text-align:center;">Drag to reposition, use slider to zoom</div>
+    </div>
+
+    <div class="preview-row" id="previewRow">
+      <div class="thumb"><img id="previewImg" src="" alt=""></div>
+      <div class="meta">
+        <b>Preview ready</b><br>
+        This is exactly how the photo will appear<br>on the printed permit.
+      </div>
+    </div>
+
+    <form id="printForm" method="POST" action="<?= htmlspecialchars($printAction) ?>?id=<?= $id ?>" target="_blank">
+      <input type="hidden" name="photo_data" id="photoDataField">
+      <div class="actions">
+        <button type="button" class="btn-secondary" onclick="window.history.back();">Cancel</button>
+        <button type="submit" class="btn-primary" id="approveBtn" disabled>Approve &amp; print</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+const fileInput   = document.getElementById('fileInput');
+const cropperArea = document.getElementById('cropperArea');
+const cropperBox  = document.getElementById('cropperBox');
+const cropperImg  = document.getElementById('cropperImg');
+const zoomSlider  = document.getElementById('zoomSlider');
+const previewRow  = document.getElementById('previewRow');
+const previewImg  = document.getElementById('previewImg');
+const approveBtn  = document.getElementById('approveBtn');
+const photoField  = document.getElementById('photoDataField');
+const printForm   = document.getElementById('printForm');
+
+const TARGET_W = <?= (int)$cropTargetW ?>;
+const TARGET_H = <?= (int)$cropTargetH ?>;
+const TARGET_RATIO = TARGET_W / TARGET_H;
+
+let img = new Image();
+let naturalW = 0, naturalH = 0;
+let baseScale = 1;   // scale to cover the box at zoom = 1
+let scale = 1;
+let offsetX = 0, offsetY = 0;
+let boxW = 0, boxH = 0;
+let dragging = false, dragStartX = 0, dragStartY = 0, startOffX = 0, startOffY = 0;
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img = new Image();
+    img.onload = () => {
+      naturalW = img.naturalWidth;
+      naturalH = img.naturalHeight;
+      cropperImg.src = ev.target.result;
+      cropperArea.classList.add('active');
+      previewRow.classList.remove('active');
+      approveBtn.disabled = true;
+      initCropper();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function initCropper() {
+  const rect = cropperBox.getBoundingClientRect();
+  boxW = rect.width;
+  boxH = rect.height;
+
+  const coverScale = Math.max(boxW / naturalW, boxH / naturalH);
+  baseScale = coverScale;
+  scale = 1;
+  zoomSlider.value = 1;
+
+  offsetX = (boxW - naturalW * baseScale) / 2;
+  offsetY = (boxH - naturalH * baseScale) / 2;
+
+  applyTransform();
+  updatePreview();
+}
+
+function applyTransform() {
+  const s = baseScale * scale;
+  cropperImg.style.width = naturalW + 'px';
+  cropperImg.style.height = naturalH + 'px';
+  cropperImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${s})`;
+}
+
+function clampOffsets() {
+  const s = baseScale * scale;
+  const dispW = naturalW * s;
+  const dispH = naturalH * s;
+  const minX = boxW - dispW;
+  const minY = boxH - dispH;
+  offsetX = Math.min(0, Math.max(minX, offsetX));
+  offsetY = Math.min(0, Math.max(minY, offsetY));
+}
+
+zoomSlider.addEventListener('input', () => {
+  scale = parseFloat(zoomSlider.value);
+  clampOffsets();
+  applyTransform();
+  updatePreview();
+});
+
+cropperBox.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  cropperBox.classList.add('dragging');
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  startOffX = offsetX;
+  startOffY = offsetY;
+  cropperBox.setPointerCapture(e.pointerId);
+});
+cropperBox.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  offsetX = startOffX + (e.clientX - dragStartX);
+  offsetY = startOffY + (e.clientY - dragStartY);
+  clampOffsets();
+  applyTransform();
+});
+cropperBox.addEventListener('pointerup', (e) => {
+  dragging = false;
+  cropperBox.classList.remove('dragging');
+  updatePreview();
+});
+cropperBox.addEventListener('pointercancel', () => {
+  dragging = false;
+  cropperBox.classList.remove('dragging');
+});
+
+function updatePreview() {
+  const canvas = document.createElement('canvas');
+  canvas.width = TARGET_W;
+  canvas.height = TARGET_H;
+  const ctx = canvas.getContext('2d');
+
+  const s = baseScale * scale;
+  const sx = -offsetX / s;
+  const sy = -offsetY / s;
+  const sw = boxW / s;
+  const sh = boxH / s;
+
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H);
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+  previewImg.src = dataUrl;
+  photoField.value = dataUrl;
+  previewRow.classList.add('active');
+  approveBtn.disabled = false;
+}
+
+printForm.addEventListener('submit', () => {
+  if (!photoField.value) {
+    return false;
+  }
+});
+</script>
+
+</body>
+</html>

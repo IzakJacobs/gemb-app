@@ -6,6 +6,8 @@
  *
  * Requires: Dompdf (already installed for export files)
  * Usage: permit_card.php?id=42
+ *
+ * v2 — adds photo support (sp.photo column, stored as filename or base64)
  */
 session_start();
 require_once __DIR__ . '/config.php';
@@ -27,7 +29,41 @@ $sp->execute([$id]);
 $sp = $sp->fetch();
 if (!$sp) die('Record not found');
 
-// Generate QR PNG if not exists
+// ── Photo ────────────────────────────────────────────────
+// Priority:
+//   1. $_POST['photo_data'] — a fresh upload from permit_photo_upload.php
+//      (data URI, not persisted — used once for this print only)
+//   2. sp.photo — a stored filename or base64 string (legacy / future use)
+//   3. empty — show a placeholder silhouette
+$photoTag = '';
+if (!empty($_POST['photo_data']) && str_starts_with($_POST['photo_data'], 'data:image/')) {
+    $photoTag = '<img src="' . htmlspecialchars($_POST['photo_data']) . '">';
+} elseif (!empty($sp['photo'])) {
+    $raw = $sp['photo'];
+    if (str_starts_with($raw, 'data:image/')) {
+        // Already a data URI
+        $photoTag = '<img src="' . htmlspecialchars($raw) . '">';
+    } else {
+        // Treat as filename
+        $photoPath = __DIR__ . '/uploads/sp_photos/' . basename($raw);
+        if (file_exists($photoPath)) {
+            $mime      = mime_content_type($photoPath);
+            $photoB64  = base64_encode(file_get_contents($photoPath));
+            $photoTag  = '<img src="data:' . $mime . ';base64,' . $photoB64 . '">';
+        }
+    }
+}
+// Placeholder SVG silhouette when no photo
+if (!$photoTag) {
+    $photoTag = '<svg viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg"
+        style="width:100%;height:100%;display:block;">
+      <rect width="60" height="80" fill="#e8edf2"/>
+      <circle cx="30" cy="26" r="14" fill="#a0afc0"/>
+      <ellipse cx="30" cy="72" rx="22" ry="16" fill="#a0afc0"/>
+    </svg>';
+}
+
+// ── QR Code ──────────────────────────────────────────────
 $qrLib = __DIR__ . '/phpqrcode/qrlib.php';
 if (file_exists($qrLib)) {
     require_once $qrLib;
@@ -40,38 +76,31 @@ if (file_exists($qrLib)) {
         QRcode::png($verifyUrl, $qrFile, QR_ECLEVEL_M, 8, 2);
     }
     $qrBase64 = file_exists($qrFile)
-        ? base64_encode(file_get_contents($qrFile))
-        : '';
+        ? base64_encode(file_get_contents($qrFile)) : '';
 } else {
-    // Fallback Google Charts QR
     $qrBase64 = '';
 }
 
-$catLabels = [
-    'domestic'        => 'Domestic Worker',
-    'resident_worker' => 'Resident Worker',
-    'contractor_lead' => 'Contractor Lead',
-    'contractor_worker' => 'Contractor Worker',
-    'delivery'        => 'Delivery',
-];
+if ($qrBase64) {
+    $qrTag = '<img src="data:image/png;base64,' . $qrBase64 . '">';
+} else {
+    $qrUrl = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl='
+           . urlencode(SITE_URL . '/service_qr_verify.php?code=' . $sp['unique_code']);
+    $qrTag = '<img src="' . $qrUrl . '">';
+}
 
+$catLabels = [
+    'domestic'          => 'Domestic Worker',
+    'resident_worker'   => 'Resident Worker',
+    'contractor_lead'   => 'Contractor Lead',
+    'contractor_worker' => 'Contractor Worker',
+    'delivery'          => 'Delivery',
+];
 $catLabel  = $catLabels[$sp['category'] ?? 'domestic'] ?? 'Service Provider';
 $validFrom = date('d M Y', strtotime($sp['start_date']));
 $validTo   = date('d M Y', strtotime($sp['end_date']));
 
-// QR image tag
-if ($qrBase64) {
-    $qrTag = '<img src="data:image/png;base64,' . $qrBase64
-           . '" style="width:28mm;height:28mm;">';
-} else {
-    $qrUrl = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl='
-           . urlencode(SITE_URL . '/service_qr_verify.php?code='
-           . $sp['unique_code']);
-    $qrTag = '<img src="' . $qrUrl . '" style="width:28mm;height:28mm;">';
-}
-
-// ── HTML for credit card (85×54mm) ──────────────────────
-// Print 2 cards per page (front + back concept on A4)
+// ── HTML (85×54mm credit card) ───────────────────────────
 $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -85,7 +114,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     gap: 8mm;
   }
 
-  /* One card = 85×54mm */
+  /* 85×54mm card */
   .card {
     width: 85mm;
     height: 54mm;
@@ -97,7 +126,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     page-break-inside: avoid;
   }
 
-  /* Colour band at top */
+  /* Header band */
   .card-header {
     background: #1a3c5e;
     color: #fff;
@@ -105,6 +134,7 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 8mm;
   }
   .card-header .estate {
     font-size: 5pt;
@@ -113,67 +143,94 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     text-transform: uppercase;
   }
   .card-header .cat {
-    font-size: 5pt;
+    font-size: 4.5pt;
     background: #c8a84b;
     color: #000;
     padding: 0.5mm 1.5mm;
     border-radius: 1mm;
     font-weight: bold;
+    white-space: nowrap;
   }
 
-  /* Body */
+  /* Body: photo | details | QR */
   .card-body {
     display: flex;
-    padding: 2mm;
-    gap: 2mm;
-    height: calc(54mm - 10mm);
+    height: calc(54mm - 8mm - 6mm); /* minus header and footer */
+    padding: 1.5mm;
+    gap: 1.5mm;
   }
 
-  /* QR section */
+  /* Photo strip — left */
+  .card-photo {
+    flex-shrink: 0;
+    width: 18mm;
+    border: 0.3mm solid #d0d8e0;
+    border-radius: 1mm;
+    overflow: hidden;
+    background: #e8edf2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-photo img, .card-photo svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Details — centre */
+  .card-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+  .card-details .name {
+    font-size: 6.5pt;
+    font-weight: bold;
+    color: #1a3c5e;
+    line-height: 1.2;
+    margin-bottom: 1mm;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-details .row {
+    font-size: 5pt;
+    color: #333;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-details .row span { color: #888; }
+
+  /* QR — right */
   .card-qr {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 22mm;
   }
   .card-qr img {
-    width: 26mm;
-    height: 26mm;
+    width: 20mm;
+    height: 20mm;
   }
   .card-qr .code {
-    font-size: 5.5pt;
+    font-size: 4.5pt;
     font-weight: bold;
     font-family: monospace;
     color: #1a3c5e;
-    letter-spacing: 1pt;
+    letter-spacing: 0.5pt;
     margin-top: 0.5mm;
+    text-align: center;
   }
 
-  /* Details section */
-  .card-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .card-details .name {
-    font-size: 8pt;
-    font-weight: bold;
-    color: #1a3c5e;
-    line-height: 1.2;
-    margin-bottom: 1.5mm;
-  }
-  .card-details .row {
-    font-size: 5.5pt;
-    color: #333;
-    line-height: 1.5;
-  }
-  .card-details .row span {
-    color: #666;
-  }
-
-  /* Footer bar */
+  /* Footer */
   .card-footer {
     position: absolute;
     bottom: 0;
@@ -182,15 +239,16 @@ $html = '<!DOCTYPE html><html><head><meta charset="utf-8">
     background: #f5f5f5;
     border-top: 0.3mm solid #ddd;
     padding: 0.8mm 2mm;
-    font-size: 4.5pt;
+    font-size: 4pt;
     color: #888;
     display: flex;
     justify-content: space-between;
+    height: 6mm;
+    align-items: center;
   }
 </style>
 </head><body><div class="page">';
 
-// Generate card (repeat twice for front/back or two copies)
 for ($copy = 1; $copy <= 2; $copy++):
 $html .= '
 <div class="card">
@@ -198,32 +256,25 @@ $html .= '
     <span class="estate">MOSSEL BAY GOLF ESTATE</span>
     <span class="cat">' . htmlspecialchars($catLabel) . '</span>
   </div>
+
   <div class="card-body">
-    <div class="card-qr">
-      ' . $qrTag . '
-      <div class="code">' . htmlspecialchars($sp['unique_code']) . '</div>
+
+    <!-- Photo -->
+    <div class="card-photo">
+      ' . $photoTag . '
     </div>
+
+    <!-- Details -->
     <div class="card-details">
       <div class="name">' . htmlspecialchars($sp['service_name']) . '</div>
-      ' . ($sp['company_name'] ? '
-      <div class="row">
-        <span>Company: </span>' . htmlspecialchars($sp['company_name']) . '
-      </div>' : '') . '
       ' . ($sp['id_number'] ? '
-      <div class="row">
-        <span>ID: </span>' . htmlspecialchars($sp['id_number']) . '
-      </div>' : '') . '
-      <div class="row">
-        <span>Resident: </span>' . htmlspecialchars($sp['resident_name']) . '
-      </div>
-      <div class="row">
-        <span>Erf: </span>' . htmlspecialchars($sp['resident_erfno']) . '
-      </div>
-      <div class="row">
-        <span>Valid: </span>' . $validFrom . ' – ' . $validTo . '
-      </div>
-      <div class="row">
-        <span>Hours: </span>'
+      <div class="row"><span>ID: </span>' . htmlspecialchars($sp['id_number']) . '</div>' : '') . '
+      ' . ($sp['company_name'] ? '
+      <div class="row"><span>Co: </span>' . htmlspecialchars($sp['company_name']) . '</div>' : '') . '
+      <div class="row"><span>Resident: </span>' . htmlspecialchars($sp['resident_name']) . '</div>
+      <div class="row"><span>Erf: </span>' . htmlspecialchars($sp['resident_erfno']) . '</div>
+      <div class="row"><span>Valid: </span>' . $validFrom . ' – ' . $validTo . '</div>
+      <div class="row"><span>Hours: </span>'
         . htmlspecialchars($sp['access_days'] ?? 'Mon–Sat')
         . ' '
         . substr($sp['access_start'] ?? '07:00:00', 0, 5)
@@ -231,7 +282,15 @@ $html .= '
         . substr($sp['access_end']   ?? '17:00:00', 0, 5) . '
       </div>
     </div>
+
+    <!-- QR -->
+    <div class="card-qr">
+      ' . $qrTag . '
+      <div class="code">' . htmlspecialchars($sp['unique_code']) . '</div>
+    </div>
+
   </div>
+
   <div class="card-footer">
     <span>GEMB HOA Reg. 1999/001249/08</span>
     <span>POPIA Act 4 of 2013</span>
@@ -241,13 +300,11 @@ endfor;
 
 $html .= '</div></body></html>';
 
-// Output PDF
 $opt = new Options();
 $opt->set('isRemoteEnabled', true);
 $pdf = new Dompdf($opt);
 $pdf->loadHtml($html);
 $pdf->setPaper('A4', 'portrait');
 $pdf->render();
-$pdf->stream('permit_card_' . $sp['unique_code'] . '.pdf',
-             ['Attachment' => false]);
+$pdf->stream('permit_card_' . $sp['unique_code'] . '.pdf', ['Attachment' => false]);
 exit;

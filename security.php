@@ -1164,9 +1164,11 @@ if ($action === 'approvals') {
             </form>
             <?php endif; ?>
             <?php if ($isApproved && !$isExpired): ?>
-            <a href="<?= $sp['permit_type']==='card' ? 'permit_card.php' : 'permit_slip.php' ?>?id=<?= $sp['id'] ?>" target="_blank" class="btn btn-primary btn-sm">
-              🖨️ <?= $sp['permit_type']==='card' ? 'Print Card' : 'Print Slip' ?>
+            
+            <a href="permit_photo_upload.php?id=<?= $sp['id'] ?>&type=<?= $sp['permit_type']==='card' ? 'card' : 'slip' ?>" target="_blank" class="btn btn-primary btn-sm">
+                 🖨️ <?= $sp['permit_type']==='card' ? 'Print Card' : 'Print Slip' ?>
             </a>
+            
             <form method="POST" style="display:inline" onsubmit="return confirm(<?= $sp['category']==='contractor_lead' ? "'Revoking this Lead will also revoke all their workers. Continue?'" : "'Revoke this service provider?'" ?>)">
               <?= csrfField() ?>
               <input type="hidden" name="sp_id" value="<?= $sp['id'] ?>">

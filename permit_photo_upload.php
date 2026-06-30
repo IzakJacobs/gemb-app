@@ -233,7 +233,7 @@ $printAction = ($type === 'card') ? 'permit_card.php' : 'permit_slip.php';
     <form id="printForm" method="POST" action="<?= htmlspecialchars($printAction) ?>?id=<?= $id ?>" target="_blank">
       <input type="hidden" name="photo_data" id="photoDataField">
       <div class="actions">
-        <button type="button" class="btn-secondary" onclick="window.history.back();">Cancel</button>
+        <button type="button" class="btn-secondary" onclick="closeOrRedirect();">Cancel</button>
         <button type="submit" class="btn-primary" id="approveBtn" disabled>Approve &amp; print</button>
       </div>
     </form>
@@ -371,6 +371,17 @@ function updatePreview() {
   photoField.value = dataUrl;
   previewRow.classList.add('active');
   approveBtn.disabled = false;
+}
+
+function closeOrRedirect() {
+  // This page is opened via target="_blank" from security.php,
+  // so there's no history to go back to — close the tab instead.
+  // Some browsers block window.close() on tabs not opened by script,
+  // so fall back to the approvals list if closing doesn't work.
+  window.close();
+  setTimeout(() => {
+    window.location.href = 'security.php?action=approvals';
+  }, 150);
 }
 
 printForm.addEventListener('submit', () => {

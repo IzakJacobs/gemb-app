@@ -28,6 +28,7 @@
 // ============================================================
 
 require_once 'layout.php';
+require_once __DIR__ . '/xlsx_lib/gemb_xlsx_helper.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 requireAdmin();
@@ -402,16 +403,19 @@ if ($action === 'voter_register' && $meetingId > 0) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
 
+        $uploadExt = strtolower(pathinfo($_FILES['levy_csv']['name'] ?? '', PATHINFO_EXTENSION));
         if (empty($_FILES['levy_csv']['tmp_name']) || $_FILES['levy_csv']['error'] !== UPLOAD_ERR_OK) {
-            $errors[] = 'Please choose a CSV file to upload.';
+            $errors[] = 'Please choose a CSV or Excel (.xlsx) file to upload.';
+        } elseif (!in_array($uploadExt, ['csv', 'txt', 'xlsx'], true)) {
+            $errors[] = 'Only CSV or Excel (.xlsx) files are allowed.';
         } else {
-            $rows = [];
-            $fh   = fopen($_FILES['levy_csv']['tmp_name'], 'r');
-            if ($fh === false) {
+            $rows     = [];
+            $rawRows  = gemb_read_raw_rows($_FILES['levy_csv']['tmp_name'], $uploadExt);
+            if (empty($rawRows)) {
                 $errors[] = 'Could not read the uploaded file.';
             } else {
                 $lineNum = 0;
-                while (($line = fgetcsv($fh)) !== false) {
+                foreach ($rawRows as $line) {
                     $lineNum++;
                     if (count($line) < 1) continue;
 
@@ -462,7 +466,6 @@ if ($action === 'voter_register' && $meetingId > 0) {
 
                     $rows[] = [$erf, $name, $email, $phone];
                 }
-                fclose($fh);
             }
 
             if (empty($rows) && empty($errors)) {
@@ -536,7 +539,7 @@ if ($action === 'voter_register' && $meetingId > 0) {
         <?php endif; ?>
 
         <div class="alert alert-info" style="font-size:.88rem;margin-bottom:16px;">
-          Upload the levy roll as a CSV with columns: <strong>Erf, Owner Name, Email, Phone</strong>
+          Upload the levy roll as a CSV or Excel (.xlsx) file with columns: <strong>Erf, Owner Name, Email, Phone</strong>
           (a header row is optional and will be detected automatically).
           Re-uploading <strong>replaces</strong> the entire register for this meeting and
           clears any tokens already generated — use this to correct mistakes
@@ -546,8 +549,8 @@ if ($action === 'voter_register' && $meetingId > 0) {
         <form method="POST" enctype="multipart/form-data" style="margin-bottom:24px;">
           <?= csrfField() ?>
           <div class="form-group">
-            <label>Levy Roll CSV</label>
-            <input type="file" name="levy_csv" accept=".csv" required>
+            <label>Levy Roll (CSV or Excel)</label>
+            <input type="file" name="levy_csv" accept=".csv,.txt,.xlsx" required>
           </div>
           <div class="btn-group">
             <button type="submit" class="btn btn-primary">Upload / Replace Register</button>

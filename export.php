@@ -3,12 +3,16 @@
 // GEMB Access Control — export.php (clean rebuild)
 // ============================================================
 require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/xlsx_lib/gemb_xlsx_helper.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 requireAdmin();
 
 $action = $_GET['action'] ?? 'menu';
+// xlsx by default; ?format=csv keeps the old CSV download available
+$format = (strtolower($_GET['format'] ?? 'xlsx') === 'csv') ? 'csv' : 'xlsx';
 
-function exportCSV(string $filename, array $headers, array $rows): void {
+function exportCSV(string $filenameNoExt, array $headers, array $rows): void {
+    global $format;
     // Log the export for POPIA audit trail
     try {
         db()->prepare(
@@ -17,20 +21,14 @@ function exportCSV(string $filename, array $headers, array $rows): void {
              VALUES (?, 'export', ?, NOW())"
         )->execute([
             $_SESSION['admin_name'] ?? 'unknown',
-            "Exported {$filename} (" . count($rows) . " rows) from IP "
+            "Exported {$filenameNoExt}.{$format} (" . count($rows) . " rows) from IP "
                 . ($_SERVER['REMOTE_ADDR'] ?? '?'),
         ]);
     } catch (Exception $e) {
         error_log('GEMB export audit log failed: ' . $e->getMessage());
     }
 
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    $out = fopen('php://output', 'w');
-    fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-    fputcsv($out, $headers);
-    foreach ($rows as $row) fputcsv($out, array_values($row));
-    fclose($out); exit;
+    gemb_export($filenameNoExt, $headers, $rows, $format);
 }
 
 if ($action === 'menu') {
@@ -39,13 +37,16 @@ if ($action === 'menu') {
     ?>
     <div class="container">
       <div class="menu-grid">
-        <a href="export.php?action=residents" class="menu-btn"><span class="icon">🏠</span>Residents CSV</a>
-        <a href="export.php?action=visitors" class="menu-btn"><span class="icon">👤</span>Visitors CSV</a>
-        <a href="export.php?action=guards" class="menu-btn"><span class="icon">👮</span>Guards CSV</a>
-        <a href="export.php?action=sp" class="menu-btn"><span class="icon">🔧</span>Service Providers CSV</a>
-        <a href="export.php?action=logs" class="menu-btn"><span class="icon">📋</span>Access Logs CSV</a>
+        <a href="export.php?action=residents" class="menu-btn"><span class="icon">🏠</span>Residents <small>(.xlsx)</small></a>
+        <a href="export.php?action=visitors" class="menu-btn"><span class="icon">👤</span>Visitors <small>(.xlsx)</small></a>
+        <a href="export.php?action=guards" class="menu-btn"><span class="icon">👮</span>Guards <small>(.xlsx)</small></a>
+        <a href="export.php?action=sp" class="menu-btn"><span class="icon">🔧</span>Service Providers <small>(.xlsx)</small></a>
+        <a href="export.php?action=logs" class="menu-btn"><span class="icon">📋</span>Access Logs <small>(.xlsx)</small></a>
         <a href="export.php?action=access_today" class="menu-btn"><span class="icon">📅</span>Today's Activity</a>
       </div>
+      <p style="font-size:.82rem;color:#777;margin-top:10px;">
+        Downloads are Excel (.xlsx) by default. Add <code>&amp;format=csv</code> to any link for the old CSV format.
+      </p>
     </div>
     <?php
     pageFooter(); exit;
@@ -56,7 +57,7 @@ if ($action === 'residents') {
         SELECT resident_erfno, resident_name, address, phone, email, status, created_at
         FROM residents
         ORDER BY CAST(resident_erfno AS UNSIGNED), resident_erfno")->fetchAll();
-    exportCSV('GEMB_Residents_' . date('Ymd') . '.csv',
+    exportCSV('GEMB_Residents_' . date('Ymd'),
         ['Erf No','Full Name','Address','Phone','Email','Status','Created'], $rows);
 }
 
@@ -70,14 +71,14 @@ if ($action === 'visitors') {
         WHERE visit_date BETWEEN ? AND ?
         ORDER BY visit_date DESC");
     $stmt->execute([$from, $to]);
-    exportCSV('GEMB_Visitors_' . $from . '_to_' . $to . '.csv',
+    exportCSV('GEMB_Visitors_' . $from . '_to_' . $to . '',
         ['Visitor','Plate','ID No','Visit Date','Until','Time','Status','Used','Arrived','Resident','Created'],
         $stmt->fetchAll());
 }
 
 if ($action === 'guards') {
     $rows = db()->query("SELECT name, username, gate, phone, created_at FROM guards ORDER BY name")->fetchAll();
-    exportCSV('GEMB_Guards_' . date('Ymd') . '.csv',
+    exportCSV('GEMB_Guards_' . date('Ymd'),
         ['Name','Username','Gate','Phone','Created'], $rows);
 }
 
@@ -88,7 +89,7 @@ if ($action === 'sp') {
                resident_erfno, resident_name, created_at
         FROM service_providers
         ORDER BY end_date DESC")->fetchAll();
-    exportCSV('GEMB_ServiceProviders_' . date('Ymd') . '.csv',
+    exportCSV('GEMB_ServiceProviders_' . date('Ymd'),
         ['Service/Name','Company','ID No','Notes','Start','End','Approved','Expired','Erf','Resident','Created'],
         $rows);
 }
@@ -104,7 +105,7 @@ if ($action === 'logs') {
         WHERE DATE(created_at) BETWEEN ? AND ?
         ORDER BY created_at DESC");
     $stmt->execute([$from, $to]);
-    exportCSV('GEMB_AccessLog_' . $from . '_to_' . $to . '.csv',
+    exportCSV('GEMB_AccessLog_' . $from . '_to_' . $to . '',
         ['Event ID','Gate','Dir','Type','Person','Visitor','Plate','Guard','Deny Reason','Date/Time'],
         $stmt->fetchAll());
 }
@@ -128,7 +129,7 @@ if ($action === 'access_today') {
             style="padding:8px;border:1px solid #dee2e6;border-radius:6px;">
           <button type="submit" class="btn btn-primary">View</button>
         </form>
-        <a href="export.php?action=logs&from=<?= $date ?>&to=<?= $date ?>" class="btn btn-secondary">⬇ Download CSV</a>
+        <a href="export.php?action=logs&from=<?= $date ?>&to=<?= $date ?>" class="btn btn-secondary">⬇ Download Excel</a>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
         <div class="card" style="text-align:center;padding:14px;">

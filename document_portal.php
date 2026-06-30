@@ -4,6 +4,7 @@
 // Actions: menu | broadcast | levy | log
 // ============================================================
 require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/xlsx_lib/gemb_xlsx_helper.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 requireAdmin();
@@ -267,51 +268,19 @@ if ($action === 'levy') {
 
         $file = $_FILES['csv'];
         $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, ['csv', 'txt'])) {
-            setFlash('error', 'Only CSV files are allowed. '
-                . 'In Excel use File > Save As > CSV (Comma delimited).');
+        if (!in_array($ext, ['csv', 'txt', 'xlsx'])) {
+            setFlash('error', 'Only CSV or Excel (.xlsx) files are allowed.');
             header('Location: document_portal.php?action=levy'); exit;
         }
 
-        // Parse CSV — handle BOM, semicolon delimiters, flexible column names
-        $rows = [];
-        if (($fh = fopen($file['tmp_name'], 'r')) !== false) {
-            $header = null;
-            // Auto-detect delimiter from first line (tab, semicolon, or comma)
-            $firstLine = fgets($fh);
-            rewind($fh);
-            // Strip UTF-8 BOM if present
-            $firstLine = ltrim($firstLine, "\xEF\xBB\xBF");
-            $tabs      = substr_count($firstLine, "\t");
-            $semis     = substr_count($firstLine, ';');
-            $commas    = substr_count($firstLine, ',');
-            if ($tabs >= $semis && $tabs >= $commas)       $delim = "\t";
-            elseif ($semis > $commas)                      $delim = ';';
-            else                                           $delim = ',';
-
-            while (($row = fgetcsv($fh, 2000, $delim)) !== false) {
-                if (!$header) {
-                    // Normalise header: lowercase, strip BOM and whitespace
-                    $header = array_map(function($h) {
-                        return strtolower(trim(ltrim($h, "\xEF\xBB\xBF")));
-                    }, $row);
-                    continue;
-                }
-                if (count($row) < 1 || implode('', $row) === '') continue;
-                $data = array_combine(
-                    array_slice($header, 0, count($row)),
-                    array_slice($row, 0, count($header))
-                );
-                $rows[] = $data;
-            }
-            fclose($fh);
-        }
+        // Parse upload (xlsx or csv) — returns array of associative rows
+        // keyed by lower-cased header names, same shape either way.
+        $rows = gemb_read_rows($file['tmp_name'], $ext);
 
         if (empty($rows)) {
             setFlash('error',
-                'CSV file is empty or could not be parsed. '
-              . 'Make sure it is saved as plain CSV (not .xlsx) '
-              . 'with an "email" column header in the first row.');
+                'File is empty or could not be parsed. '
+              . 'Make sure it has an "email" column header in the first row.');
             header('Location: document_portal.php?action=levy'); exit;
         }
 
@@ -396,15 +365,14 @@ if ($action === 'levy') {
       <div class="card">
         <?= getFlash() ?>
         <div class="alert alert-info" style="font-size:.88rem;margin-bottom:16px;">
-          Upload a CSV file exported from your financial system.<br>
+          Upload a CSV or Excel (.xlsx) file exported from your financial system.<br>
           <strong>Required column:</strong> <code>email</code><br>
-          <strong>Optional columns:</strong> <code>name, amount, message</code><br>
-          In Excel: File → Save As → CSV (Comma delimited)
+          <strong>Optional columns:</strong> <code>name, amount, message</code>
         </div>
 
-        <!-- CSV format example -->
+        <!-- format example -->
         <div style="background:#f8f9fa;border-radius:6px;padding:12px;margin-bottom:16px;font-size:.82rem;">
-          <strong>Example CSV format:</strong>
+          <strong>Example format (first row = headers):</strong>
           <pre style="margin:6px 0 0;color:#444;">email,name,amount,message
 john@example.com,John Smith,1500.00,Levy due 30 June 2026
 jane@example.com,Jane Doe,1500.00,Levy due 30 June 2026</pre>
@@ -423,8 +391,8 @@ jane@example.com,Jane Doe,1500.00,Levy due 30 June 2026</pre>
                    placeholder="e.g. GEMB Estate - June 2026 Levy Notice">
           </div>
           <div class="form-group">
-            <label>CSV File *</label>
-            <input type="file" name="csv" accept=".csv,.txt" required
+            <label>CSV or Excel File *</label>
+            <input type="file" name="csv" accept=".csv,.txt,.xlsx" required
                    style="padding:10px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;width:100%;">
           </div>
           <button type="submit" class="btn btn-success btn-block">

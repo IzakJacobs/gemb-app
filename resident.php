@@ -401,18 +401,9 @@ if ($action === 'menu') {
         <a href="resident.php?action=vehicles" class="menu-btn">
           <span class="icon">🚗</span>My Vehicles
         </a>
-
-<div class="menu-grid">
-  <a href="visitor.php?action=select" class="menu-btn">
-    <span class="icon">👤</span>My Visitors
-  </a>
-  <a href="resident.php?action=vehicles" class="menu-btn">
-    <span class="icon">🚗</span>My Vehicles
-  </a>
-  <a href="request_new.php" class="menu-btn">
-    <span class="icon">📝</span>New Request
-  </a>
-
+        <a href="request_new.php" class="menu-btn">
+          <span class="icon">📝</span>New Request
+        </a>
         <a href="document_archive.php" class="menu-btn">
           <span class="icon">📄</span>Estate Documents
         </a>
@@ -429,6 +420,7 @@ if ($action === 'menu') {
     </div>
     <?php pageFooter(); exit; ?>
 <?php } // end action
+
 
 // ── VEHICLES ──────────────────────────────────────────────
 if ($action === 'vehicles') {

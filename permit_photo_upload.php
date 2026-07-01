@@ -230,11 +230,11 @@ $printAction = ($type === 'card') ? 'permit_card.php' : 'permit_slip.php';
       </div>
     </div>
 
-    <form id="printForm" method="POST" action="<?= htmlspecialchars($printAction) ?>?id=<?= $id ?>" target="_blank">
+    <form id="printForm" method="POST" action="<?= htmlspecialchars($printAction) ?>?id=<?= $id ?>">
       <input type="hidden" name="photo_data" id="photoDataField">
       <div class="actions">
         <button type="button" class="btn-secondary" onclick="closeOrRedirect();">Cancel</button>
-        <button type="submit" class="btn-primary" id="approveBtn" disabled>Approve &amp; print</button>
+        <button type="button" class="btn-primary" id="approveBtn" disabled onclick="submitPermit();">Approve &amp; print</button>
       </div>
     </form>
 
@@ -373,22 +373,48 @@ function updatePreview() {
   approveBtn.disabled = false;
 }
 
+function submitPermit() {
+  // Regenerate canvas fresh at submit time — avoids stale data on slow mobile hardware
+  const canvas = document.createElement('canvas');
+  canvas.width = TARGET_W;
+  canvas.height = TARGET_H;
+  const ctx = canvas.getContext('2d');
+  const s = baseScale * scale;
+  ctx.drawImage(img, -offsetX / s, -offsetY / s, boxW / s, boxH / s, 0, 0, TARGET_W, TARGET_H);
+  const freshDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+  photoField.value = freshDataUrl;
+
+  // Disable button to prevent double-submit
+  approveBtn.disabled = true;
+  approveBtn.textContent = 'Generating PDF…';
+
+  // POST via fetch, receive the PDF blob, then open it in the same tab.
+  // This avoids target="_blank" POST body truncation on mobile browsers.
+  const formData = new FormData(printForm);
+  fetch(printForm.action, { method: 'POST', body: formData })
+    .then(res => {
+      if (!res.ok) throw new Error('Server error ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+    })
+    .catch(err => {
+      approveBtn.disabled = false;
+      approveBtn.textContent = 'Approve & print';
+      alert('Could not generate permit PDF. Please try again.\n\n' + err.message);
+    });
+}
+
 function closeOrRedirect() {
-  // This page is opened via target="_blank" from security.php,
-  // so there's no history to go back to — close the tab instead.
-  // Some browsers block window.close() on tabs not opened by script,
-  // so fall back to the approvals list if closing doesn't work.
   window.close();
   setTimeout(() => {
     window.location.href = 'security.php?action=approvals';
   }, 150);
 }
 
-printForm.addEventListener('submit', () => {
-  if (!photoField.value) {
-    return false;
-  }
-});
+printForm.addEventListener('submit', (e) => { e.preventDefault(); });
 </script>
 
 </body>

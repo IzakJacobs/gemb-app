@@ -304,6 +304,37 @@ $pdf->loadHtml($html);
 $pdf->setPaper('A4', 'portrait');
 $pdf->render();
 $output = $pdf->output();
+
+// ── Audit log: save PDF to disk and record the print event ──
+try {
+    $monthDir = __DIR__ . '/uploads/permits/' . date('Y-m');
+    if (!is_dir($monthDir)) @mkdir($monthDir, 0755, true);
+
+    $filename = 'card_' . $sp['unique_code'] . '_' . date('YmdHis') . '.pdf';
+    $filePath = $monthDir . '/' . $filename;
+    $relPath  = '/uploads/permits/' . date('Y-m') . '/' . $filename;
+
+    file_put_contents($filePath, $output);
+
+    $purgeAfter = date('Y-m-d', strtotime($sp['end_date'] . ' +30 days'));
+
+    db()->prepare("
+        INSERT INTO permit_print_log
+            (sp_id, unique_code, permit_type, printed_by_id, printed_by_name, printed_at, pdf_path, purge_after)
+        VALUES (?, ?, 'card', ?, ?, NOW(), ?, ?)
+    ")->execute([
+        $sp['id'],
+        $sp['unique_code'],
+        $_SESSION['security_id']   ?? 0,
+        $_SESSION['security_name'] ?? 'Security',
+        $relPath,
+        $purgeAfter,
+    ]);
+} catch (Exception $e) {
+    error_log('permit_print_log save failed: ' . $e->getMessage());
+}
+
+// ── Stream PDF to browser ─────────────────────────────────
 header('Content-Type: application/pdf');
 header('Content-Disposition: inline; filename="permit_card_' . $sp['unique_code'] . '.pdf"');
 header('Content-Length: ' . strlen($output));

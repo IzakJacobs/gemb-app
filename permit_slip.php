@@ -359,10 +359,41 @@ $pdf = new Dompdf($opt);
 $pdf->loadHtml($html);
 $pdf->setPaper('A4', 'portrait');
 $pdf->render();
-// Explicitly set inline Content-Disposition — most compatible across desktop and Android browsers.
-// Dompdf's built-in stream() works on desktop; on Android we manually set headers to guarantee
-// the PDF opens in the browser viewer rather than triggering a download.
 $output = $pdf->output();
+
+// ── Audit log: save PDF to disk and record the print event ──
+try {
+    // Monthly subfolders keep the directory manageable
+    $monthDir = __DIR__ . '/uploads/permits/' . date('Y-m');
+    if (!is_dir($monthDir)) @mkdir($monthDir, 0755, true);
+
+    $filename = 'slip_' . $sp['unique_code'] . '_' . date('YmdHis') . '.pdf';
+    $filePath = $monthDir . '/' . $filename;
+    $relPath  = '/uploads/permits/' . date('Y-m') . '/' . $filename;
+
+    file_put_contents($filePath, $output);
+
+    // purge_after = SP end_date + 30 days, consistent with POPIA retention policy
+    $purgeAfter = date('Y-m-d', strtotime($sp['end_date'] . ' +30 days'));
+
+    db()->prepare("
+        INSERT INTO permit_print_log
+            (sp_id, unique_code, permit_type, printed_by_id, printed_by_name, printed_at, pdf_path, purge_after)
+        VALUES (?, ?, 'slip', ?, ?, NOW(), ?, ?)
+    ")->execute([
+        $sp['id'],
+        $sp['unique_code'],
+        $_SESSION['security_id']   ?? 0,
+        $_SESSION['security_name'] ?? 'Security',
+        $relPath,
+        $purgeAfter,
+    ]);
+} catch (Exception $e) {
+    // Never block permit printing on a log failure
+    error_log('permit_print_log save failed: ' . $e->getMessage());
+}
+
+// ── Stream PDF to browser ─────────────────────────────────
 header('Content-Type: application/pdf');
 header('Content-Disposition: inline; filename="permit_slip_' . $sp['unique_code'] . '.pdf"');
 header('Content-Length: ' . strlen($output));

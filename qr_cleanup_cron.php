@@ -212,6 +212,47 @@ try {
     $lines[] = "  login_attempts: " . $e->getMessage();
 }
 
+// 9. Purge permit print log and associated PDF files
+//    Retention: SP end_date + 30 days (set as purge_after at insert time)
+try {
+    // Fetch expired rows first so we can delete the PDF files from disk
+    $expired = db()->query(
+        "SELECT id, pdf_path FROM permit_print_log WHERE purge_after < CURDATE()"
+    )->fetchAll();
+
+    $filesPurged = 0;
+    $filesNotFound = 0;
+    foreach ($expired as $row) {
+        $absPath = __DIR__ . $row['pdf_path'];
+        if (file_exists($absPath)) {
+            @unlink($absPath);
+            $filesPurged++;
+        } else {
+            $filesNotFound++;
+        }
+    }
+
+    // Delete expired DB rows
+    $stmt = db()->query(
+        "DELETE FROM permit_print_log WHERE purge_after < CURDATE()"
+    );
+    $lines[] = "  permit_print_log rows deleted: " . $stmt->rowCount()
+             . " (PDFs deleted: {$filesPurged}, already gone: {$filesNotFound})";
+
+    // Also clean up any empty monthly subdirectories left behind
+    $permitsDir = __DIR__ . '/uploads/permits';
+    if (is_dir($permitsDir)) {
+        foreach (glob($permitsDir . '/*', GLOB_ONLYDIR) as $monthDir) {
+            $remaining = glob($monthDir . '/*.pdf');
+            if (empty($remaining)) {
+                @rmdir($monthDir);
+            }
+        }
+    }
+} catch (Exception $e) {
+    $lines[] = "  permit_print_log: " . $e->getMessage();
+}
+
 $lines[] = "[$today " . date('H:i:s') . "] QR cleanup complete";
 $lines[] = str_repeat('-', 60);
 

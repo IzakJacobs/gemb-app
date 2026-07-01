@@ -373,10 +373,14 @@ function updatePreview() {
   approveBtn.disabled = false;
 }
 
+// Detect Edge on Android — needs special handling
+function isEdgeAndroid() {
+  const ua = navigator.userAgent || '';
+  return /EdgA/i.test(ua) && /Android/i.test(ua);
+}
+
 function submitPermit() {
   // Regenerate the cropped image fresh at submit time.
-  // This guarantees the latest crop position and zoom are captured,
-  // even on slow mobile hardware where the preview may lag.
   const canvas = document.createElement('canvas');
   canvas.width  = TARGET_W;
   canvas.height = TARGET_H;
@@ -391,14 +395,40 @@ function submitPermit() {
     return;
   }
 
-  // Disable button to prevent double-submit
   approveBtn.disabled    = true;
   approveBtn.textContent = 'Generating PDF\u2026';
 
-  // Plain synchronous POST to the same tab — most compatible approach
-  // across desktop, Android, and iOS. Dompdf streams the PDF directly
-  // and the browser opens it inline without any blob/download step.
-  printForm.submit();
+  if (isEdgeAndroid()) {
+    // Edge on Android intercepts binary responses from form.submit() as failed
+    // navigations. Instead: POST via fetch, receive the PDF blob, create an
+    // object URL, open it in a new tab — Edge Android handles blob URLs correctly.
+    const formData = new FormData(printForm);
+    fetch(printForm.action, { method: 'POST', body: formData })
+      .then(res => {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        // Open blob URL in new tab — Edge Android handles this without a download prompt
+        const win = window.open(blobUrl, '_blank');
+        if (!win) {
+          // Popup blocked — fall back to same-tab navigation
+          window.location.href = blobUrl;
+        }
+        approveBtn.disabled    = false;
+        approveBtn.textContent = 'Approve & print';
+      })
+      .catch(err => {
+        approveBtn.disabled    = false;
+        approveBtn.textContent = 'Approve & print';
+        alert('Could not generate permit PDF.\n\n' + err.message);
+      });
+  } else {
+    // All other browsers: plain synchronous POST to the same tab.
+    // Most compatible across desktop Edge/Chrome, Chrome Android, Safari iOS.
+    printForm.submit();
+  }
 }
 
 function closeOrRedirect() {

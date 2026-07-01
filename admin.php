@@ -312,6 +312,14 @@ if ($action === 'menu') {
       <?= getFlash() ?>
       <div class="menu-grid">
         <a href="residents_admin.php?action=list" class="menu-btn"><span class="icon">🏠</span>Residents</a>
+        
+         <a href="admin_approvals.php" class="menu-btn">
+          <span class="icon">📋</span>Tenant &amp; Pet Approvals
+          <?php if ($pendingTP > 0): ?>
+            <span class="badge badge-warning"><?= $pendingTP ?></span>
+          <?php endif; ?>
+        </a>
+        
         <a href="admin.php?action=add_security"   class="menu-btn"><span class="icon">🛡️</span>Site Managers</a>
         <a href="admin.php?action=add_guard"       class="menu-btn"><span class="icon">👮</span>Guards</a>
         <a href="export.php?action=menu"           class="menu-btn"><span class="icon">📊</span>Export</a>
@@ -325,6 +333,8 @@ if ($action === 'menu') {
     </div>
     <?php pageFooter(); exit; ?>
 <?php } // end action
+
+
 
 // ── CHANGE PASSWORD (logged-in admin) ─────────────────────
 if ($action === 'change_pw') {

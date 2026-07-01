@@ -39,18 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('The tenant must accept the estate rules to proceed.');
             }
 
-            // ADJUST: use your existing upload helper (same one sp_request.php uses for photo_path / id docs)
-            $id_document = !empty($_FILES['id_document']['name'])
-                ? upload_file($_FILES['id_document'], '/uploads/tenant_docs/') : null;
-            $photo = !empty($_FILES['photo']['name'])
-                ? upload_file($_FILES['photo'], '/uploads/sp_photos/') : null;
-
             db()->prepare("INSERT INTO tenants
-                (resident_erfno, resident_name, tenant_name, id_number, id_document, photo, sp_phone, email,
+                (resident_erfno, resident_name, tenant_name, id_number, sp_phone, email,
                  lease_start, lease_end, rules_signed_at, rules_signed_ip, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 'pending')"
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 'pending')"
             )->execute([
-                $resident_erfno, $resident_name, $tenant_name, $id_number, $id_document, $photo, $phone, $email,
+                $resident_erfno, $resident_name, $tenant_name, $id_number, $phone, $email,
                 $lease_start, $lease_end, $_SERVER['REMOTE_ADDR'] ?? '',
             ]);
 
@@ -88,13 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            $photo = !empty($_FILES['photo']['name'])
-                ? upload_file($_FILES['photo'], '/uploads/pet_photos/') : null; // ADJUST: upload helper
-
             db()->prepare("INSERT INTO pets
-                (resident_erfno, resident_name, pet_type, pet_name, breed, weight_kg, photo, visit_start, visit_end, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')"
-            )->execute([$resident_erfno, $resident_name, $pet_type, $pet_name, $breed, $weight, $photo, $visit_start, $visit_end]);
+                (resident_erfno, resident_name, pet_type, pet_name, breed, weight_kg, visit_start, visit_end, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')"
+            )->execute([$resident_erfno, $resident_name, $pet_type, $pet_name, $breed, $weight, $visit_start, $visit_end]);
 
             setFlash('success', 'Pet request submitted. You will be notified once admin has reviewed it.');
             header('Location: request_new.php'); exit;
@@ -119,9 +110,6 @@ renderHeader('📝 New Request', 'my_requests.php');
       <a href="request_new.php?type=pet" class="menu-btn">
         <span class="icon">🐾</span>Register a Pet
       </a>
-      <a href="sp_request.php" class="menu-btn">
-        <span class="icon">👷</span>Register a Service Provider
-      </a>
     </div>
     <p style="text-align:center;margin-top:16px;">
       <a href="my_requests.php">View my submitted requests &rarr;</a>
@@ -131,7 +119,7 @@ renderHeader('📝 New Request', 'my_requests.php');
   <?php if ($type === 'tenant'): ?>
     <div class="card">
       <div class="card-title">Register a Tenant</div>
-      <form method="POST" enctype="multipart/form-data">
+      <form method="POST">
         <?= csrfField() ?>
         <input type="hidden" name="type" value="tenant">
 
@@ -146,12 +134,6 @@ renderHeader('📝 New Request', 'my_requests.php');
         </div>
         <div class="form-group"><label>Email</label>
           <input type="email" name="email">
-        </div>
-        <div class="form-group"><label>ID document (photo or PDF)</label>
-          <input type="file" name="id_document" accept="image/*,.pdf">
-        </div>
-        <div class="form-group"><label>Tenant photo</label>
-          <input type="file" name="photo" accept="image/*" capture="environment">
         </div>
         <div class="form-group"><label>Lease start *</label>
           <input type="date" name="lease_start" required>
@@ -174,7 +156,7 @@ renderHeader('📝 New Request', 'my_requests.php');
   <?php if ($type === 'pet'): ?>
     <div class="card">
       <div class="card-title">Register a Pet</div>
-      <form method="POST" enctype="multipart/form-data" id="petForm">
+      <form method="POST" id="petForm">
         <?= csrfField() ?>
         <input type="hidden" name="type" value="pet">
 
@@ -192,9 +174,6 @@ renderHeader('📝 New Request', 'my_requests.php');
         </div>
         <div class="form-group"><label>Adult weight (kg) <small style="color:#888;">max 15kg</small></label>
           <input type="number" name="weight_kg" step="0.1" min="0">
-        </div>
-        <div class="form-group"><label>Pet photo</label>
-          <input type="file" name="photo" accept="image/*" capture="environment">
         </div>
         <div id="visitorFields" style="display:none;">
           <div class="form-group"><label>Visit start date *</label>

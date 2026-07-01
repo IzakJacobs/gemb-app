@@ -39,7 +39,7 @@ function statusBadge(string $status): string {
 }
 
 pageHeader('My Requests', 'resident');
-renderHeader('📋 My Requests', 'request_new.php');
+renderHeader('📋 My Requests', 'resident.php?action=menu');
 ?>
 <div class="container">
 

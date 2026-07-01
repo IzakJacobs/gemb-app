@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 pageHeader('New Request', 'resident');
-renderHeader('📝 New Request', 'my_requests.php');
+renderHeader('📝 New Request', 'resident.php?action=menu');
 ?>
 <div class="container">
   <?= getFlash() ?>

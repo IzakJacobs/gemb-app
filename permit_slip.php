@@ -359,5 +359,13 @@ $pdf = new Dompdf($opt);
 $pdf->loadHtml($html);
 $pdf->setPaper('A4', 'portrait');
 $pdf->render();
-$pdf->stream('permit_slip_' . $sp['unique_code'] . '.pdf', ['Attachment' => false]);
+// Explicitly set inline Content-Disposition — most compatible across desktop and Android browsers.
+// Dompdf's built-in stream() works on desktop; on Android we manually set headers to guarantee
+// the PDF opens in the browser viewer rather than triggering a download.
+$output = $pdf->output();
+header('Content-Type: application/pdf');
+header('Content-Disposition: inline; filename="permit_slip_' . $sp['unique_code'] . '.pdf"');
+header('Content-Length: ' . strlen($output));
+header('Cache-Control: private, max-age=0, must-revalidate');
+echo $output;
 exit;

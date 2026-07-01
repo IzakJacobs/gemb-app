@@ -374,37 +374,31 @@ function updatePreview() {
 }
 
 function submitPermit() {
-  // Regenerate canvas fresh at submit time — avoids stale data on slow mobile hardware
+  // Regenerate the cropped image fresh at submit time.
+  // This guarantees the latest crop position and zoom are captured,
+  // even on slow mobile hardware where the preview may lag.
   const canvas = document.createElement('canvas');
-  canvas.width = TARGET_W;
+  canvas.width  = TARGET_W;
   canvas.height = TARGET_H;
   const ctx = canvas.getContext('2d');
-  const s = baseScale * scale;
-  ctx.drawImage(img, -offsetX / s, -offsetY / s, boxW / s, boxH / s, 0, 0, TARGET_W, TARGET_H);
-  const freshDataUrl = canvas.toDataURL('image/jpeg', 0.88);
-  photoField.value = freshDataUrl;
+  const s   = baseScale * scale;
+  ctx.drawImage(img, -offsetX / s, -offsetY / s, boxW / s, boxH / s,
+                0, 0, TARGET_W, TARGET_H);
+  photoField.value = canvas.toDataURL('image/jpeg', 0.88);
+
+  if (!photoField.value || photoField.value.length < 100) {
+    alert('Photo data is missing. Please re-select the photo and try again.');
+    return;
+  }
 
   // Disable button to prevent double-submit
-  approveBtn.disabled = true;
-  approveBtn.textContent = 'Generating PDF…';
+  approveBtn.disabled    = true;
+  approveBtn.textContent = 'Generating PDF\u2026';
 
-  // POST via fetch, receive the PDF blob, then open it in the same tab.
-  // This avoids target="_blank" POST body truncation on mobile browsers.
-  const formData = new FormData(printForm);
-  fetch(printForm.action, { method: 'POST', body: formData })
-    .then(res => {
-      if (!res.ok) throw new Error('Server error ' + res.status);
-      return res.blob();
-    })
-    .then(blob => {
-      const url = URL.createObjectURL(blob);
-      window.location.href = url;
-    })
-    .catch(err => {
-      approveBtn.disabled = false;
-      approveBtn.textContent = 'Approve & print';
-      alert('Could not generate permit PDF. Please try again.\n\n' + err.message);
-    });
+  // Plain synchronous POST to the same tab — most compatible approach
+  // across desktop, Android, and iOS. Dompdf streams the PDF directly
+  // and the browser opens it inline without any blob/download step.
+  printForm.submit();
 }
 
 function closeOrRedirect() {
@@ -414,6 +408,7 @@ function closeOrRedirect() {
   }, 150);
 }
 
+// Prevent accidental native submit (e.g. Enter key)
 printForm.addEventListener('submit', (e) => { e.preventDefault(); });
 </script>
 

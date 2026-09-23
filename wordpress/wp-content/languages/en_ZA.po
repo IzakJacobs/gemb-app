@@ -2206,11 +2206,11 @@ msgstr "The user_pass field is required when creating a new user. The user will 
 
 #. translators: %s is the throwable class name
 #. translators: %s is the class name
-#: wp-includes/template.php:1026 wp-includes/template.php:1065
+#: wp-includes/template.php:1092 wp-includes/template.php:1131
 msgid "Uncaught \"%s\" thrown:"
 msgstr "Uncaught \"%s\" thrown:"
 
-#: wp-includes/template.php:975
+#: wp-includes/template.php:1041
 msgid "User error triggered:"
 msgstr "User error triggered:"
 
@@ -3812,7 +3812,7 @@ msgctxt "block description"
 msgid "Reuse this design across your site."
 msgstr "Reuse this design across your site."
 
-#: wp-includes/js/dist/editor.js:101469 wp-admin/about.php:178
+#: wp-includes/js/dist/editor.js:101469 wp-admin/about.php:198
 msgid "Accessibility"
 msgstr "Accessibility"
 

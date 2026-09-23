@@ -24,10 +24,10 @@ header('Retry-After: 600');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link rel="icon" href="/favicon.ico">
-    <link rel="stylesheet" href="https://gemb.co.za/wordpress/wp-content/maintenance/assets/styles.css?1789715835">
-    <script src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/timer.js?1789715835"></script>
+    <link rel="stylesheet" href="https://gemb.co.za/wordpress/wp-content/maintenance/assets/styles.css?1790147955">
+    <script src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/timer.js?1790147955"></script>
     <title>Scheduled Maintenance</title>
-    <style>body {background-image: url("https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/bg.jpg?1789715835");}</style>
+    <style>body {background-image: url("https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/bg.jpg?1790147955");}</style>
 </head>
 
 <body>
@@ -45,13 +45,13 @@ header('Retry-After: 600');
     <!--START_SOCIAL_LINKS_BLOCK-->
     <section class="social-links">
                     <a class="social-links__link" href="https://www.facebook.com/cPanel" target="_blank" title="Facebook">
-                <span class="icon"><img src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/facebook.svg?1789715835" alt="Facebook"></span>
+                <span class="icon"><img src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/facebook.svg?1790147955" alt="Facebook"></span>
             </a>
                     <a class="social-links__link" href="https://x.com/cPanel" target="_blank" title="Twitter">
-                <span class="icon"><img src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/twitter.svg?1789715835" alt="Twitter"></span>
+                <span class="icon"><img src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/twitter.svg?1790147955" alt="Twitter"></span>
             </a>
                     <a class="social-links__link" href="https://instagram.com/cPanel" target="_blank" title="Instagram">
-                <span class="icon"><img src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/instagram.svg?1789715835" alt="Instagram"></span>
+                <span class="icon"><img src="https://gemb.co.za/wordpress/wp-content/maintenance/assets/images/instagram.svg?1790147955" alt="Instagram"></span>
             </a>
             </section>
     <!--END_SOCIAL_LINKS_BLOCK-->

@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the WordPress - 7.1.x - Development - Administration - Network Admin package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2026-02-19 10:24:23+0000\n"
+"PO-Revision-Date: 2026-10-02 06:40:57+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -10,6 +10,10 @@ msgstr ""
 "X-Generator: GlotPress/4.1.0\n"
 "Language: en_ZA\n"
 "Project-Id-Version: WordPress - 7.1.x - Development - Administration - Network Admin\n"
+
+#: wp-admin/network/users.php:343
+msgid "No users were deleted because no user was selected for content reassignment."
+msgstr "No users were deleted because no user was selected for content reassignment."
 
 #: wp-admin/network/sites.php:361
 msgid "Site flagged for deletion."

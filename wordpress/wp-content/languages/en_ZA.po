@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the WordPress - 7.1.x - Development package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2026-09-14 10:06:14+0000\n"
+"PO-Revision-Date: 2026-10-02 06:53:20+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -710,7 +710,7 @@ msgid "A view configuration patch must declare a supported schema version."
 msgstr "A view configuration patch must declare a supported schema version."
 
 #. translators: 1: oembed_providers, 2: The oEmbed provider URL pattern.
-#: wp-includes/class-wp-oembed.php:240
+#: wp-includes/class-wp-oembed.php:236
 msgid "The oEmbed provider data returned by the %1$s filter at key %2$s is malformed. The providers array must be a mapping of provider URL patterns to a tuple array consisting of a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1."
 msgstr "The oEmbed provider data returned by the %1$s filter at key %2$s is malformed. The providers array must be a mapping of provider URL patterns to a tuple array consisting of a provider endpoint URL string at index 0 and an optional boolean regex flag at index 1."
 
@@ -3812,7 +3812,7 @@ msgctxt "block description"
 msgid "Reuse this design across your site."
 msgstr "Reuse this design across your site."
 
-#: wp-includes/js/dist/editor.js:101469 wp-admin/about.php:198
+#: wp-includes/js/dist/editor.js:101469 wp-admin/about.php:223
 msgid "Accessibility"
 msgstr "Accessibility"
 
@@ -22758,7 +22758,7 @@ msgid "Sun"
 msgstr "Sun"
 
 #: wp-includes/class-wp-http-curl.php:257
-#: wp-includes/class-wp-http-curl.php:324 wp-includes/class-wp-http.php:1070
+#: wp-includes/class-wp-http-curl.php:324 wp-includes/class-wp-http.php:1073
 msgid "Too many redirects."
 msgstr "Too many redirects."
 

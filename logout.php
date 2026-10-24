@@ -21,19 +21,24 @@
 require_once __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
-// ── Step 1: Determine redirect BEFORE destroying session ──
-$redirect = 'https://www.google.co.za/index.html';                 // safe estate-neutral fallback
-if      (!empty($_SESSION['admin_id']))    $redirect = 'admin.php?action=login';
-elseif  (!empty($_SESSION['resident_id'])) $redirect = 'resident.php?action=login';
-elseif  (!empty($_SESSION['guard_id']))    $redirect = 'guard.php?action=login';
-elseif  (!empty($_SESSION['security_id'])) $redirect = 'security.php?action=login';
-$reason = $_GET['reason'] ?? '';
 
-// ── Step 1b: Free up the single-active-session lock (admin only) ──
+// ── Step 1: Determine redirect BEFORE destroying session ──
+
+$redirect = 'https://www.google.co.za/index.html';
+
+// Determine which login page the user should return to.
 if (!empty($_SESSION['admin_id'])) {
-    db()->prepare("UPDATE admins SET active_session_token=NULL WHERE id=?")
-        ->execute([(int)$_SESSION['admin_id']]);
+    $redirect = 'admin.php?action=login';
+} elseif (!empty($_SESSION['resident_id'])) {
+    $redirect = 'resident.php?action=login';
+} elseif (!empty($_SESSION['guard_id'])) {
+    $redirect = 'guard.php?action=login';
+} elseif (!empty($_SESSION['security_id'])) {
+    $redirect = 'security.php?action=login';
 }
+
+// Preserve the existing reason parameter for compatibility.
+$reason = $_GET['reason'] ?? '';
 
 // ── Step 2: Complete session destruction ──────────────────
 // a) Wipe all session variables

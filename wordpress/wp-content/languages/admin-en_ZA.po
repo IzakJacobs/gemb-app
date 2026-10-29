@@ -577,12 +577,12 @@ msgid "Max simultaneous file uploads"
 msgstr "Max simultaneous file uploads"
 
 #. translators: %s: WordPress version number.
-#: wp-admin/about.php:319
+#: wp-admin/about.php:339
 msgid "WordPress %s Field Guide"
 msgstr "WordPress %s Field Guide"
 
 #. translators: %s: WordPress version number.
-#: wp-admin/about.php:292
+#: wp-admin/about.php:312
 msgid "WordPress %s Release Notes"
 msgstr "WordPress %s Release Notes"
 
@@ -736,16 +736,16 @@ msgstr "If you are a plugin author, you can learn more about <a href=\"https://d
 msgid "If you are a plugin author, you can learn more about <a href=\"https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/\">how to add the Personal Data Eraser to a plugin</a>."
 msgstr "If you are a plugin author, you can learn more about <a href=\"https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/\">how to add the Personal Data Eraser to a plugin</a>."
 
-#: wp-admin/about.php:231
+#: wp-admin/about.php:251
 msgid "And much more"
 msgstr "And much more"
 
-#: wp-admin/about.php:245
+#: wp-admin/about.php:265
 msgid "See everything new"
 msgstr "See everything new"
 
 #. translators: %s: Version number.
-#: wp-admin/about.php:237
+#: wp-admin/about.php:257
 msgid "For a comprehensive overview of all the new features and enhancements in WordPress %s, please visit the feature-showcase website."
 msgstr "For a comprehensive overview of all the new features and enhancements in WordPress %s, please visit the feature-showcase website."
 
@@ -956,12 +956,12 @@ msgstr[0] "%s pattern moved to the Bin."
 msgstr[1] "%s patterns moved to the Bin."
 
 #. translators: %s: WordPress version number.
-#: wp-admin/about.php:329
+#: wp-admin/about.php:349
 msgid "Explore the WordPress %s Field Guide. Learn about the changes in this release with detailed developer notes to help you build with WordPress."
 msgstr "Explore the WordPress %s Field Guide. Learn about the changes in this release with detailed developer notes to help you build with WordPress."
 
 #. translators: %s: WordPress version number.
-#: wp-admin/about.php:302
+#: wp-admin/about.php:322
 msgid "Read the WordPress %s Release Notes for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes."
 msgstr "Read the WordPress %s Release Notes for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes."
 
@@ -1444,7 +1444,7 @@ msgid "Be the future of WordPress"
 msgstr "Be the future of WordPress"
 
 #. translators: 1: Learn WordPress link, 2: Workshops link.
-#: wp-admin/about.php:270
+#: wp-admin/about.php:290
 msgid "<a href=\"%1$s\">Learn WordPress</a> is a free resource for new and experienced WordPress users. Learn is stocked with how-to videos on using various features in WordPress, <a href=\"%2$s\">interactive workshops</a> for exploring topics in-depth, and lesson plans for diving deep into specific areas of WordPress."
 msgstr "<a href=\"%1$s\">Learn WordPress</a> is a free resource for new and experienced WordPress users. Learn is stocked with how-to videos on using various features in WordPress, <a href=\"%2$s\">interactive workshops</a> for exploring topics in-depth, and lesson plans for diving deep into specific areas of WordPress."
 
@@ -1590,12 +1590,12 @@ msgid "<a href=\"https://wordpress.org/documentation/article/customizer/\">Docum
 msgstr "<a href=\"https://wordpress.org/documentation/article/customizer/\">Documentation on Customiser</a>"
 
 #. translators: %s: The major version of WordPress for this branch.
-#: wp-admin/about.php:407
+#: wp-admin/about.php:427
 msgid "This is the final release of WordPress %s"
 msgstr "This is the final release of WordPress %s"
 
 #. translators: The localized WordPress download URL.
-#: wp-admin/about.php:410
+#: wp-admin/about.php:430
 msgid "https://wordpress.org/download/"
 msgstr "https://en-za.wordpress.org/download/"
 
@@ -1915,12 +1915,12 @@ msgid "Another attempt will be made with the next release."
 msgstr "Another attempt will be made with the next release."
 
 #. translators: 1: WordPress version number, 2: Link to update WordPress
-#: wp-admin/about.php:404
+#: wp-admin/about.php:424
 msgid "Important! Your version of WordPress (%1$s) will stop receiving security updates in the near future. To keep your site secure, please <a href=\"%2$s\">update to the latest version of WordPress</a>."
 msgstr "Important! Your version of WordPress (%1$s) will stop receiving security updates in the near future. To keep your site secure, please <a href=\"%2$s\">update to the latest version of WordPress</a>."
 
 #. translators: 1: WordPress version number, 2: Link to update WordPress
-#: wp-admin/about.php:401
+#: wp-admin/about.php:421
 msgid "Important! Your version of WordPress (%1$s) is no longer supported, you will not receive any security updates for your website. To keep your site secure, please <a href=\"%2$s\">update to the latest version of WordPress</a>."
 msgstr "Important! Your version of WordPress (%1$s) is no longer supported, you will not receive any security updates for your website. To keep your site secure, please <a href=\"%2$s\">update to the latest version of WordPress</a>."
 
@@ -1930,7 +1930,7 @@ msgid "https://make.wordpress.org/core/wordpress-%s-field-guide/"
 msgstr "https://make.wordpress.org/core/wordpress-%s-field-guide/"
 
 #. translators: %s: Version number.
-#: wp-admin/about.php:261
+#: wp-admin/about.php:281
 msgid "Learn more about WordPress %s"
 msgstr "Learn more about WordPress %s"
 
@@ -2839,7 +2839,7 @@ msgstr "Go to Plugin Installer"
 msgid "Go to Importers"
 msgstr "Go to Importers"
 
-#: wp-admin/about.php:345
+#: wp-admin/about.php:365
 msgid "Go to Updates"
 msgstr "Go to Updates"
 
@@ -5929,10 +5929,10 @@ msgstr "This plugin does not work with your version of WordPress."
 
 #. translators: %s: WordPress version number.
 #. translators: %s: WordPress version.
-#: wp-admin/about.php:21 wp-admin/about.php:83 wp-admin/about.php:103
-#: wp-admin/about.php:128 wp-admin/includes/update.php:321
-#: wp-admin/index.php:119 wp-admin/install.php:242 wp-admin/update-core.php:94
-#: wp-admin/upgrade.php:96
+#: wp-admin/about.php:21 wp-admin/about.php:78 wp-admin/about.php:103
+#: wp-admin/about.php:123 wp-admin/about.php:148
+#: wp-admin/includes/update.php:321 wp-admin/index.php:119
+#: wp-admin/install.php:242 wp-admin/update-core.php:94 wp-admin/upgrade.php:96
 msgid "https://wordpress.org/documentation/wordpress-version/version-%s/"
 msgstr "https://wordpress.org/documentation/wordpress-version/version-%s/"
 
@@ -8185,7 +8185,7 @@ msgstr "(Currently set to: %s)"
 
 #. translators: %s: WordPress version.
 #. translators: %s: WordPress version number.
-#: wp-admin/about.php:93 wp-admin/about.php:375
+#: wp-admin/about.php:113 wp-admin/about.php:395
 msgid "<strong>Version %s</strong> addressed one security issue."
 msgstr "<strong>Version %s</strong> addressed one security issue."
 
@@ -8198,15 +8198,15 @@ msgstr "https://gravatar.com/"
 msgid "Profile Picture"
 msgstr "Profile Picture"
 
-#: wp-admin/about.php:63 wp-admin/about.php:372
+#: wp-admin/about.php:63 wp-admin/about.php:392
 msgid "Maintenance and Security Releases"
 msgstr "Maintenance and Security Releases"
 
-#: wp-admin/about.php:366
+#: wp-admin/about.php:386
 msgid "Maintenance Releases"
 msgstr "Maintenance Releases"
 
-#: wp-admin/about.php:369
+#: wp-admin/about.php:389
 msgid "Security Releases"
 msgstr "Security Releases"
 
@@ -9831,8 +9831,8 @@ msgstr "Your site at %1$s experienced a critical failure while trying to update 
 msgid "Your site was running version %s."
 msgstr "Your site was running version %s."
 
-#: wp-admin/includes/update-core.php:1619
-#: wp-admin/includes/update-core.php:1655
+#: wp-admin/includes/update-core.php:1620
+#: wp-admin/includes/update-core.php:1656
 msgid "The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions."
 msgstr "The update cannot be installed because your site is unable to copy some files. This is usually due to inconsistent file permissions."
 
@@ -9947,7 +9947,7 @@ msgstr "Howzit! Your site at %1$s has been updated automatically to WordPress %2
 msgid "Background updates"
 msgstr "Background updates"
 
-#: wp-admin/includes/update-core.php:1722
+#: wp-admin/includes/update-core.php:1723
 msgid "There is not enough free disk space to complete the update."
 msgstr "There is not enough free disk space to complete the update."
 
@@ -10014,7 +10014,7 @@ msgstr "<strong>Clicking the arrow to the right of any menu item</strong> in the
 msgid "Preparing to install the latest version&#8230;"
 msgstr "Preparing to install the latest version&#8230;"
 
-#: wp-admin/includes/update-core.php:1636
+#: wp-admin/includes/update-core.php:1637
 msgid "Copying the required files&#8230;"
 msgstr "Copying the required files&#8230;"
 
@@ -10681,7 +10681,7 @@ msgid "It is up to search engines to honor this request."
 msgstr "It is up to search engines to honour this request."
 
 #. translators: 1: WordPress version, 2: URL to About screen.
-#: wp-admin/includes/update-core.php:2024 wp-admin/update-core.php:923
+#: wp-admin/includes/update-core.php:2025 wp-admin/update-core.php:923
 msgid "Welcome to WordPress %1$s. You will be redirected to the About WordPress screen. If not, click <a href=\"%2$s\">here</a>."
 msgstr "Welcome to WordPress %1$s. You will be redirected to the About WordPress screen. If not, click <a href=\"%2$s\">here</a>."
 
@@ -11418,7 +11418,7 @@ msgstr "Show Toolbar when viewing site"
 #. translators: 1: WordPress version number, 2: Plural number of bugs.
 #. translators: 1: WordPress version number, 2: Plural number of bugs. More
 #. than one security issue.
-#: wp-admin/about.php:68 wp-admin/about.php:113 wp-admin/about.php:392
+#: wp-admin/about.php:88 wp-admin/about.php:133 wp-admin/about.php:412
 msgid "<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bug."
 msgid_plural "<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bugs."
 msgstr[0] "<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bug."
@@ -11426,13 +11426,13 @@ msgstr[1] "<strong>Version %1$s</strong> addressed some security issues and fixe
 
 #. translators: %s: HelpHub URL.
 #. translators: %s: Documentation URL.
-#: wp-admin/about.php:80 wp-admin/about.php:100 wp-admin/about.php:125
-#: wp-admin/about.php:398
+#: wp-admin/about.php:75 wp-admin/about.php:100 wp-admin/about.php:120
+#: wp-admin/about.php:145 wp-admin/about.php:418
 msgid "For more information, see <a href=\"%s\">the release notes</a>."
 msgstr "For more information, see <a href=\"%s\">the release notes</a>."
 
 #. translators: 1: WordPress version number, 2: Plural number of bugs.
-#: wp-admin/about.php:380
+#: wp-admin/about.php:400
 msgid "<strong>Version %1$s</strong> addressed %2$s bug."
 msgid_plural "<strong>Version %1$s</strong> addressed %2$s bugs."
 msgstr[0] "<strong>Version %1$s</strong> addressed %2$s bug."
@@ -11440,7 +11440,7 @@ msgstr[1] "<strong>Version %1$s</strong> addressed %2$s bugs."
 
 #. translators: 1: WordPress version number, 2: Plural number of bugs. Singular
 #. security issue.
-#: wp-admin/about.php:386
+#: wp-admin/about.php:406
 msgid "<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bug."
 msgid_plural "<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bugs."
 msgstr[0] "<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bug."
@@ -11451,20 +11451,21 @@ msgstr[1] "<strong>Version %1$s</strong> addressed a security issue and fixed %2
 msgid "What&#8217;s New"
 msgstr "What&#8217;s New"
 
+#. translators: %s: WordPress version.
 #. translators: %s: WordPress version number.
-#: wp-admin/about.php:377
+#: wp-admin/about.php:68 wp-admin/about.php:397
 msgid "<strong>Version %s</strong> addressed some security issues."
 msgstr "<strong>Version %s</strong> addressed some security issues."
 
-#: wp-admin/about.php:371
+#: wp-admin/about.php:391
 msgid "Maintenance and Security Release"
 msgstr "Maintenance and Security Release"
 
-#: wp-admin/about.php:365
+#: wp-admin/about.php:385
 msgid "Maintenance Release"
 msgstr "Maintenance Release"
 
-#: wp-admin/about.php:368
+#: wp-admin/about.php:388
 msgid "Security Release"
 msgstr "Security Release"
 
@@ -11473,7 +11474,7 @@ msgid "This screen allows you to choose your permalink structure. You can choose
 msgstr "This screen allows you to choose your permalink structure. You can choose from common settings or create custom URL structures."
 
 #. translators: 1: WordPress version, 2: URL to About screen.
-#: wp-admin/includes/update-core.php:2032 wp-admin/update-core.php:931
+#: wp-admin/includes/update-core.php:2033 wp-admin/update-core.php:931
 msgid "Welcome to WordPress %1$s. <a href=\"%2$s\">Learn more</a>."
 msgstr "Welcome to WordPress %1$s. <a href=\"%2$s\">Learn more</a>."
 
@@ -11732,11 +11733,11 @@ msgstr "<strong>Bin</strong> removes your post from this list and places it in t
 msgid "Because this is a multisite installation, you may add accounts that already exist on the Network by specifying a username or email, and defining a role. For more options, such as specifying a password, you have to be a Network Administrator and use the hover link under an existing user&#8217;s name to Edit the user profile under Network Admin > All Users."
 msgstr "Because this is a multisite installation, you may add accounts that already exist on the Network by specifying a username or email, and defining a role. For more options, such as specifying a password, you have to be a Network Administrator and use the hover link under an existing user&#8217;s name to Edit the user profile under Network Admin > All Users."
 
-#: wp-admin/about.php:352
+#: wp-admin/about.php:372
 msgid "Go to Dashboard &rarr; Home"
 msgstr "Go to Dashboard &rarr; Home"
 
-#: wp-admin/about.php:345
+#: wp-admin/about.php:365
 msgid "Go to Dashboard &rarr; Updates"
 msgstr "Go to Dashboard &rarr; Updates"
 
@@ -13406,7 +13407,7 @@ msgid "You cannot update because <a href=\"%1$s\">WordPress %2$s</a> requires PH
 msgstr "You cannot update because <a href=\"%1$s\">WordPress %2$s</a> requires PHP version %3$s or higher and MySQL version %4$s or higher. You are running PHP version %5$s and MySQL version %6$s."
 
 #: wp-admin/includes/class-wp-automatic-updater.php:529
-#: wp-admin/includes/update-core.php:2018 wp-admin/update-core.php:919
+#: wp-admin/includes/update-core.php:2019 wp-admin/update-core.php:919
 msgid "WordPress updated successfully."
 msgstr "WordPress updated successfully."
 
@@ -13457,7 +13458,7 @@ msgstr[1] "Must-Use <span class=\"count\">(%s)</span>"
 msgid "Inactive:"
 msgstr "Inactive:"
 
-#: wp-admin/about.php:352
+#: wp-admin/about.php:372
 msgid "Go to Dashboard"
 msgstr "Go to Dashboard"
 
@@ -14238,7 +14239,7 @@ msgstr "The update cannot be installed because WordPress %1$s requires PHP versi
 msgid "The update cannot be installed because WordPress %1$s requires MySQL version %2$s or higher. You are running version %3$s."
 msgstr "The update cannot be installed because WordPress %1$s requires MySQL version %2$s or higher. You are running version %3$s."
 
-#: wp-admin/includes/update-core.php:1891
+#: wp-admin/includes/update-core.php:1892
 msgid "Upgrading database&#8230;"
 msgstr "Upgrading database&#8230;"
 
@@ -15242,7 +15243,7 @@ msgid "Could not extract file from archive."
 msgstr "Could not extract file from archive."
 
 #: wp-admin/includes/file.php:1836 wp-admin/includes/file.php:1995
-#: wp-admin/includes/file.php:2053 wp-admin/includes/update-core.php:1829
+#: wp-admin/includes/file.php:2053 wp-admin/includes/update-core.php:1830
 msgid "Could not copy file."
 msgstr "Could not copy file."
 
@@ -15386,12 +15387,12 @@ msgid "Could not create directory."
 msgstr "Could not create directory."
 
 #: wp-admin/includes/class-wp-upgrader.php:209
-#: wp-admin/includes/update-core.php:1627
+#: wp-admin/includes/update-core.php:1628
 msgid "Enabling Maintenance mode&#8230;"
 msgstr "Enabling Maintenance mode&#8230;"
 
 #: wp-admin/includes/class-wp-upgrader.php:210
-#: wp-admin/includes/update-core.php:1776
+#: wp-admin/includes/update-core.php:1777
 msgid "Disabling Maintenance mode&#8230;"
 msgstr "Disabling Maintenance mode&#8230;"
 

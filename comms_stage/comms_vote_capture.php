@@ -20,6 +20,7 @@
  */
 
 require_once __DIR__ . '/comms_core.php';
+require_once __DIR__ . '/comms_meeting_permissions.php';
 require_once __DIR__ . '/layout.php';
 
 commsRequireAuth();
@@ -33,7 +34,7 @@ $db = db();
 $admin_id = (int) (commsCurrentUserId() ?? 0);
 $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
-$isCaptureAdministrator = (commsCurrentUserRole() === 'administrator');
+$isCaptureAdministrator = false;
 
 /* ============================================================
    HELPERS
@@ -206,6 +207,11 @@ function bvcNextPendingErf(
    ============================================================ */
 
 $meeting_id = (int) ($_GET['meeting_id'] ?? 0);
+if ($meeting_id > 0) {
+    commsRequireMeetingRole($meeting_id, 'administrator', 'supervisor', 'assistant');
+    $isCaptureAdministrator = commsHasMeetingTask($meeting_id, $admin_id, 'paper_ballot_capture');
+}
+
 
 if ($meeting_id <= 0) {
     header('Location: comms_voting.php?action=meetings_list');
@@ -348,7 +354,7 @@ if (
 ) {
     // Only Administrators may save ballots at this stage.
     // Meeting-assigned Assistants will be authorised separately.
-    commsRequireRole('administrator');
+    commsRequireMeetingTask($meeting_id, 'paper_ballot_capture');
 
     verifyCsrfToken();
     

@@ -1,0 +1,35 @@
+# ============================================================
+# GEMB Communications Portal — .gitignore (merged 2026-07-03)
+# ============================================================
+# Sensitive configuration (DB/SMTP credentials + HMAC secret)
+config.php
+cfg.php
+comms_config.php
+.env
+
+# Debug/test scripts (load config.php, never deploy)
+debug.php
+
+# Resident-uploaded documents & runtime artifacts (POPIA)
+uploads/documents/
+uploads/
+exports/
+temp/
+
+# Sessions, logs
+sessions/
+*.log
+error_log
+
+# Backups / archives
+*.zip
+*.tar.gz
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+.idea/
+.vscode/

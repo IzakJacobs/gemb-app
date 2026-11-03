@@ -1854,10 +1854,22 @@ function loadMotion(int $id): array {
     $stmt = db()->prepare("SELECT * FROM motions WHERE id = ?");
     $stmt->execute([$id]);
     $m = $stmt->fetch();
+
     if (!$m) {
         setFlash('error', 'Motion not found.');
-        header('Location: comms_voting.php?action=meetings_list'); exit;
+        header('Location: comms_voting.php?action=meetings_list');
+        exit;
     }
+
+    // STAGING: Require an active appointment for the motion's meeting.
+    $userId = commsCurrentUserId() ?? 0;
+    $actualMeetingId = (int)$m['meeting_id'];
+
+    if (commsMeetingAssignment($actualMeetingId, $userId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
+
     return $m;
 }
 

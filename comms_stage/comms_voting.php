@@ -569,6 +569,12 @@ if ($action === 'meetings_open' && $meetingId > 0) {
 
     // Only Administrators may open meetings.
     commsRequireRole('administrator');
+    
+        // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
@@ -711,6 +717,12 @@ if ($action === 'meetings_close' && $meetingId > 0) {
 
     // Only Administrators may close meetings.
     commsRequireRole('administrator');
+
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
@@ -909,6 +921,12 @@ if ($action === 'meetings_delete' && $meetingId > 0) {
     // Only Administrators may delete meetings.
     commsRequireRole('administrator');
 
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
         
@@ -1048,6 +1066,12 @@ if ($action === 'voter_register' && $meetingId > 0) {
 
     // Administrator and Supervisor may view the Vote Register.
     commsRequireRole('administrator', 'supervisor');
+
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
 
     $meeting = loadMeeting($meetingId);
 
@@ -1416,6 +1440,12 @@ if ($action === 'send_tokens' && $meetingId > 0) {
 
     // Only Administrators may generate and send voting tokens.
     commsRequireRole('administrator');
+
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
 
     $meeting = loadMeeting($meetingId);
     
@@ -4175,6 +4205,12 @@ if ($action === 'meetings_delete_test' && $meetingId > 0) {
     // Only Administrators may delete test meetings.
     commsRequireRole('administrator');
 
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verifyCsrfToken();
 
@@ -4342,6 +4378,12 @@ if ($action === 'meetings_export' && $meetingId > 0) {
 
     // Only Administrators and Supervisors may download audit records.
     commsRequireRole('administrator', 'supervisor');
+
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
 
         $meeting = loadMeeting($meetingId);
 

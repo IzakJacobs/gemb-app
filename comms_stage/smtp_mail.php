@@ -46,10 +46,19 @@ function smtpSend(
     $from = defined('SMTP_FROM') ? SMTP_FROM : $user;
     $name = defined('SMTP_NAME') ? SMTP_NAME : 'GEMB Estate';
 
-    if (!$user || !$pass) {
-        error_log('smtpSend: SMTP_USER / SMTP_PASS not configured in comms/config.php');
+   
+    // STAGING SAFETY: Permit only the designated OTP test recipient.
+    // All other outbound messages, including voting tokens, stay blocked.
+    $stagingOtpAllowed =
+        strcasecmp(trim($to), 'imjac123@hotmail.com') === 0
+        && $subject === 'GEMB Comms - Sign-in Verification Code'
+        && $votingToken === false;
+
+    if (!$stagingOtpAllowed) {
+        error_log('GEMB STAGING: Outbound email blocked.');
         return false;
     }
+
 
     // ── Load PHPMailer ───────────────────────────────────────
     $dir = __DIR__ . '/phpmailer/';

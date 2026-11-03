@@ -40,7 +40,9 @@
 // ============================================================
 
 require_once __DIR__ . "/comms_core.php";
+require_once __DIR__ . "/comms_meeting_permissions.php";
 require_once __DIR__ . "/gemb_file_reader.php";
+
 if (file_exists(__DIR__ . '/SimpleXLSXGen.php')) require_once __DIR__ . '/SimpleXLSXGen.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 

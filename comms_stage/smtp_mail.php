@@ -34,25 +34,22 @@ function smtpSend(
     bool $votingToken = false
 ): bool
 {
-    // STAGING SAFETY: Permit only the designated login OTP.
-    // Block all other outbound email, including voting tokens.
-    $stagingOtpAllowed =
-        strcasecmp(trim($to), 'imjac123@hotmail.com') === 0
-        && $subject === 'GEMB Comms - Sign-in Verification Code'
-        && $votingToken === false;
-
-    if (!$stagingOtpAllowed) {
-        error_log('GEMB STAGING: Outbound email blocked.');
-        return false;
-    }
-
+        // STAGING SAFETY: Never deliver emails.
+    error_log('GEMB STAGING: Outbound email blocked.');
+    return false;
     $host = defined('SMTP_HOST') ? SMTP_HOST : 'mail.gemb.co.za';
+    
+    
     $port = defined('SMTP_PORT') ? (int)SMTP_PORT : 587;
     $user = defined('SMTP_USER') ? SMTP_USER : '';
     $pass = defined('SMTP_PASS') ? SMTP_PASS : '';
     $from = defined('SMTP_FROM') ? SMTP_FROM : $user;
     $name = defined('SMTP_NAME') ? SMTP_NAME : 'GEMB Estate';
-    
+
+    if (!$user || !$pass) {
+        error_log('smtpSend: SMTP_USER / SMTP_PASS not configured in comms/config.php');
+        return false;
+    }
 
     // ── Load PHPMailer ───────────────────────────────────────
     $dir = __DIR__ . '/phpmailer/';

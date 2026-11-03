@@ -87,17 +87,35 @@ function loadMeeting(int $id): array {
 // ============================================================
 if ($action === 'meetings_list') {
 
-    $stmt = db()->query(
-        "SELECT mt.*,
-                mt.auditor_export_at,
-                (SELECT COUNT(*) FROM motions mo WHERE mo.meeting_id = mt.id) AS motion_count,
-                (SELECT COUNT(*) FROM motions mo WHERE mo.meeting_id = mt.id AND mo.status = 'open')   AS motions_open,
-                (SELECT COUNT(*) FROM motions mo WHERE mo.meeting_id = mt.id AND mo.status = 'closed') AS motions_closed,
-                (SELECT COUNT(*) FROM motions mo WHERE mo.meeting_id = mt.id AND mo.status = 'draft')  AS motions_draft
-         FROM meetings mt
-         ORDER BY mt.created_at DESC"
-    );
-    $meetings = $stmt->fetchAll();
+    
+$stmt = db()->prepare(
+    "SELECT mt.*,
+            mt.auditor_export_at,
+            (SELECT COUNT(*) FROM motions mo
+             WHERE mo.meeting_id = mt.id) AS motion_count,
+            (SELECT COUNT(*) FROM motions mo
+             WHERE mo.meeting_id = mt.id
+               AND mo.status = 'open') AS motions_open,
+            (SELECT COUNT(*) FROM motions mo
+             WHERE mo.meeting_id = mt.id
+               AND mo.status = 'closed') AS motions_closed,
+            (SELECT COUNT(*) FROM motions mo
+             WHERE mo.meeting_id = mt.id
+               AND mo.status = 'draft') AS motions_draft
+     FROM meetings mt
+     INNER JOIN meeting_staff_assignments msa
+         ON msa.meeting_id = mt.id
+     INNER JOIN comms_users cu
+         ON cu.id = msa.user_id
+     WHERE msa.user_id = ?
+       AND msa.active = 1
+       AND cu.active = 1
+     ORDER BY mt.created_at DESC"
+);
+
+$stmt->execute([$adminId]);
+$meetings = $stmt->fetchAll();
+
 
     pageHeader('Vote Register', 'admin');
     renderHeader('🗳️ Vote Register', 'comms_menu.php');

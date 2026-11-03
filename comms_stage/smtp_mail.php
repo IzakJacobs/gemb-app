@@ -34,7 +34,12 @@ function smtpSend(
     bool $votingToken = false
 ): bool
 {
+        // STAGING SAFETY: Never deliver emails.
+    error_log('GEMB STAGING: Outbound email blocked.');
+    return false;
     $host = defined('SMTP_HOST') ? SMTP_HOST : 'mail.gemb.co.za';
+    
+    
     $port = defined('SMTP_PORT') ? (int)SMTP_PORT : 587;
     $user = defined('SMTP_USER') ? SMTP_USER : '';
     $pass = defined('SMTP_PASS') ? SMTP_PASS : '';
@@ -131,6 +136,10 @@ function _smtpFallback(
     string $from = 'comms@gemb.co.za',
     string $name = 'GEMB Estate'
 ): bool {
+        // STAGING SAFETY: Block direct fallback calls too.
+    error_log('GEMB STAGING: PHP mail fallback blocked.');
+    return false;
+    
     $subject  = trim(preg_replace('/[^\x20-\x7E]/', '', $subject));
     if ($subject === '') $subject = 'Estate Communication';
 

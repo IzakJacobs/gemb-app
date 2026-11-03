@@ -1948,6 +1948,13 @@ if ($action === 'list') {
         header('Location: comms_voting.php?action=meetings_list'); exit;
     }
 
+    // Require an active appointment to this specific meeting.
+    // Return HTTP 403 if the user is not appointed.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
+
     $meeting = loadMeeting($meetingId);
 
     $stmt = db()->prepare(

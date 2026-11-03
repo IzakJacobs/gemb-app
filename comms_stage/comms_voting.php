@@ -484,11 +484,16 @@ if ($estateId === false) {
 // ============================================================
 if ($action === 'meetings_edit' && $meetingId > 0) {
 
-
     // Only Administrators may edit meetings.
     commsRequireRole('administrator');
-
+    
+// STAGING: Require an active appointment to this meeting.
+if (commsMeetingAssignment($meetingId, $adminId) === null) {
+    http_response_code(403);
+    exit('Access denied: no active appointment for this meeting.');
+}
     $meeting = loadMeeting($meetingId);
+    
     if ($meeting['status'] !== 'draft') {
         setFlash('error', 'Only draft meetings can be edited.');
         header('Location: comms_voting.php?action=meetings_list'); exit;
@@ -2136,8 +2141,14 @@ if ($action === 'create') {
     if ($meetingId <= 0) {
         header('Location: comms_voting.php?action=meetings_list'); exit;
     }
-
+    // STAGING: Require an active appointment to this meeting.
+    if (commsMeetingAssignment($meetingId, $adminId) === null) {
+        http_response_code(403);
+        exit('Access denied: no active appointment for this meeting.');
+    }
     $meeting = loadMeeting($meetingId);
+    
+    
     if ($meeting['status'] === 'closed') {
         setFlash('error', 'This meeting is closed. Motions cannot be added.');
         header("Location: comms_voting.php?action=list&meeting_id={$meetingId}"); exit;

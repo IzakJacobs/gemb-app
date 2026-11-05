@@ -1,0 +1,1 @@
+php -r "echo password_hash('imjac123@gmail.com', PASSWORD_DEFAULT), PHP_EOL;"

@@ -15,7 +15,7 @@ header('X-Content-Type-Options: nosniff');
 header('Strict-Transport-Security: max-age=31536000');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: same-origin');
-$configPath = dirname(__DIR__, 2) . '/quorum-private/config.php';
+$configPath = '/home/gembcoza/quorum-private/config.php';
 if (!is_file($configPath)) { http_response_code(503); exit('Configuration missing. Follow DEPLOYMENT.md.'); }
 $config = require $configPath;
 if (strlen($config['admin_username'] ?? '') < 3 || strlen($config['totp_secret'] ?? '') < 32 || !preg_match('/^[A-Z2-7]+$/D', $config['totp_secret']) || empty(password_get_info($config['admin_password_hash'] ?? '')['algo'])) {

@@ -1,0 +1,11 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+AcceptPathInfo Off
+# Deny by default, including leftover files from older deployments.
+Require all denied
+<FilesMatch "^(index|api|asset)\.php$">
+ Require all granted
+</FilesMatch>
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://gemb.co.za%{REQUEST_URI} [R=301,L]

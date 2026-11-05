@@ -22,8 +22,14 @@ if (strlen($config['admin_username'] ?? '') < 3 || strlen($config['totp_secret']
  http_response_code(503); exit('Secure login configuration is incomplete.');
 }
 if (!isset($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
-function authorized(): bool { global $config; return !empty($_SESSION['authenticated']) && ($_SESSION['last_seen'] ?? 0) > time()-900 && ($_SESSION['login_at'] ?? 0) > time()-28800 && hash_equals($_SESSION['auth_version'] ?? '', hash('sha256', $config['admin_password_hash'] . $config['totp_secret'])); }
+function session_live(): bool { return !empty($_SESSION['authenticated']) && ($_SESSION['last_seen']??0)>time()-900 && ($_SESSION['login_at']??0)>time()-28800; }
+function authorized(): bool { global $config; return session_live() && ($_SESSION['role']??'admin')==='admin' && hash_equals($_SESSION['auth_version']??'',hash('sha256',$config['admin_password_hash'].$config['totp_secret'])); }
+function assistant_account(): ?array {
+ if(!session_live()||($_SESSION['role']??'')!=='assistant')return null;
+ $s=db()->prepare('SELECT id,username,display_name,version,active,assigned FROM quorum_assistants WHERE id=?');$s->execute([$_SESSION['assistant_id']??0]);$a=$s->fetch(PDO::FETCH_ASSOC);
+ return $a && (int)$a['active']===1 && (int)$a['assigned']===1 && (int)$a['version']===(int)($_SESSION['assistant_version']??0)?$a:null;
+}
 function db(): PDO {
  global $config;
- return new PDO($config['dsn'], $config['user'], $config['password'], [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES=>false]);
+ $pdo=new PDO($config['dsn'], $config['user'], $config['password'], [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES=>false]);$pdo->exec("SET time_zone='+00:00'");return $pdo;
 }

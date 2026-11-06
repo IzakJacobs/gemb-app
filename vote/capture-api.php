@@ -31,6 +31,7 @@ try {
  $hash=hash('sha256',cap_json($input));
  if($staffId!==null){$s=$db->prepare('SELECT request_hash,response FROM quorum_capture_requests WHERE assistant_id=? AND request_id=?');$s->execute([$staffId,$requestId]);if($prior=$s->fetch(PDO::FETCH_ASSOC)){if(!hash_equals($prior['request_hash'],$hash))throw new CaptureError('Request identifier reused with different data.',409);$result=json_decode($prior['response'],true);$db->commit();capture_reply(200,$result);}}
  if(($input['action']??'')==='checkin')$result=cap_checkin($db,$state,$input,$actor,$staffId);
+ elseif(($input['action']??'')==='votes'&&!empty($input['electronic']))throw new CaptureError('Electronic voting requires the authenticated owner portal.',403);
  elseif(($input['action']??'')==='votes')$result=cap_record_votes($db,$state,$input,$actor,$staffId,!empty($input['electronic'])&&$admin);
  elseif(($input['action']??'')==='checkout'&&$admin){cap_open($state);$claim=cap_claim($db,(int)($input['claimId']??0));$reason=cap_text($input['reason']??'',300);if($reason==='')throw new CaptureError('Checkout reason required.');$claim['active']=false;$claim['checkedOutAt']=cap_time();$claim['checkedOutBy']=$actor;$claim['checkoutReason']=$reason;cap_write_claim($db,$claim);cap_audit($db,$actor,'ATTENDANCE_CHECKED_OUT',['claimId'=>$claim['claimId'],'reason'=>$reason]);$result=['message'=>'Attendance checked out. Submitted votes retained.'];}
  else throw new CaptureError('Action not allowed.',403);

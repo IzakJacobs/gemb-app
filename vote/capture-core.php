@@ -104,6 +104,7 @@ function cap_projection(PDO $db,array $state): array {
    $state['ballots'][]=['ownerId'=>$oid,'claimId'=>$c['claimId'],'channel'=>count($channels)===1?$first['channel']:'mixed','paperReference'=>$first['paper_reference'],'capturedBy'=>$first['actor'],'time'=>$first['captured_at'],'receipt'=>'CAP-'.$c['claimId'],'attendanceId'=>$c['id'],'proxyHolder'=>$c['holder']??null,'choices'=>array_map(fn($v)=>['motionId'=>(int)$v['motion_id'],'choice'=>$v['choice'],'channel'=>$v['channel'],'paperReference'=>$v['paper_reference'],'capturedBy'=>$v['actor'],'capturedAt'=>$v['captured_at']],$vs)];
   }
  }
+ if(function_exists('qm_sync_flags'))$state=qm_sync_flags($db,$state);
  $state['captureManaged']=true;
  $state['captureAudit']=array_map(fn($r)=>['id'=>'S'.$r['id'],'time'=>str_replace(' ','T',$r['created_at']).'Z','action'=>$r['action'],'actor'=>$r['actor'],'details'=>$r['details']],$db->query('SELECT id,actor,action,details,created_at FROM quorum_capture_audit ORDER BY id DESC LIMIT 100')->fetchAll(PDO::FETCH_ASSOC));
  return $state;
@@ -197,7 +198,7 @@ function cap_admin_ingest(PDO $db,array $before,array $after,string $actor): voi
  foreach($after['ballots'] as $b){
   $old=$priorBallots[$b['ownerId']]??null;$oldIds=array_column($old['choices']??[],'motionId');
   $choices=array_values(array_filter($b['choices'],fn($v)=>!in_array($v['motionId'],$oldIds,true)));if(!$choices)continue;
-  $paper=($b['channel']??'')==='paper';$claimId=null;
+  $paper=($b['channel']??'')==='paper';if(!$paper)throw new CaptureError('Electronic voting requires the authenticated owner portal.',403);$claimId=null;
   if($paper){foreach(cap_claims($db) as $c)if($c['ownerId']===$b['ownerId']&&(!empty($c['active']))&&($c['id']===($b['attendanceId']??'')||(($c['holder']??'')===($b['proxyHolder']??'')&&in_array($c['mode'],['personal','proxy'],true))))$claimId=$c['claimId'];if(!$claimId)throw new CaptureError('Check in this paper voter at the venue first.');}
   cap_record_votes($db,$before,['ownerId'=>$b['ownerId'],'claimId'=>$claimId,'choices'=>$choices,'reference'=>$b['paperReference']??'','confirmed'=>true],$actor,null,!$paper);
  }

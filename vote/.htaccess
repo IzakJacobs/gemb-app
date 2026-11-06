@@ -2,7 +2,7 @@ Options -Indexes -MultiViews
 DirectoryIndex index.php
 AcceptPathInfo Off
 Require all denied
-<FilesMatch "^(index|api|asset|assistant|assistants|capture-api)\.php$">
+<FilesMatch "^(index|api|asset|assistant|assistants|capture-api|owner|emails)\.php$">
  Require all granted
 </FilesMatch>
 RewriteEngine On
